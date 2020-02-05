@@ -1,7 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="4372070e-ade1-4e3a-bab8-4e40966e7856" name="Default Changelist" comment="" />
+    <list default="true" id="4372070e-ade1-4e3a-bab8-4e40966e7856" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/uiDesigner.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/helper_classes/ColumnInfo.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/helper_classes/SchemaInfo.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/helper_classes/TableInfo.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/prestoComm/Constants.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/prestoComm/DBConnector.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/prestoComm/Main.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/prestoComm/MetaDataManager.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/prestoComm/PrestoMediator.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/prestoComm/TableDataManager.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Main.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/PrestoConnector.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/TableDataManager.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/Main.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Main.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/PrestoConnector.class" beforeDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -14,6 +33,9 @@
       </list>
     </option>
   </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
   <component name="ProjectId" id="1WzI8IDiiz9Yturqelb1FNXgl0P" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
@@ -22,11 +44,15 @@
   </component>
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
+    <property name="project.structure.last.edited" value="Modules" />
+    <property name="project.structure.proportion" value="0.0" />
+    <property name="project.structure.side.proportion" value="0.0" />
     <property name="settings.editor.selected.configurable" value="preferences.editor" />
   </component>
   <component name="RunManager">
     <configuration name="Main" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="Main" />
+      <option name="MAIN_CLASS_NAME" value="prestoComm.Main" />
       <module name="prestoComunicator" />
       <method v="2">
         <option name="Make" enabled="true" />
@@ -52,33 +78,53 @@
     <servers />
   </component>
   <component name="WindowStateProjectService">
-    <state width="1874" height="274" key="GridCell.Tab.0.bottom" timestamp="1580318328185">
+    <state x="555" y="180" width="800" height="675" key="#Project_Structure" timestamp="1580818064854">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1874" height="274" key="GridCell.Tab.0.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1580318328185" />
-    <state width="1874" height="274" key="GridCell.Tab.0.center" timestamp="1580318328185">
+    <state x="555" y="180" width="800" height="675" key="#Project_Structure/0.0.1920.1040@0.0.1920.1040" timestamp="1580818064854" />
+    <state x="768" y="238" width="374" height="560" key="#com.intellij.ide.util.MemberChooser" timestamp="1580828694169">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1874" height="274" key="GridCell.Tab.0.center/0.0.1920.1040@0.0.1920.1040" timestamp="1580318328185" />
-    <state width="1874" height="274" key="GridCell.Tab.0.left" timestamp="1580318328184">
+    <state x="768" y="238" width="374" height="560" key="#com.intellij.ide.util.MemberChooser/0.0.1920.1040@0.0.1920.1040" timestamp="1580828694169" />
+    <state x="748" y="379" width="423" height="287" key="#com.intellij.refactoring.move.moveClassesOrPackages.MoveClassesOrPackagesDialog.classes" timestamp="1580923723764">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1874" height="274" key="GridCell.Tab.0.left/0.0.1920.1040@0.0.1920.1040" timestamp="1580318328184" />
-    <state width="1874" height="274" key="GridCell.Tab.0.right" timestamp="1580318328185">
+    <state x="748" y="379" width="423" height="287" key="#com.intellij.refactoring.move.moveClassesOrPackages.MoveClassesOrPackagesDialog.classes/0.0.1920.1040@0.0.1920.1040" timestamp="1580923723764" />
+    <state x="693" y="268" width="524" height="499" key="#com.intellij.refactoring.safeDelete.UnsafeUsagesDialog" timestamp="1580829067280">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1874" height="274" key="GridCell.Tab.0.right/0.0.1920.1040@0.0.1920.1040" timestamp="1580318328185" />
+    <state x="693" y="268" width="524" height="499" key="#com.intellij.refactoring.safeDelete.UnsafeUsagesDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1580829067280" />
+    <state width="1874" height="228" key="GridCell.Tab.0.bottom" timestamp="1580895937493">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1874" height="228" key="GridCell.Tab.0.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1580895937493" />
+    <state width="1874" height="228" key="GridCell.Tab.0.center" timestamp="1580895937493">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1874" height="228" key="GridCell.Tab.0.center/0.0.1920.1040@0.0.1920.1040" timestamp="1580895937493" />
+    <state width="1874" height="228" key="GridCell.Tab.0.left" timestamp="1580895937492">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1874" height="228" key="GridCell.Tab.0.left/0.0.1920.1040@0.0.1920.1040" timestamp="1580895937492" />
+    <state width="1874" height="228" key="GridCell.Tab.0.right" timestamp="1580895937493">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1874" height="228" key="GridCell.Tab.0.right/0.0.1920.1040@0.0.1920.1040" timestamp="1580895937493" />
     <state x="464" y="154" key="SettingsEditor" timestamp="1580300483631">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="464" y="154" key="SettingsEditor/0.0.1920.1040@0.0.1920.1040" timestamp="1580300483631" />
-    <state x="653" y="346" key="com.intellij.ide.util.TipDialog" timestamp="1580145839178">
+    <state x="653" y="346" key="com.intellij.ide.util.TipDialog" timestamp="1580923676836">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="653" y="346" key="com.intellij.ide.util.TipDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1580145839178" />
-    <state x="623" y="228" width="672" height="678" key="search.everywhere.popup" timestamp="1580315226510">
+    <state x="653" y="346" key="com.intellij.ide.util.TipDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1580923676836" />
+    <state x="624" y="237" key="run.anything.popup" timestamp="1580824282912">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="623" y="228" width="672" height="678" key="search.everywhere.popup/0.0.1920.1040@0.0.1920.1040" timestamp="1580315226510" />
+    <state x="624" y="237" key="run.anything.popup/0.0.1920.1040@0.0.1920.1040" timestamp="1580824282912" />
+    <state x="623" y="228" width="672" height="678" key="search.everywhere.popup" timestamp="1580836264724">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="623" y="228" width="672" height="678" key="search.everywhere.popup/0.0.1920.1040@0.0.1920.1040" timestamp="1580836264724" />
   </component>
 </project>
