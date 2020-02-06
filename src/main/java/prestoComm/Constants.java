@@ -11,6 +11,7 @@ public class Constants {
     public static final String SQLITE_DB = "metadataBD";
     //tables for SQLITE
     public static final String DB_DATA = "db_data";
+    public static final String DB_TYPE_DATA = "db_type_data";
     public static final String TABLE_DATA = "table_data";
     public static final String COLUMN_DATA = "column_data";
 }

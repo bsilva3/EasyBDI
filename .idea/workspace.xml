@@ -2,24 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="4372070e-ade1-4e3a-bab8-4e40966e7856" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/uiDesigner.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/helper_classes/ColumnInfo.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/helper_classes/SchemaInfo.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/helper_classes/TableInfo.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/prestoComm/Constants.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/prestoComm/DBConnector.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/prestoComm/Main.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/prestoComm/MetaDataManager.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/prestoComm/PrestoMediator.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/prestoComm/TableDataManager.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Main.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/PrestoConnector.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/TableDataManager.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/Main.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Main.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/PrestoConnector.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/prestoComm/Constants.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/prestoComm/Constants.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/prestoComm/MetaDataManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/prestoComm/MetaDataManager.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -75,7 +60,19 @@
       <option name="presentableId" value="Default" />
       <updated>1580145836101</updated>
     </task>
+    <task id="LOCAL-00001" summary="added logic to access data from presto, store data in postgres (will be removed) and initial logic for sqlite">
+      <created>1580926003216</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1580926003216</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="added logic to access data from presto, store data in postgres (will be removed) and initial logic for sqlite" />
+    <option name="LAST_COMMIT_MESSAGE" value="added logic to access data from presto, store data in postgres (will be removed) and initial logic for sqlite" />
   </component>
   <component name="WindowStateProjectService">
     <state x="555" y="180" width="800" height="675" key="#Project_Structure" timestamp="1580818064854">
@@ -94,6 +91,10 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="693" y="268" width="524" height="499" key="#com.intellij.refactoring.safeDelete.UnsafeUsagesDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1580829067280" />
+    <state x="607" y="116" width="695" height="803" key="CommitChangelistDialog2" timestamp="1580926003028">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="607" y="116" width="695" height="803" key="CommitChangelistDialog2/0.0.1920.1040@0.0.1920.1040" timestamp="1580926003028" />
     <state width="1874" height="228" key="GridCell.Tab.0.bottom" timestamp="1580895937493">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -114,10 +115,14 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="464" y="154" key="SettingsEditor/0.0.1920.1040@0.0.1920.1040" timestamp="1580300483631" />
-    <state x="653" y="346" key="com.intellij.ide.util.TipDialog" timestamp="1580923676836">
+    <state x="555" y="255" width="800" height="526" key="Vcs.Push.Dialog.v2" timestamp="1580926005524">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="653" y="346" key="com.intellij.ide.util.TipDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1580923676836" />
+    <state x="555" y="255" width="800" height="526" key="Vcs.Push.Dialog.v2/0.0.1920.1040@0.0.1920.1040" timestamp="1580926005524" />
+    <state x="653" y="346" key="com.intellij.ide.util.TipDialog" timestamp="1581006673833">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="653" y="346" key="com.intellij.ide.util.TipDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1581006673833" />
     <state x="624" y="237" key="run.anything.popup" timestamp="1580824282912">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
