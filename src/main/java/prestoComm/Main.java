@@ -14,8 +14,9 @@ public class Main {
         //connector.getTableData("select * from mongodb.products.products");
         //connector.makeQuery("describe mongodb.products.products");
         //connector.getDBData("mongodb");
+        connector.makeQuery("describe prestodb.public.catalog_page");
 
-        TableDataManager tableDataManager = new TableDataManager(Constants.PSQL_USER, Constants.PSQL_PASS);
+        /*TableDataManager tableDataManager = new TableDataManager(Constants.PSQL_USER, Constants.PSQL_PASS);
         //tableDataManager.createSchemaForDBSchema("", "");
 
         //initial catalogs
@@ -27,7 +28,7 @@ public class Main {
 
         for (Map.Entry<String, List<SchemaInfo>> entry : dbsInfo.entrySet()){
             tableDataManager.createEntriesForDB(entry.getKey(), entry.getValue());//store metadata about this DB in postgres
-        }
+        }*/
 
     }
 }

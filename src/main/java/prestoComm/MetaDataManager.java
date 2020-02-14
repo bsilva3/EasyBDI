@@ -7,10 +7,9 @@ import static prestoComm.Constants.*;
 public class MetaDataManager {
 
     private final String URL = "jdbc:sqlite:C:/sqlite/db/" + SQLITE_DB;
-    private Connection conn;
 
-
-    public void connect() {
+    public Connection connect() {
+        Connection conn = null;
         try {
             conn = DriverManager.getConnection(URL);
             if (conn != null) {
@@ -20,6 +19,7 @@ public class MetaDataManager {
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
+        return conn;
     }
 
     public void createTables(){
@@ -59,13 +59,28 @@ public class MetaDataManager {
                 + "    FOREIGN KEY (table_id) REFERENCES "+DB_DATA+"(id));"
                 + ");";
 
-        try (Connection conn = DriverManager.getConnection(URL);
-             Statement stmt = conn.createStatement()) {
+        try (Connection conn = this.connect();
+            Statement stmt = conn.createStatement()) {
             //
             stmt.execute(sql1);
             stmt.execute(sql2);
             stmt.execute(sql3);
             stmt.execute(sql4);
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    private void fillDBDataTable(){
+        String sql = "INSERT INTO "+ DB_TYPE_DATA + "(db_name,db_model_type,catalog_access_query) VALUES(?,?,?)";
+        try (Connection conn = this.connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            for (DBModel dbModel : DBModel.values()){
+                pstmt.setString(1, dbModel.toString());
+                pstmt.setString(2, dbModel.getBDDataModel());
+                pstmt.setString(3, dbModel.getMetaDataQuery());
+            }
+            pstmt.executeUpdate();
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }

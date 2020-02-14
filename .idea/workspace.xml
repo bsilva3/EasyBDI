@@ -2,9 +2,16 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="4372070e-ade1-4e3a-bab8-4e40966e7856" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/logs/winter.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/prestoComm/DBModel.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/prestoComm/SchemaMatcher.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/prestoComm/Constants.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/prestoComm/Constants.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/prestoComm/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/prestoComm/Main.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/prestoComm/MetaDataManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/prestoComm/MetaDataManager.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/prestoComm/PrestoMediator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/prestoComm/PrestoMediator.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/Main.class" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -14,6 +21,7 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
+        <option value="Enum" />
         <option value="Class" />
       </list>
     </option>
@@ -35,7 +43,7 @@
     <property name="project.structure.side.proportion" value="0.0" />
     <property name="settings.editor.selected.configurable" value="preferences.editor" />
   </component>
-  <component name="RunManager">
+  <component name="RunManager" selected="Application.SchemaMatcher">
     <configuration name="Main" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="prestoComm.Main" />
       <module name="prestoComunicator" />
@@ -43,8 +51,22 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <configuration name="SchemaMatcher" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="prestoComm.SchemaMatcher" />
+      <module name="prestoComunicator" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="prestoComm.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Application.SchemaMatcher" />
         <item itemvalue="Application.Main" />
       </list>
     </recent_temporary>
@@ -67,22 +89,34 @@
       <option name="project" value="LOCAL" />
       <updated>1580926003216</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="changed logic do sqlite.">
+      <created>1581014185317</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1581014185317</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="added logic to access data from presto, store data in postgres (will be removed) and initial logic for sqlite" />
-    <option name="LAST_COMMIT_MESSAGE" value="added logic to access data from presto, store data in postgres (will be removed) and initial logic for sqlite" />
+    <MESSAGE value="changed logic do sqlite." />
+    <option name="LAST_COMMIT_MESSAGE" value="changed logic do sqlite." />
   </component>
   <component name="WindowStateProjectService">
     <state x="555" y="180" width="800" height="675" key="#Project_Structure" timestamp="1580818064854">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="555" y="180" width="800" height="675" key="#Project_Structure/0.0.1920.1040@0.0.1920.1040" timestamp="1580818064854" />
-    <state x="768" y="238" width="374" height="560" key="#com.intellij.ide.util.MemberChooser" timestamp="1580828694169">
+    <state x="768" y="238" width="374" height="560" key="#com.intellij.ide.util.MemberChooser" timestamp="1581441318469">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="768" y="238" width="374" height="560" key="#com.intellij.ide.util.MemberChooser/0.0.1920.1040@0.0.1920.1040" timestamp="1580828694169" />
+    <state x="768" y="238" width="374" height="560" key="#com.intellij.ide.util.MemberChooser/0.0.1920.1040@0.0.1920.1040" timestamp="1581441318469" />
+    <state x="668" y="266" width="574" height="504" key="#com.intellij.refactoring.memberPullUp.PullUpDialog" timestamp="1581441028574">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="668" y="266" width="574" height="504" key="#com.intellij.refactoring.memberPullUp.PullUpDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1581441028574" />
     <state x="748" y="379" width="423" height="287" key="#com.intellij.refactoring.move.moveClassesOrPackages.MoveClassesOrPackagesDialog.classes" timestamp="1580923723764">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -91,38 +125,42 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="693" y="268" width="524" height="499" key="#com.intellij.refactoring.safeDelete.UnsafeUsagesDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1580829067280" />
-    <state x="607" y="116" width="695" height="803" key="CommitChangelistDialog2" timestamp="1580926003028">
+    <state x="607" y="116" width="695" height="803" key="CommitChangelistDialog2" timestamp="1581014185093">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="607" y="116" width="695" height="803" key="CommitChangelistDialog2/0.0.1920.1040@0.0.1920.1040" timestamp="1580926003028" />
-    <state width="1874" height="228" key="GridCell.Tab.0.bottom" timestamp="1580895937493">
+    <state x="607" y="116" width="695" height="803" key="CommitChangelistDialog2/0.0.1920.1040@0.0.1920.1040" timestamp="1581014185093" />
+    <state width="1874" height="228" key="GridCell.Tab.0.bottom" timestamp="1581606651008">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1874" height="228" key="GridCell.Tab.0.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1580895937493" />
-    <state width="1874" height="228" key="GridCell.Tab.0.center" timestamp="1580895937493">
+    <state width="1874" height="228" key="GridCell.Tab.0.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1581606651008" />
+    <state width="1874" height="228" key="GridCell.Tab.0.center" timestamp="1581606651008">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1874" height="228" key="GridCell.Tab.0.center/0.0.1920.1040@0.0.1920.1040" timestamp="1580895937493" />
-    <state width="1874" height="228" key="GridCell.Tab.0.left" timestamp="1580895937492">
+    <state width="1874" height="228" key="GridCell.Tab.0.center/0.0.1920.1040@0.0.1920.1040" timestamp="1581606651008" />
+    <state width="1874" height="228" key="GridCell.Tab.0.left" timestamp="1581606651007">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1874" height="228" key="GridCell.Tab.0.left/0.0.1920.1040@0.0.1920.1040" timestamp="1580895937492" />
-    <state width="1874" height="228" key="GridCell.Tab.0.right" timestamp="1580895937493">
+    <state width="1874" height="228" key="GridCell.Tab.0.left/0.0.1920.1040@0.0.1920.1040" timestamp="1581606651007" />
+    <state width="1874" height="228" key="GridCell.Tab.0.right" timestamp="1581606651008">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1874" height="228" key="GridCell.Tab.0.right/0.0.1920.1040@0.0.1920.1040" timestamp="1580895937493" />
+    <state width="1874" height="228" key="GridCell.Tab.0.right/0.0.1920.1040@0.0.1920.1040" timestamp="1581606651008" />
     <state x="464" y="154" key="SettingsEditor" timestamp="1580300483631">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="464" y="154" key="SettingsEditor/0.0.1920.1040@0.0.1920.1040" timestamp="1580300483631" />
-    <state x="555" y="255" width="800" height="526" key="Vcs.Push.Dialog.v2" timestamp="1580926005524">
+    <state x="555" y="255" width="800" height="526" key="Vcs.Push.Dialog.v2" timestamp="1581014188148">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="555" y="255" width="800" height="526" key="Vcs.Push.Dialog.v2/0.0.1920.1040@0.0.1920.1040" timestamp="1580926005524" />
-    <state x="653" y="346" key="com.intellij.ide.util.TipDialog" timestamp="1581006673833">
+    <state x="555" y="255" width="800" height="526" key="Vcs.Push.Dialog.v2/0.0.1920.1040@0.0.1920.1040" timestamp="1581014188148" />
+    <state x="653" y="346" key="com.intellij.ide.util.TipDialog" timestamp="1581589345790">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="653" y="346" key="com.intellij.ide.util.TipDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1581006673833" />
+    <state x="653" y="346" key="com.intellij.ide.util.TipDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1581589345790" />
+    <state x="730" y="181" width="449" height="673" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser" timestamp="1581590826176">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="730" y="181" width="449" height="673" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser/0.0.1920.1040@0.0.1920.1040" timestamp="1581590826176" />
     <state x="624" y="237" key="run.anything.popup" timestamp="1580824282912">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
