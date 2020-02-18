@@ -1,6 +1,10 @@
 package prestoComm;
 
+import helper_classes.DBData;
+
+import java.awt.*;
 import java.sql.*;
+import java.util.List;
 
 import static prestoComm.Constants.*;
 
@@ -22,6 +26,11 @@ public class MetaDataManager {
         return conn;
     }
 
+    public void createTablesAndFillDBModelData(){
+        createTables();
+        fillDBDataTable();
+    }
+
     public void createTables(){
         // SQLite connection string
 
@@ -29,7 +38,7 @@ public class MetaDataManager {
         //create database types table
         String sql1 = "CREATE TABLE IF NOT EXISTS "+ DB_TYPE_DATA +" (\n"
                 + "    id integer PRIMARY KEY,\n"
-                + "    db_name text NOT NULL,\n"
+                + "    db_name text NOT NULL UNIQUE,\n"
                 + "    db_model_type text NOT NULL\n"
                 + "    catalog_access_query text\n"
                 + ");";
@@ -37,7 +46,7 @@ public class MetaDataManager {
         String sql2 = "CREATE TABLE IF NOT EXISTS "+ DB_DATA +" (\n"
                 + "    id integer PRIMARY KEY,\n"
                 + "    name text NOT NULL,\n"
-                + "    server text NOT NULL\n"
+                + "    server_url text NOT NULL\n"
                 + "    user text\n"
                 + "    pass text\n"
                 + "    FOREIGN KEY (db_type_id) REFERENCES "+DB_TYPE_DATA+"(id));"
@@ -79,11 +88,54 @@ public class MetaDataManager {
                 pstmt.setString(1, dbModel.toString());
                 pstmt.setString(2, dbModel.getBDDataModel());
                 pstmt.setString(3, dbModel.getMetaDataQuery());
+                pstmt.executeUpdate();
             }
-            pstmt.executeUpdate();
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
+    }
+
+    /**
+     * Given a list of databases, fill that info in the appropriate sqlite table.
+     * This table contains info regarding the databases, such as url, auth info, and database type (mongo, mysql...)
+     */
+    public void insertDBData(List<DBData> dbData){
+        String sql = "INSERT INTO "+ DB_DATA + "(name, server_url, user, pass, db_type_id) VALUES(?,?,?,?,?)";
+        try (Connection conn = this.connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            for (DBData db : dbData){
+                int dbTypeID = getDBTypeIDInTable(db.getDbModel(), conn);
+                if (dbTypeID == -1){
+                    System.out.println("DB "+db.getDbModel() + " not supported. Won't be inserted in database");
+                    continue;
+                }
+                pstmt.setString(1, db.getDbName());
+                pstmt.setString(2, db.getUrl());
+                pstmt.setString(3, db.getUser());
+                pstmt.setString(4, db.getPass());
+                pstmt.setInt(5, getDBTypeIDInTable(db.getDbModel(), conn));
+                pstmt.executeUpdate();
+            }
+
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    private int getDBTypeIDInTable(DBModel dbModel, Connection conn){
+        String query = "SELECT id FROM " + DB_TYPE_DATA + " WHERE db_name = "+dbModel.toString();
+        Statement stmt  = null;
+        int id = -1;
+        try {
+            stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(query);
+            if(rs.next()) {
+                id = rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return id;
     }
 
 }

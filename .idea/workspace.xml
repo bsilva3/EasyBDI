@@ -2,16 +2,16 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="4372070e-ade1-4e3a-bab8-4e40966e7856" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/logs/winter.log" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/prestoComm/DBModel.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/prestoComm/SchemaMatcher.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/helper_classes/DBData.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/prestoComm/ManagerFacade.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/prestoComm/Constants.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/prestoComm/Constants.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/prestoComm/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/prestoComm/Main.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/prestoComm/MetaDataManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/prestoComm/MetaDataManager.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/prestoComm/PrestoMediator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/prestoComm/PrestoMediator.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/Main.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/prestoComm/SchemaMatcher.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/prestoComm/SchemaMatcher.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/prestoComm/TableDataManager.java" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -43,7 +43,7 @@
     <property name="project.structure.side.proportion" value="0.0" />
     <property name="settings.editor.selected.configurable" value="preferences.editor" />
   </component>
-  <component name="RunManager" selected="Application.SchemaMatcher">
+  <component name="RunManager" selected="Application.Main">
     <configuration name="Main" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="prestoComm.Main" />
       <module name="prestoComunicator" />
@@ -66,8 +66,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Application.SchemaMatcher" />
         <item itemvalue="Application.Main" />
+        <item itemvalue="Application.SchemaMatcher" />
       </list>
     </recent_temporary>
   </component>
@@ -96,23 +96,31 @@
       <option name="project" value="LOCAL" />
       <updated>1581014185317</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="added schema matching library">
+      <created>1581697432815</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1581697432815</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="added logic to access data from presto, store data in postgres (will be removed) and initial logic for sqlite" />
     <MESSAGE value="changed logic do sqlite." />
-    <option name="LAST_COMMIT_MESSAGE" value="changed logic do sqlite." />
+    <MESSAGE value="added schema matching library" />
+    <option name="LAST_COMMIT_MESSAGE" value="added schema matching library" />
   </component>
   <component name="WindowStateProjectService">
     <state x="555" y="180" width="800" height="675" key="#Project_Structure" timestamp="1580818064854">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="555" y="180" width="800" height="675" key="#Project_Structure/0.0.1920.1040@0.0.1920.1040" timestamp="1580818064854" />
-    <state x="768" y="238" width="374" height="560" key="#com.intellij.ide.util.MemberChooser" timestamp="1581441318469">
+    <state x="768" y="238" width="374" height="560" key="#com.intellij.ide.util.MemberChooser" timestamp="1582033094124">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="768" y="238" width="374" height="560" key="#com.intellij.ide.util.MemberChooser/0.0.1920.1040@0.0.1920.1040" timestamp="1581441318469" />
+    <state x="768" y="238" width="374" height="560" key="#com.intellij.ide.util.MemberChooser/0.0.1920.1040@0.0.1920.1040" timestamp="1582033094124" />
     <state x="668" y="266" width="574" height="504" key="#com.intellij.refactoring.memberPullUp.PullUpDialog" timestamp="1581441028574">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -125,38 +133,38 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="693" y="268" width="524" height="499" key="#com.intellij.refactoring.safeDelete.UnsafeUsagesDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1580829067280" />
-    <state x="607" y="116" width="695" height="803" key="CommitChangelistDialog2" timestamp="1581014185093">
+    <state x="607" y="116" width="695" height="803" key="CommitChangelistDialog2" timestamp="1581697432255">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="607" y="116" width="695" height="803" key="CommitChangelistDialog2/0.0.1920.1040@0.0.1920.1040" timestamp="1581014185093" />
-    <state width="1874" height="228" key="GridCell.Tab.0.bottom" timestamp="1581606651008">
+    <state x="607" y="116" width="695" height="803" key="CommitChangelistDialog2/0.0.1920.1040@0.0.1920.1040" timestamp="1581697432255" />
+    <state width="937" height="228" key="GridCell.Tab.0.bottom" timestamp="1582038691225">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1874" height="228" key="GridCell.Tab.0.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1581606651008" />
-    <state width="1874" height="228" key="GridCell.Tab.0.center" timestamp="1581606651008">
+    <state width="937" height="228" key="GridCell.Tab.0.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1582038691225" />
+    <state width="937" height="228" key="GridCell.Tab.0.center" timestamp="1582038691225">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1874" height="228" key="GridCell.Tab.0.center/0.0.1920.1040@0.0.1920.1040" timestamp="1581606651008" />
-    <state width="1874" height="228" key="GridCell.Tab.0.left" timestamp="1581606651007">
+    <state width="937" height="228" key="GridCell.Tab.0.center/0.0.1920.1040@0.0.1920.1040" timestamp="1582038691225" />
+    <state width="937" height="228" key="GridCell.Tab.0.left" timestamp="1582038691224">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1874" height="228" key="GridCell.Tab.0.left/0.0.1920.1040@0.0.1920.1040" timestamp="1581606651007" />
-    <state width="1874" height="228" key="GridCell.Tab.0.right" timestamp="1581606651008">
+    <state width="937" height="228" key="GridCell.Tab.0.left/0.0.1920.1040@0.0.1920.1040" timestamp="1582038691224" />
+    <state width="937" height="228" key="GridCell.Tab.0.right" timestamp="1582038691225">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1874" height="228" key="GridCell.Tab.0.right/0.0.1920.1040@0.0.1920.1040" timestamp="1581606651008" />
+    <state width="937" height="228" key="GridCell.Tab.0.right/0.0.1920.1040@0.0.1920.1040" timestamp="1582038691225" />
     <state x="464" y="154" key="SettingsEditor" timestamp="1580300483631">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="464" y="154" key="SettingsEditor/0.0.1920.1040@0.0.1920.1040" timestamp="1580300483631" />
-    <state x="555" y="255" width="800" height="526" key="Vcs.Push.Dialog.v2" timestamp="1581014188148">
+    <state x="555" y="255" width="800" height="526" key="Vcs.Push.Dialog.v2" timestamp="1581697445313">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="555" y="255" width="800" height="526" key="Vcs.Push.Dialog.v2/0.0.1920.1040@0.0.1920.1040" timestamp="1581014188148" />
-    <state x="653" y="346" key="com.intellij.ide.util.TipDialog" timestamp="1581589345790">
+    <state x="555" y="255" width="800" height="526" key="Vcs.Push.Dialog.v2/0.0.1920.1040@0.0.1920.1040" timestamp="1581697445313" />
+    <state x="653" y="346" key="com.intellij.ide.util.TipDialog" timestamp="1582019585560">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="653" y="346" key="com.intellij.ide.util.TipDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1581589345790" />
+    <state x="653" y="346" key="com.intellij.ide.util.TipDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1582019585560" />
     <state x="730" y="181" width="449" height="673" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser" timestamp="1581590826176">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -165,9 +173,9 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="624" y="237" key="run.anything.popup/0.0.1920.1040@0.0.1920.1040" timestamp="1580824282912" />
-    <state x="623" y="228" width="672" height="678" key="search.everywhere.popup" timestamp="1580836264724">
+    <state x="623" y="228" width="672" height="678" key="search.everywhere.popup" timestamp="1582042692224">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="623" y="228" width="672" height="678" key="search.everywhere.popup/0.0.1920.1040@0.0.1920.1040" timestamp="1580836264724" />
+    <state x="623" y="228" width="672" height="678" key="search.everywhere.popup/0.0.1920.1040@0.0.1920.1040" timestamp="1582042692224" />
   </component>
 </project>

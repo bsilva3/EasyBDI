@@ -1,5 +1,6 @@
 package prestoComm;
 
+import helper_classes.DBData;
 import helper_classes.SchemaInfo;
 
 import java.util.ArrayList;
@@ -10,25 +11,15 @@ public class Main {
 
     public static void main(String[] args){
 
-        PrestoMediator connector = new PrestoMediator();
-        //connector.getTableData("select * from mongodb.products.products");
-        //connector.makeQuery("describe mongodb.products.products");
-        //connector.getDBData("mongodb");
-        connector.makeQuery("describe prestodb.public.catalog_page");
-
-        /*TableDataManager tableDataManager = new TableDataManager(Constants.PSQL_USER, Constants.PSQL_PASS);
-        //tableDataManager.createSchemaForDBSchema("", "");
-
-        //initial catalogs
-        List<String> catalogs = new ArrayList<>();
-        catalogs.add("mongodb");
-
-        //for every catalog, get information about their schemas, table and columns and store it in postgres
-        Map<String, List<SchemaInfo>> dbsInfo = connector.getDBData(catalogs);
-
-        for (Map.Entry<String, List<SchemaInfo>> entry : dbsInfo.entrySet()){
-            tableDataManager.createEntriesForDB(entry.getKey(), entry.getValue());//store metadata about this DB in postgres
-        }*/
+        ManagerFacade manager = new ManagerFacade();
+        //register databases
+        List<DBData> dbDataList = new ArrayList<>();
+        manager.beginSetup();
+        dbDataList.add(new DBData("http://localhost:27017", DBModel.MongoDB,""));
+        dbDataList.add(new DBData("http://localhost:3306", DBModel.MYSQL,"", "bruno", "brunosilva"));
+        dbDataList.add(new DBData("http://localhost:deti-lei-2.ua.pt:5432/", DBModel.PostgresSQL,"presto2", "bruno", "brunosilva"));
+        dbDataList.add(new DBData("http://localhost:deti-lei-2.ua.pt:5432/", DBModel.PostgresSQL,"presto", "bruno", "brunosilva"));
+        manager.setupUpDatabases(dbDataList);
 
     }
 }

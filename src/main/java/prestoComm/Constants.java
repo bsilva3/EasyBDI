@@ -6,7 +6,7 @@ public class Constants {
 
     //Presto main dir location Static for now
     //TODO: add a config file that shows the location of presto instalation
-    public static final String PRESTO_DIR = "/home/bruno/Desktop/presto-server-0.230/bin";
+    public static final String PRESTO_DIR = "/home/bruno/Desktop/presto-server-0.329";
     public static final String PRESTO_PROPERTIES_FOLDER = PRESTO_DIR + File.separator + "etc" + File.separator + "catalog"+File.separator;
 
     //PostgresSQL user details

@@ -2,12 +2,11 @@ package prestoComm;
 
 import com.facebook.presto.jdbc.internal.guava.collect.ImmutableSet;
 import helper_classes.ColumnInfo;
+import helper_classes.DBData;
 import helper_classes.SchemaInfo;
 import helper_classes.TableInfo;
 
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.sql.*;
 import java.util.*;
 
@@ -27,15 +26,25 @@ public class PrestoMediator {
 
     }
 
-    private void createConnection(){
+    public static void main (String[] args){
+        PrestoMediator connector = new PrestoMediator();
+        //connector.getTableData("select * from mongodb.products.products");
+        connector.makeQuery("describe mongodb.products.products");
+        //connector.getDBData("mongodb");
+        //connector.makeQuery("describe prestodb.public.catalog_page");
+    }
+
+    public boolean createConnection(){
         //Open a connection
         conn = prestoConnector.setConnection();
+        if (conn == null)
+            return false;
+        return true;
     }
 
 
     public void makeQuery(String query){
         Statement stmt = null;
-        createConnection();//or should this be done outside?
         try {
             //Register JDBC driver
             Class.forName(JDBC_DRIVER);
@@ -67,7 +76,6 @@ public class PrestoMediator {
                 }
             }
             //Clean-up environment
-            prestoConnector.closeConn();
             res.close();
             stmt.close();
         } catch (SQLException se) {
@@ -91,63 +99,72 @@ public class PrestoMediator {
         }
     }
 
+    public void closeConection(){
+        prestoConnector.closeConn();
+    }
+
     /**
-     * Given a
-     * @param dbModel
+     * Given information about a database, create a .properties file for presto to be able to access that database
+     * @param dbModel - database used identified by DBModel enum
      * @param serverUrl - the url to access the db. Must be in the form url:port
      * @param user
      * @param pass
      */
     public void createDBFileProperties(DBModel dbModel, String serverUrl, String user, String pass, String dbName){
-        PrintWriter writer = null;
+        DBData dbData = new DBData(dbName, dbModel, serverUrl, user, pass);
+        createDBFileProperties(dbData);
+    }
+
+    /**
+     * Given information about a database, create a .properties file for presto to be able to access that database
+     * @param dbData - database information (url, auth data, db type...)
+     */
+    public void createDBFileProperties(DBData dbData){
+        //delete any possible http:// on server url or incorrect '/'
+        Writer writer = null;
+        String configFileName = Constants.PRESTO_PROPERTIES_FOLDER+dbData.getDbModel()+"_"+dbData.getUrl()+"_"+dbData.getDbName()+".properties";
         try {
-            writer = new PrintWriter(Constants.PRESTO_PROPERTIES_FOLDER+dbModel+"_"+serverUrl+".properties", "UTF-8");
+            writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(configFileName), "utf-8"));
+            writer.write("connector.name = " + dbData.getDbModel().toString().toLowerCase()+"\n");
+            writer.write(writeDBTypePropertiesFile(dbData));
+            writer.close();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        writer.println("connector.name = " + dbModel.toString().toLowerCase()+"\n");
-        writer.print(writeDBTypePropertiesFile(dbModel, serverUrl, user, pass, dbName));
-        writer.close();
     }
 
     //returns a string with the proper config text for the .properties file for a specific DB
-    private String writeDBTypePropertiesFile(DBModel dbModel, String serverUrl, String user, String pass, String dbName){
+    private String writeDBTypePropertiesFile(DBData dbData){
         String config = "";
-        final boolean authNeeded = (!user.isEmpty() && user != null) && (!pass.isEmpty() && pass != null);
-        if (dbModel.equals(DBModel.MongoDB)){
-            config += "mongodb.seeds = "+serverUrl+";\n";
+        final boolean authNeeded = ( user != null && !user.isEmpty()) && ( pass != null && !pass.isEmpty());
+        if (dbData.getDbModel().equals(DBModel.MongoDB)){
+            config += "mongodb.seeds = "+dbData.getUrl()+";\n";
             if (authNeeded) {
-                config += "mongodb.credentials = " + user + ":" + pass + "@" + dbName + "\n";
+                config += "mongodb.credentials = " + user + ":" + pass + "@" + dbData.getDbName() + "\n";
             }
         }
-        else if (dbModel.equals(DBModel.Redis)){
-            config += "redis.table-names="+dbName+"\n";//list of all tables in the database (schema1.table1,schema1.table2)
-            config += "redis.nodes="+serverUrl+"\n";
-            if (!pass.isEmpty() && pass != null) {
+        else if (dbData.getDbModel().equals(DBModel.Redis)){
+            config += "redis.table-names="+dbData.getDbName()+"\n";//list of all tables in the database (schema1.table1,schema1.table2)
+            config += "redis.nodes="+dbData.getUrl()+"\n";
+            if ( pass != null && !pass.isEmpty()) {
                 config += "redis.password="+pass+"\n";
             }
         }
-        else if (dbModel.equals(DBModel.Cassandra)){//TODO: if port is not default (9042), cassandra.native-protocol-port must be defined with the port
-            config += "cassandra.contact-points"+serverUrl+"\n";
+        else if (dbData.getDbModel().equals(DBModel.Cassandra)){//TODO: if port is not default (9042), cassandra.native-protocol-port must be defined with the port
+            config += "cassandra.contact-points="+dbData.getUrl()+"\n";
             if (authNeeded) {
                 config += "cassandra.username="+user+"\n";
                 config += "cassandra.password="+pass+"\n";
             }
         }
-        else if (dbModel.equals(DBModel.PostgresSQL)){
-            config += "connection-url=jdbc:postgresql://"+ serverUrl +"/"+dbName+"\n";
-            config += "connection-user="+user+"\n";
-            config += "connection-password="+pass+"\n";
-        }
-        else if (dbModel.equals(DBModel.MYSQL)){
-            config += "connection-url=jdbc:mysql://"+ serverUrl +"/"+dbName+"\n";
-            config += "connection-user="+user+"\n";
-            config += "connection-password="+pass+"\n";
-        }
-        else if (dbModel.equals(DBModel.SQLServer)){
-            config += "connection-url=jdbc:sqlserver://"+ serverUrl +"/"+dbName+"\n";
+
+        else {
+            //relational dbs (mysql, sql server or postgresql) have identical .properties files
+            config += "connection-url=jdbc:" + dbData.getDbModel().toString().toLowerCase() + "://"+ dbData.getUrl() +"/"+dbData.getDbName()+"\n";
             config += "connection-user="+user+"\n";
             config += "connection-password="+pass+"\n";
         }
