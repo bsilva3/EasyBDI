@@ -13,32 +13,72 @@ import de.uni_mannheim.informatik.dws.winter.model.defaultmodel.Record;
 import de.uni_mannheim.informatik.dws.winter.model.defaultmodel.comparators.LabelComparatorLevenshtein;
 import de.uni_mannheim.informatik.dws.winter.processing.DataIterator;
 import de.uni_mannheim.informatik.dws.winter.processing.Processable;
+import helper_classes.ColumnData;
+import helper_classes.TableData;
+import org.apache.commons.text.similarity.LevenshteinDistance;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static java.lang.Integer.max;
 
 
 public class SchemaMatcher {
+    private final double similarityThreshold = 0.6;
 
     public static void main(String[] args){
         SchemaMatcher schemaMatcher = new SchemaMatcher();
-        schemaMatcher.instanceMatch();
+        //schemaMatcher.labelMatch();
     }
 
-    public void labelMatch(){
+    public Map<TableData, TableData> fillTableColumnDataForSchemaMatching(List<TableData> tables){
+
+        Map<TableData, TableData> tableMatches = new HashMap<>();
+        for (int i = 0; i < tables.size(); i++){
+            //avoid inverse permutations ( (table1, table2) and (table2, table1) should not happen)
+            for (int j = i; j < tables.size(); j++){
+                if (!tables.get(i).equals(tables.get(j))){
+                    //use Levenshtein distance to get the name similarity
+                    double sim = getNameSimilarityLevenshtein(tables.get(i).getTableName(), tables.get(j).getTableName());
+                    System.out.println("Levenshtein sim between " + tables.get(i).getTableName() + " and "+ tables.get(j).getTableName() +" = "+sim);
+                    if (sim >= similarityThreshold){
+                        //possible match between the tables
+                        tableMatches.put(tables.get(i), tables.get(j));
+                    }
+                }
+            }
+        }
+        return tableMatches;
+    }
+
+    public double getNameSimilarityLevenshtein(String name1, String name2){
+        LevenshteinDistance distance = new LevenshteinDistance();
+        int dist = distance.apply(name1, name2);
+        //convert the number of substituitions to a percentage
+        int bigger = max(name1.length(), name2.length());
+        //double sim = (bigger - dist) / bigger;
+        double sim = (1 - dist/bigger);
+        return sim;
+    }
+
+    public void labelMatch(Map<TableData, TableData> tableMatches){
         DataSet<Record, Attribute> data1 = new HashedDataSet<>();
         DataSet<Record, Attribute> data2 = new HashedDataSet<>();
         Attribute attribute = new Attribute();
-        try {
+        /*try {
             new CSVRecordReader(0).loadFromCSV(new File("/home/bruno/Desktop/datasetTest.csv"), data1);
             new CSVRecordReader(0).loadFromCSV(new File("/home/bruno/Desktop/datasetTest2.csv"), data2);
         } catch (IOException e) {
             e.printStackTrace();
-        }
-
-        /*for(Attribute data : data1.getSchema().get()) {
-            System.out.println(data.getName());
         }*/
+
+        for(Attribute data : data1.getSchema().get()) {
+            System.out.println(data.getName() +", prov: "+data.getProvenance() + ", identifier: "+data.getIdentifier());
+        }
 
 
         // Initialize Matching Engine

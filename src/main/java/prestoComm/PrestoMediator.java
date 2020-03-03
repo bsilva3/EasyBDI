@@ -1,14 +1,16 @@
 package prestoComm;
 
-import com.facebook.presto.jdbc.internal.guava.collect.ImmutableSet;
-import helper_classes.ColumnInfo;
+import helper_classes.ColumnData;
 import helper_classes.DBData;
-import helper_classes.SchemaInfo;
-import helper_classes.TableInfo;
+import helper_classes.TableData;
+import io.prestosql.jdbc.$internal.guava.collect.ImmutableSet;
 
+import javax.swing.*;
 import java.io.*;
 import java.sql.*;
 import java.util.*;
+
+import static prestoComm.Constants.*;
 
 public class PrestoMediator {
 
@@ -28,8 +30,20 @@ public class PrestoMediator {
 
     public static void main (String[] args){
         PrestoMediator connector = new PrestoMediator();
+        connector.createConnection();
         //connector.getTableData("select * from mongodb.products.products");
-        connector.makeQuery("describe mongodb.products.products");
+        //connector.makeQuery("describe mongodb.products.products");
+        /*try {
+            connector.getOneColumnResultQuery("show tables from mysql_test.sales_schema", true);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }*/
+        if (connector.showRestartPrompt() == true){
+            System.out.println("Presto restarted succesfully");
+        }
+        else{
+            System.out.println("Presto failed to restart");
+        }
         //connector.getDBData("mongodb");
         //connector.makeQuery("describe prestodb.public.catalog_page");
     }
@@ -91,11 +105,6 @@ public class PrestoMediator {
             } catch (SQLException sqlException) {
                 sqlException.printStackTrace();
             }
-            try {
-                if (conn != null) conn.close();
-            } catch (SQLException se) {
-                se.printStackTrace();
-            }
         }
     }
 
@@ -122,7 +131,7 @@ public class PrestoMediator {
     public void createDBFileProperties(DBData dbData){
         //delete any possible http:// on server url or incorrect '/'
         Writer writer = null;
-        String configFileName = Constants.PRESTO_PROPERTIES_FOLDER+dbData.getDbModel()+"_"+dbData.getUrl()+"_"+dbData.getDbName()+".properties";
+        String configFileName = dbData.getFullFilePath();
         try {
             writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(configFileName), "utf-8"));
             writer.write("connector.name = " + dbData.getDbModel().toString().toLowerCase()+"\n");
@@ -140,98 +149,177 @@ public class PrestoMediator {
     //returns a string with the proper config text for the .properties file for a specific DB
     private String writeDBTypePropertiesFile(DBData dbData){
         String config = "";
-        final boolean authNeeded = ( user != null && !user.isEmpty()) && ( pass != null && !pass.isEmpty());
+        final boolean authNeeded = ( dbData.getUser() != null && !dbData.getUser().isEmpty()) && ( dbData.getPass() != null && !dbData.getPass().isEmpty());
         if (dbData.getDbModel().equals(DBModel.MongoDB)){
-            config += "mongodb.seeds = "+dbData.getUrl()+";\n";
+            config += "mongodb.seeds = "+dbData.getUrl()+"\n";
             if (authNeeded) {
-                config += "mongodb.credentials = " + user + ":" + pass + "@" + dbData.getDbName() + "\n";
+                config += "mongodb.credentials = " + dbData.getUser() + ":" + dbData.getPass() + "@" + dbData.getDbName() + "\n";
             }
         }
         else if (dbData.getDbModel().equals(DBModel.Redis)){
             config += "redis.table-names="+dbData.getDbName()+"\n";//list of all tables in the database (schema1.table1,schema1.table2)
             config += "redis.nodes="+dbData.getUrl()+"\n";
-            if ( pass != null && !pass.isEmpty()) {
-                config += "redis.password="+pass+"\n";
+            if ( dbData.getPass() != null && !dbData.getPass().isEmpty()) {
+                config += "redis.password="+dbData.getPass()+"\n";
             }
         }
         else if (dbData.getDbModel().equals(DBModel.Cassandra)){//TODO: if port is not default (9042), cassandra.native-protocol-port must be defined with the port
             config += "cassandra.contact-points="+dbData.getUrl()+"\n";
             if (authNeeded) {
-                config += "cassandra.username="+user+"\n";
-                config += "cassandra.password="+pass+"\n";
+                config += "cassandra.username="+dbData.getUser()+"\n";
+                config += "cassandra.password="+dbData.getPass()+"\n";
             }
         }
 
         else {
             //relational dbs (mysql, sql server or postgresql) have identical .properties files
             config += "connection-url=jdbc:" + dbData.getDbModel().toString().toLowerCase() + "://"+ dbData.getUrl() +"/"+dbData.getDbName()+"\n";
-            config += "connection-user="+user+"\n";
-            config += "connection-password="+pass+"\n";
+            config += "connection-user="+dbData.getUser()+"\n";
+            config += "connection-password="+dbData.getPass()+"\n";
         }
         return config;
     }
 
-    //given a list of catalogs (DBs), returns info about schemas, tables and columns in each one of them
-    public Map<String, List<SchemaInfo>> getDBData(List<String> catalogs){
-        stmt = null;
-        res = null;
-        createConnection();//or should this be done outside?
-        Set<String> info = null;
-        Map<String, List<SchemaInfo>> dbsInfo = new HashMap<>();//for each catalog (aka db), store info about schemas, tables and columns
+    public List<TableData> getTablesInDatabase(DBData db){
+        List<TableData> tablesInDB= new ArrayList<>();
         try {
-            //Register JDBC driver
-            Class.forName(JDBC_DRIVER);
-            // for every catalog, get the schemas
-            for (String catalog : catalogs) {
-                Set <String> schemasInCatalog = getOneColumnResultQuery("show schemas from "+catalog, true);
-                List<SchemaInfo> schemaInfos = new ArrayList<>();
-                //for every schema, obtain tables
-                for (String schema : schemasInCatalog){
-                    Set <String> tablesInSchema = getOneColumnResultQuery("show tables from "+ catalog+"."+schema, true);
-                    List<TableInfo> tableInfos = new ArrayList<>();
-                    //for every table, obtain column information
-                    for (String table : tablesInSchema){
-                        //diferent!! more than one column
-                        List <Map> columnsInTable = getColumnsResultQuery("describe "+catalog+"."+schema+".\""+table+"\"", true);
-                        List<ColumnInfo> columnInfos = new ArrayList<>();
-                        for (Map entry : columnsInTable){
-                            //a column of the table in the form (column name -> column value)
-                            columnInfos.add(new ColumnInfo(entry.get("Column").toString(), entry.get("Type").toString()));
-                        }
-                        TableInfo tableInfo = new TableInfo(table, columnInfos);
-                        tableInfos.add(tableInfo);
-                    }
-                    SchemaInfo schemaInfo = new SchemaInfo(schema, tableInfos);
-                    schemaInfos.add(schemaInfo);
+            //for each schema, get tables
+            Set<String> schemaNames = getOneColumnResultQuery("show schemas from " +  db.getCatalogName()+"", false);
+            //exclude irrelevant schemas (administration or metadata of the DBMS)
+            schemaNames = removeIrrelevantSchemas(schemaNames, db.getDbModel());
+
+            //for each schema, get the tables and store them
+            for (String schema : schemaNames){
+                Set<String> tableNames = getOneColumnResultQuery("show tables from " +  db.getCatalogName()+"."+schema, false);
+                for (String tableName : tableNames){
+                    tablesInDB.add(new TableData(tableName, schema, db));
                 }
-                dbsInfo.put(catalog, schemaInfos);
             }
-            //Clean-up environment
-            prestoConnector.closeConn();
-            res.close();
-            stmt.close();
-        } catch (SQLException se) {
-            //Handle errors for JDBC
-            se.printStackTrace();
-        } catch (Exception e) {
-            //Handle errors for Class.forName
+        } catch (SQLException e) {
             e.printStackTrace();
-        } finally {
-            //finally block used to close resources
-            try {
-                if (stmt != null) stmt.close();
-            } catch (SQLException sqlException) {
-                sqlException.printStackTrace();
-            }
-            try {
-                if (conn != null) conn.close();
-            } catch (SQLException se) {
-                se.printStackTrace();
-            }
         }
-        return dbsInfo;
+        return tablesInDB;
     }
 
+    public TableData getColumnsInTable(TableData table){
+        List<ColumnData> columnsInTable = new ArrayList<>();
+        try {
+            //for each schema, get tables
+            List<Map> tableColumns = getColumnsResultQuery("show columns from " +  table.getDB().getCatalogName()+"."+table.getSchemaName()+"."+table.getTableName(), false);
+
+            //for each column, store its info.
+            for (Map tableColumn : tableColumns){
+                String columnName = (String) tableColumn.get(SHOW_COLS_COLUMN);
+                String columnDataType = (String) tableColumn.get(SHOW_COLS_TYPE);
+                columnsInTable.add(new ColumnData(columnName, columnDataType, table));
+            }
+            //if this table belongs to a relational DB, get information about primary keys and foreign key constraints
+            if(table.getDB().getDbModel().isRelational()){
+                updateTableConstraints(table, columnsInTable);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        table.setColumnsList(columnsInTable);
+        return table;
+    }
+
+    private Set<String> removeIrrelevantSchemas(Set<String> schemas, DBModel dbModel){
+        List<String> schemaList = new ArrayList<>();
+        schemaList.addAll(schemas);
+        schemaList.removeAll(Arrays.asList(dbModel.getSchemaExclusions()));
+        return new HashSet<>(schemaList);
+    }
+
+    /**
+     * Completes data regarding primary keys and foreign keys in a table
+     * @param table
+     * @param columns
+     * @return List of columns with updated info regarding primary keys and foreign keys
+     */
+    private List<ColumnData> updateTableConstraints(TableData table, List<ColumnData> columns){
+        //update with foreign key constraints
+        columns = updateForeignKeyInfo(table, columns);
+        // update with  primary key(s) constraints
+        columns = updatePrimaryKeyInfo(table, columns);
+        return columns;
+    }
+
+    private List<ColumnData> updateForeignKeyInfo(TableData table, List<ColumnData> columns){
+        String query = "select * from "+ table.getDB().getCatalogName()+"."+METADATA_VIEW_SCHEMA_NAME+"."+METADATA_VIEW_FOREIGN_KEY_NAME + " where " + METADATA_VIEW_SCHEMA + " = '"+table.getSchemaName()
+                + "' and " + METADATA_VIEW_TABLE +" = '" + table.getTableName() + "'";
+        try {
+            stmt = conn.createStatement();
+            ResultSet res = stmt.executeQuery(query);
+
+            //each row is a column in the table with a foreign key referencing another table
+            while (res.next()) {
+                //get the column of this table that is a foreign key
+                String columnName = res.getString(METADATA_VIEW_COLUMN);
+                ColumnData columnToUpdate = null;
+                for (ColumnData col : columns){
+                    if (col.getName().equals(columnName)){
+                        columnToUpdate = col;
+                        break;
+                    }
+                }
+                if (columnToUpdate == null){
+                    //there is no column
+                    return columns;
+                }
+                else{
+                    columns.remove(columnToUpdate);
+                }
+                String referencedSchema = res.getString(METADATA_VIEW_REFERENCED_SCHEMA);
+                String referencedTable = res.getString(METADATA_VIEW_REFERENCED_TABLE);
+                String referencedColumn = res.getString(METADATA_VIEW_REFERENCED_COLUMN);
+                //TODO: review. It is assumed that referenced table is in same database!
+                //in the form database.schema.table.column
+                String referencedKeyFullPath = table.getDB().getCatalogName()+"."+referencedSchema+"."+referencedTable+"."+referencedColumn;
+                columnToUpdate.setForeignKey(referencedKeyFullPath);
+                columns.add(columnToUpdate);
+
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return columns;
+    }
+
+    private List<ColumnData> updatePrimaryKeyInfo(TableData table, List<ColumnData> columns){
+        String query = "select * from "+ table.getDB().getCatalogName()+"."+METADATA_VIEW_SCHEMA_NAME+"."+METADATA_VIEW_PRIMARY_KEY_NAME + " where " + METADATA_VIEW_PRIMARY_SCHEMA + " = '"+table.getSchemaName()
+                + "' and " + METADATA_VIEW_PRIMARY_TABLE +" = '" + table.getTableName() + "'";
+        try {
+            stmt = conn.createStatement();
+            ResultSet res = stmt.executeQuery(query);
+
+            //each row is a primary key in this table
+            while (res.next()) {
+                //get the column of this table that is a foreign key
+                String columnName = res.getString(METADATA_VIEW_COLUMN);
+                ColumnData columnToUpdate = null;
+                for (ColumnData col : columns){
+                    if (col.getName().equals(columnName)){
+                        columnToUpdate = col;
+                    }
+                }
+                if (columnToUpdate == null){
+                    //there is no column
+                    return columns;
+                }
+                else{
+                    columns.remove(columnToUpdate);
+                }
+                columnToUpdate.setPrimaryKey(true);
+                columns.add(columnToUpdate);
+
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return columns;
+    }
 
     private Set<String> getOneColumnResultQuery(String query, boolean print) throws SQLException {
         Set<String> info = null;
@@ -255,7 +343,6 @@ public class PrestoMediator {
     }
 
     private List<Map> getColumnsResultQuery(String query, boolean print) throws SQLException {
-        Set<String> info = null;
         stmt = conn.createStatement();
         ResultSet res = stmt.executeQuery(query);
         ResultSetMetaData rsmd = res.getMetaData();
@@ -276,5 +363,75 @@ public class PrestoMediator {
     }
 
 
+    //NOT WORKING!!
+    public boolean restartPresto(){
+        InputStreamReader input;
+        OutputStreamWriter output;
+
+        try {
+            //Create the process and start it.
+            Process pb = new ProcessBuilder("sudo",  "bash", "-c", PRESTO_BIN+"/launcher" + " -S /bin/cat /etc/sudoers 2>&1").start();
+            output = new OutputStreamWriter(pb.getOutputStream());
+            input = new InputStreamReader(pb.getInputStream());
+
+            int bytes, tryies = 0;
+            char buffer[] = new char[1024];
+            while ((bytes = input.read(buffer, 0, 1024)) != -1) {
+                if(bytes == 0)
+                    continue;
+                //Output the data to console, for debug purposes
+                String data = String.valueOf(buffer, 0, bytes);
+                System.out.println(data);
+                // Check for password request
+                if (data.contains("[sudo] password")) {
+                    // Here you can request the password to user using JOPtionPane or System.console().readPassword();
+                    JPasswordField pwd = new JPasswordField(20);
+                    int action = JOptionPane.showConfirmDialog(null, pwd,"Enter Password",JOptionPane.OK_CANCEL_OPTION);
+                    if(action < 0)JOptionPane.showMessageDialog(null,"Cancel, X or escape key selected");
+                    else JOptionPane.showMessageDialog(null,"Your password is "+new String(pwd.getPassword()));
+                    char password[] = pwd.getPassword();
+                    output.write(password);
+                    output.write('\n');
+                    output.flush();
+                    // erase password data, to avoid security issues.
+                    Arrays.fill(password, '\0');
+                    tryies++;
+                }
+            }
+            if (tryies > 3){
+                return false;
+            }
+        } catch (IOException ex) { System.err.println(ex); }
+        //wait and check if connection with presto is possible every 4 seconds, 3 times
+        int nTries = 0;
+        while (nTries < 3) {
+            try {
+                conn.getMetaData();
+                return true;
+            } catch (SQLException e) {
+                nTries++;
+            }
+        }
+        if (nTries >= 3)
+            return false;
+        else
+            return true;
+    }
+
+    /**
+     *
+     * @return true if user confirmed presto restart; false otherwise
+     */
+    public boolean showRestartPrompt(){
+        int n = JOptionPane.showOptionDialog(new JFrame(), "Please, restart presto server, then after it restarted select 'OK'",
+                "Presto required to restart", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE,
+                null, new Object[] {"OK", "Cancel"}, JOptionPane.OK_CANCEL_OPTION);
+
+        if (n == JOptionPane.OK_OPTION) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 
 }
