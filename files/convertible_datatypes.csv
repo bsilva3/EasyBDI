@@ -1,0 +1,33 @@
+boolean, varchar
+boolean, char
+integer, tinyint
+integer, smallint
+integer, bigint
+integer, real
+integer, double
+integer, decimal
+integer, uuid
+tinyint, integer
+tinyint, double
+smallint,double
+smallint,integer
+smallint,bigint
+bigint,integer
+bigint,double
+bigint,integer
+double,decimal
+decimal,double
+varchar,char
+char,varchar
+varbinary,
+json,varchar
+json,char
+date,varchar
+date,char
+time,
+time with time zone,
+timestamp,
+timestamp with time zone,
+ipaddress, char
+ipaddress, varchar
+uuid,integer

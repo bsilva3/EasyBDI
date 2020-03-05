@@ -2,19 +2,13 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="4372070e-ade1-4e3a-bab8-4e40966e7856" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/metadata/metadataBD" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/files/convertible_datatypes.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/helper_classes/Match.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/helper_classes/Matches.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/helper_classes/ColumnInfo.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/helper_classes/ColumnData.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/helper_classes/DBData.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/helper_classes/DBData.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/helper_classes/SchemaInfo.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/helper_classes/TableInfo.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/helper_classes/TableData.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/metadata/metadataBD" beforeDir="false" afterPath="$PROJECT_DIR$/metadata/metadataBD" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/prestoComm/Constants.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/prestoComm/Constants.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/prestoComm/DBModel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/prestoComm/DBModel.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/prestoComm/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/prestoComm/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/prestoComm/ManagerFacade.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/prestoComm/ManagerFacade.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/prestoComm/MetaDataManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/prestoComm/MetaDataManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/prestoComm/PrestoMediator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/prestoComm/PrestoMediator.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/prestoComm/SchemaMatcher.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/prestoComm/SchemaMatcher.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -51,7 +45,7 @@
     <property name="project.structure.side.proportion" value="0.0" />
     <property name="settings.editor.selected.configurable" value="preferences.editor" />
   </component>
-  <component name="RunManager" selected="Application.Main">
+  <component name="RunManager" selected="Application.SchemaMatcher">
     <configuration name="Main" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="prestoComm.Main" />
       <module name="prestoComunicator" />
@@ -87,8 +81,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Application.Main" />
         <item itemvalue="Application.SchemaMatcher" />
+        <item itemvalue="Application.Main" />
         <item itemvalue="Application.PrestoMediator" />
       </list>
     </recent_temporary>
@@ -132,7 +126,14 @@
       <option name="project" value="LOCAL" />
       <updated>1582051712382</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="local schema complete (needs robustness).&#10;Schema matching implementation initiation.">
+      <created>1583258130466</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1583258130466</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -141,17 +142,18 @@
     <MESSAGE value="changed logic do sqlite." />
     <MESSAGE value="added schema matching library" />
     <MESSAGE value="Added setup methods on all classes" />
-    <option name="LAST_COMMIT_MESSAGE" value="Added setup methods on all classes" />
+    <MESSAGE value="local schema complete (needs robustness).&#10;Schema matching implementation initiation." />
+    <option name="LAST_COMMIT_MESSAGE" value="local schema complete (needs robustness).&#10;Schema matching implementation initiation." />
   </component>
   <component name="WindowStateProjectService">
     <state x="555" y="180" width="800" height="675" key="#Project_Structure" timestamp="1580818064854">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="555" y="180" width="800" height="675" key="#Project_Structure/0.0.1920.1040@0.0.1920.1040" timestamp="1580818064854" />
-    <state x="768" y="238" width="521" height="560" key="#com.intellij.ide.util.MemberChooser" timestamp="1583255415408">
+    <state x="768" y="238" width="521" height="560" key="#com.intellij.ide.util.MemberChooser" timestamp="1583328158828">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="768" y="238" width="521" height="560" key="#com.intellij.ide.util.MemberChooser/0.0.1920.1040@0.0.1920.1040" timestamp="1583255415408" />
+    <state x="768" y="238" width="521" height="560" key="#com.intellij.ide.util.MemberChooser/0.0.1920.1040@0.0.1920.1040" timestamp="1583328158828" />
     <state x="668" y="266" width="574" height="504" key="#com.intellij.refactoring.memberPullUp.PullUpDialog" timestamp="1581441028574">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -164,54 +166,54 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="693" y="268" width="524" height="499" key="#com.intellij.refactoring.safeDelete.UnsafeUsagesDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1582132044033" />
-    <state x="718" y="223" key="#xdebugger.evaluate" timestamp="1583235649477">
+    <state x="1021" y="169" key="#xdebugger.evaluate" timestamp="1583318151602">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="718" y="223" key="#xdebugger.evaluate/0.0.1920.1040@0.0.1920.1040" timestamp="1583235649477" />
-    <state x="607" y="116" width="695" height="803" key="CommitChangelistDialog2" timestamp="1582051711689">
+    <state x="1021" y="169" key="#xdebugger.evaluate/0.0.1920.1040@0.0.1920.1040" timestamp="1583318151602" />
+    <state x="607" y="116" width="695" height="803" key="CommitChangelistDialog2" timestamp="1583258130253">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="607" y="116" width="695" height="803" key="CommitChangelistDialog2/0.0.1920.1040@0.0.1920.1040" timestamp="1582051711689" />
-    <state width="1874" height="228" key="GridCell.Tab.0.bottom" timestamp="1583257703542">
+    <state x="607" y="116" width="695" height="803" key="CommitChangelistDialog2/0.0.1920.1040@0.0.1920.1040" timestamp="1583258130253" />
+    <state width="1874" height="228" key="GridCell.Tab.0.bottom" timestamp="1583319819198">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1874" height="228" key="GridCell.Tab.0.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1583257703542" />
-    <state width="1874" height="228" key="GridCell.Tab.0.center" timestamp="1583257703541">
+    <state width="1874" height="228" key="GridCell.Tab.0.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1583319819198" />
+    <state width="1874" height="228" key="GridCell.Tab.0.center" timestamp="1583319819197">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1874" height="228" key="GridCell.Tab.0.center/0.0.1920.1040@0.0.1920.1040" timestamp="1583257703541" />
-    <state width="1874" height="228" key="GridCell.Tab.0.left" timestamp="1583257703541">
+    <state width="1874" height="228" key="GridCell.Tab.0.center/0.0.1920.1040@0.0.1920.1040" timestamp="1583319819197" />
+    <state width="1874" height="228" key="GridCell.Tab.0.left" timestamp="1583319819197">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1874" height="228" key="GridCell.Tab.0.left/0.0.1920.1040@0.0.1920.1040" timestamp="1583257703541" />
-    <state width="1874" height="228" key="GridCell.Tab.0.right" timestamp="1583257703541">
+    <state width="1874" height="228" key="GridCell.Tab.0.left/0.0.1920.1040@0.0.1920.1040" timestamp="1583319819197" />
+    <state width="1874" height="228" key="GridCell.Tab.0.right" timestamp="1583319819198">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1874" height="228" key="GridCell.Tab.0.right/0.0.1920.1040@0.0.1920.1040" timestamp="1583257703541" />
-    <state width="1874" height="264" key="GridCell.Tab.1.bottom" timestamp="1583245703589">
+    <state width="1874" height="228" key="GridCell.Tab.0.right/0.0.1920.1040@0.0.1920.1040" timestamp="1583319819198" />
+    <state width="1874" height="264" key="GridCell.Tab.1.bottom" timestamp="1583318394075">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1874" height="264" key="GridCell.Tab.1.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1583245703589" />
-    <state width="1874" height="264" key="GridCell.Tab.1.center" timestamp="1583245703589">
+    <state width="1874" height="264" key="GridCell.Tab.1.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1583318394075" />
+    <state width="1874" height="264" key="GridCell.Tab.1.center" timestamp="1583318394075">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1874" height="264" key="GridCell.Tab.1.center/0.0.1920.1040@0.0.1920.1040" timestamp="1583245703589" />
-    <state width="1874" height="264" key="GridCell.Tab.1.left" timestamp="1583245703589">
+    <state width="1874" height="264" key="GridCell.Tab.1.center/0.0.1920.1040@0.0.1920.1040" timestamp="1583318394075" />
+    <state width="1874" height="264" key="GridCell.Tab.1.left" timestamp="1583318394075">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1874" height="264" key="GridCell.Tab.1.left/0.0.1920.1040@0.0.1920.1040" timestamp="1583245703589" />
-    <state width="1874" height="264" key="GridCell.Tab.1.right" timestamp="1583245703589">
+    <state width="1874" height="264" key="GridCell.Tab.1.left/0.0.1920.1040@0.0.1920.1040" timestamp="1583318394075" />
+    <state width="1874" height="264" key="GridCell.Tab.1.right" timestamp="1583318394075">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1874" height="264" key="GridCell.Tab.1.right/0.0.1920.1040@0.0.1920.1040" timestamp="1583245703589" />
+    <state width="1874" height="264" key="GridCell.Tab.1.right/0.0.1920.1040@0.0.1920.1040" timestamp="1583318394075" />
     <state x="464" y="154" key="SettingsEditor" timestamp="1580300483631">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="464" y="154" key="SettingsEditor/0.0.1920.1040@0.0.1920.1040" timestamp="1580300483631" />
-    <state x="555" y="255" width="800" height="526" key="Vcs.Push.Dialog.v2" timestamp="1582051715015">
+    <state x="555" y="255" width="800" height="526" key="Vcs.Push.Dialog.v2" timestamp="1583258133718">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="555" y="255" width="800" height="526" key="Vcs.Push.Dialog.v2/0.0.1920.1040@0.0.1920.1040" timestamp="1582051715015" />
+    <state x="555" y="255" width="800" height="526" key="Vcs.Push.Dialog.v2/0.0.1920.1040@0.0.1920.1040" timestamp="1583258133718" />
     <state x="653" y="346" key="com.intellij.ide.util.TipDialog" timestamp="1583140463447">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -240,15 +242,18 @@
           </properties>
           <option name="timeStamp" value="14" />
         </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-method">
+          <url>file://$PROJECT_DIR$/src/main/java/prestoComm/SchemaMatcher.java</url>
+          <line>67</line>
+          <properties class="prestoComm.SchemaMatcher" method="getNameSimilarityLevenshtein">
+            <option name="EMULATED" value="true" />
+          </properties>
+          <option name="timeStamp" value="26" />
+        </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/prestoComm/Main.java</url>
           <line>31</line>
           <option name="timeStamp" value="17" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/helper_classes/DBData.java</url>
-          <line>21</line>
-          <option name="timeStamp" value="25" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

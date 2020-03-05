@@ -15,7 +15,7 @@ public class Main {
         ManagerFacade manager = new ManagerFacade();
         //register databases
         List<DBData> dbDataList = new ArrayList<>();
-        //manager.dropTables();
+        manager.dropTables();
 
         manager.beginSetup();
         System.out.println("DB types registered:");

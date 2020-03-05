@@ -7,12 +7,12 @@ public class Constants {
     //Presto main dir location Static for now
     //TODO: add a config file that shows the location of presto instalation
     public static final String PRESTO_DIR = "/home/bruno/Desktop/presto-server-330";
-    public static final String PRESTO_BIN = PRESTO_DIR+"/ bin";
+    public static final String PRESTO_BIN = PRESTO_DIR + File.separator + "bin";
     public static final String PRESTO_PROPERTIES_FOLDER = PRESTO_DIR + File.separator + "etc" + File.separator + "catalog"+File.separator;
 
-    //PostgresSQL user details
-    public static final String PSQL_USER = "postgres";
-    public static final String PSQL_PASS = "brunosilva";
+    //files
+    public static final String FILES_DIR = "files";
+    public static final String DATATYPE_CONVERTIBLES_DICT = FILES_DIR + File.separator + "convertible_datatypes.csv";
 
     //SQLITE
     public static final String SQLITE_DB = "metadataBD";
