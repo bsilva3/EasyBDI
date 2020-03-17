@@ -115,6 +115,15 @@ public class MetaDataManager {
                 + "    PRIMARY KEY("+ CORRESPONDENCES_GLOBAL_COL_FIELD+", "+CORRESPONDENCES_LOCAL_COL_FIELD+") ON CONFLICT IGNORE, \n"
                 + "    FOREIGN KEY ("+ CORRESPONDENCES_GLOBAL_COL_FIELD +") REFERENCES "+GLOBAL_COLUMN_DATA+"("+GLOBAL_COLUMN_DATA_ID_FIELD+"), "
                 + "    FOREIGN KEY ("+ CORRESPONDENCES_LOCAL_COL_FIELD +") REFERENCES "+COLUMN_DATA+"("+ID_FIELD+")); ";
+        
+        String sql8 = "CREATE TABLE IF NOT EXISTS "+ CORRESPONDENCES_DATA +" (\n"
+                + "    "+ CORRESPONDENCES_GLOBAL_COL_FIELD +" integer,\n"
+                + "    "+ CORRESPONDENCES_LOCAL_COL_FIELD +" integer ,\n"
+                + "    "+ CORRESPONDENCES_CONVERSION_FIELD +" text,\n"
+                + "    "+ CORRESPONDENCES_TYPE_FIELD +" text, \n"
+                + "    PRIMARY KEY("+ CORRESPONDENCES_GLOBAL_COL_FIELD+", "+CORRESPONDENCES_LOCAL_COL_FIELD+") ON CONFLICT IGNORE, \n"
+                + "    FOREIGN KEY ("+ CORRESPONDENCES_GLOBAL_COL_FIELD +") REFERENCES "+GLOBAL_COLUMN_DATA+"("+GLOBAL_COLUMN_DATA_ID_FIELD+"), "
+                + "    FOREIGN KEY ("+ CORRESPONDENCES_LOCAL_COL_FIELD +") REFERENCES "+COLUMN_DATA+"("+ID_FIELD+")); ";
 
         executeStatements(new String[] {sql1, sql2, sql3, sql4, sql5, sql6, sql7});
     }

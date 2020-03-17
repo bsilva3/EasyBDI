@@ -64,10 +64,21 @@ public class SchemaMatcher {
         cols.add(new ColumnData(15, "badge_code", "integer", false, sales, "", ""));
         cols.add(new ColumnData(16, "time_hired", "timestamp", false, sales, "", ""));
         employees2.setColumnsList(cols);
+        
+        //Table 5 ----------- similar to 3
+        TableData employees3 = new TableData("employees_info", "sales_schema", null);
+        cols = new ArrayList<>();
+        cols.add(new ColumnData(12, "id", "integer", true, sales, "", ""));
+        cols.add(new ColumnData(13, "first_name", "double", false, sales, "", ""));
+        cols.add(new ColumnData(14, "second_name", "varchar", false, sales, "", ""));
+        cols.add(new ColumnData(15, "badge_code", "integer", false, sales, "", ""));
+        cols.add(new ColumnData(16, "time_hired", "timestamp", false, sales, "", ""));
+        employees3.setColumnsList(cols);
 
         tables.add(sales);
         tables.add(employees);
         tables.add(employees2);
+        tables.add(employees3);
         tables.add(product);
         SchemaMatcher schemaMatcher = new SchemaMatcher();
         List<GlobalTableData> globalTables = schemaMatcher.schemaIntegration(tables);
@@ -83,6 +94,7 @@ public class SchemaMatcher {
         List<TableData> nonMatchedTables = getNonMatchedTables(matches, tables);
         //group tables that match to same global table
         List<GlobalTableData> globalTables = groupMatchedTables(matches);
+        //TODO: add the non matched single tables (iddealy, one function should add both the matched and non matched)
         globalTables = mergeGlobalTableAttributes(globalTables);
 
         return globalTables;
@@ -154,6 +166,7 @@ public class SchemaMatcher {
                     globalTable.addLocalTable(matches.get(0).getTableData2());
                     localTable = matches.get(0).getTableData2();
                     indexesMatchesAdded.add(0);
+                    matches.remove(0); //remove the match tables that were already added
                 }
             }
             //search for all tables that will match to the same global table
@@ -167,8 +180,8 @@ public class SchemaMatcher {
                 }
             }
             Collections.sort(indexesMatchesAdded);
-            for (int i = indexesMatchesAdded.size() -1; i > 0; i-- ){
-                int index = indexesMatchesAdded.get(i-1);
+            for (int i = indexesMatchesAdded.size() -1; i >= 0; i-- ){
+                int index = indexesMatchesAdded.get(i);
                 matches.remove(index);
             }
             indexesMatchesAdded.clear();

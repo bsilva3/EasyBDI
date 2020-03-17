@@ -82,6 +82,12 @@ public class Constants {
     public static final String CORRESPONDENCES_LOCAL_COL_FIELD = "local_col_id";
     public static final String CORRESPONDENCES_CONVERSION_FIELD = "conversion"; //the necessary conversion from global to local
     public static final String CORRESPONDENCES_TYPE_FIELD = "conversion_type";
+    
+    //multiple local columns (because they matched)
+    public static final String CUBE_TABLE = "cube";
+    //columns in this table
+    public static final String CUBE_NAME = "name";
+    public static final String CUBE_TYPE = "local_col_id";
 
     //Presto SHOW COLUMNS FROM column names of query result
     public static final String SHOW_COLS_COLUMN = "Column";

@@ -83,7 +83,7 @@ public class GlobalColumnData {
                 ", name='" + name + '\'' +
                 ", dataType='" + dataType + '\'' +
                 ", isPrimaryKey=" + isPrimaryKey +
-                ", globalTable=" + globalTable +
+                //", globalTable=" + globalTable +
                 ", foreignKey='" + foreignKey + '\'' +
                 '}';
     }
