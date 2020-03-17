@@ -1,5 +1,7 @@
 package helper_classes;
 
+import java.util.*;
+
 //Helper class. Shows info about a column (data type, name..)
 public class ColumnData {
     private int columnID;
@@ -9,12 +11,34 @@ public class ColumnData {
     private TableData table;
     private String foreignKey;
     private String tableRelation;
+    private Set<ColumnData> mergedColumnIds;
+
+    public ColumnData(int id, String name, String dataType, TableData table) {
+        this.columnID = id;
+        this.name = name;
+        this.dataType = dataType;
+        this.table = table;
+        this.isPrimaryKey = false;
+        mergedColumnIds = new HashSet<>();
+    }
+
+    public ColumnData(String name, String dataType, boolean isPrimaryKey) {
+        this.name = name;
+        this.dataType = dataType;
+        this.isPrimaryKey = isPrimaryKey;
+        this.mergedColumnIds = new HashSet<>();
+    }
 
     public ColumnData(String name, String dataType, TableData table) {
         this.name = name;
         this.dataType = dataType;
         this.table = table;
-        this.isPrimaryKey = false;
+        this.mergedColumnIds = new HashSet<>();
+    }
+
+    public ColumnData(String name, String dataType, boolean isPrimaryKey, Set<ColumnData> mergedColumnIds) {
+        this(name, dataType, isPrimaryKey);
+        this.mergedColumnIds = mergedColumnIds;
     }
 
     public ColumnData(int columnID, String name, String dataType, boolean isPrimaryKey, TableData table, String foreignKey, String tableRelation) {
@@ -25,6 +49,7 @@ public class ColumnData {
         this.table = table;
         this.foreignKey = foreignKey;
         this.tableRelation = tableRelation;
+        mergedColumnIds = new HashSet<>();
     }
 
     public String getName() {
@@ -83,6 +108,23 @@ public class ColumnData {
         this.tableRelation = tableRelation;
     }
 
+    public Set<ColumnData> getMergedColumns() {
+        mergedColumnIds.add(this);
+        return mergedColumnIds;
+    }
+
+    public void setMergedColumnIds(Set<ColumnData> mergedColumns) {
+        this.mergedColumnIds = mergedColumns;
+    }
+
+    public void addMergedColumnId(ColumnData cols){
+        this.mergedColumnIds.add(cols);
+    }
+
+    public void addMergedColumnId(Collection<ColumnData> cols){
+        this.mergedColumnIds.addAll(cols);
+    }
+
     @Override
     public String toString() {
         return "ColumnData{" +
@@ -90,7 +132,7 @@ public class ColumnData {
                 ", name='" + name + '\'' +
                 ", dataType='" + dataType + '\'' +
                 ", isPrimaryKey=" + isPrimaryKey +
-                ", table=" + table +
+                //", table=" + table +
                 ", foreignKey='" + foreignKey + '\'' +
                 ", tableRelation='" + tableRelation + '\'' +
                 '}';

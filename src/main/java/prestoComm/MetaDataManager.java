@@ -1,6 +1,8 @@
 package prestoComm;
 
+import de.uni_mannheim.informatik.dws.winter.webtables.Table;
 import helper_classes.ColumnData;
+import helper_classes.Correspondence;
 import helper_classes.DBData;
 import helper_classes.TableData;
 import io.prestosql.jdbc.$internal.client.Column;
@@ -8,6 +10,7 @@ import io.prestosql.jdbc.$internal.client.Column;
 import java.io.File;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -46,9 +49,11 @@ public class MetaDataManager {
 
         // create the tables if they dont exist already
         //create database types table
+
+        // -------------- Local schema
         String sql1 = "CREATE TABLE IF NOT EXISTS "+ DB_TYPE_DATA +" (\n"
                 + "    id integer PRIMARY KEY,\n"
-                + "    "+ DB_TYPE_NAME_FIELD +" text NOT NULL UNIQUE,\n"
+                + "    "+ DB_TYPE_NAME_FIELD +" text NOT NULL,\n"
                 + "    "+ DB_TYPE_MODEL_FIELD +" text NOT NULL,\n"
                 + "    "+ DB_TYPE_QUERY_FIELD +" text, \n"
                 +  "    UNIQUE("+ DB_TYPE_NAME_FIELD+") ON CONFLICT IGNORE );";
@@ -82,15 +87,47 @@ public class MetaDataManager {
                 + "    UNIQUE("+ COLUMN_DATA_NAME_FIELD +", " + COLUMN_DATA_TABLE_FIELD +") ON CONFLICT IGNORE,\n"
                 + "    FOREIGN KEY (" + COLUMN_DATA_TABLE_FIELD + ") REFERENCES "+DB_DATA+"(id));";
 
-        executeStatements(new String[] {sql1, sql2, sql3, sql4});
+
+        // ------------ Global schema ----------------
+
+        //TODO: cube table and foreign key to cube table in global table data (table would be unique on name AND cube)
+        String sql5 = "CREATE TABLE IF NOT EXISTS "+ GLOBAL_TABLE_DATA +" (\n"
+                + "    "+ GLOBAL_TABLE_DATA_ID_FIELD +" integer PRIMARY KEY,\n"
+                + "    "+ GLOBAL_TABLE_DATA_NAME_FIELD +" text NOT NULL,\n"
+                + "    "+ GLOBAL_TABLE_DATA_MULTI_TYPE_FIELD +" text,\n"
+                + "    "+ DB_TYPE_QUERY_FIELD +" text, \n"
+                +  "    UNIQUE("+ GLOBAL_TABLE_DATA_NAME_FIELD+") ON CONFLICT IGNORE );";
+
+        String sql6 = "CREATE TABLE IF NOT EXISTS "+ GLOBAL_COLUMN_DATA +" (\n"
+                + "    "+ GLOBAL_COLUMN_DATA_ID_FIELD +" integer PRIMARY KEY,\n"
+                + "    "+ GLOBAL_COLUMN_DATA_NAME_FIELD +" text NOT NULL,\n"
+                + "    "+ GLOBAL_COLUMN_DATA_TYPE_FIELD +" text NOT NULL,\n"
+                + "    "+ GLOBAL_COLUMN_DATA_TABLE_FIELD +" integer NOT NULL,\n"
+                + "    "+ GLOBAL_COLUMN_DATA_PRIMARY_KEY_FIELD +" boolean, \n"
+                +  "    UNIQUE("+ GLOBAL_COLUMN_DATA_NAME_FIELD+") ON CONFLICT IGNORE, \n"
+                + "    FOREIGN KEY ("+ GLOBAL_COLUMN_DATA_TABLE_FIELD +") REFERENCES "+GLOBAL_TABLE_DATA+"("+GLOBAL_TABLE_DATA_ID_FIELD+"));";
+
+        String sql7 = "CREATE TABLE IF NOT EXISTS "+ CORRESPONDENCES_DATA +" (\n"
+                + "    "+ CORRESPONDENCES_GLOBAL_COL_FIELD +" integer,\n"
+                + "    "+ CORRESPONDENCES_LOCAL_COL_FIELD +" integer ,\n"
+                + "    "+ CORRESPONDENCES_CONVERSION_FIELD +" text,\n"
+                + "    "+ CORRESPONDENCES_TYPE_FIELD +" text, \n"
+                + "    PRIMARY KEY("+ CORRESPONDENCES_GLOBAL_COL_FIELD+", "+CORRESPONDENCES_LOCAL_COL_FIELD+") ON CONFLICT IGNORE, \n"
+                + "    FOREIGN KEY ("+ CORRESPONDENCES_GLOBAL_COL_FIELD +") REFERENCES "+GLOBAL_COLUMN_DATA+"("+GLOBAL_COLUMN_DATA_ID_FIELD+"), "
+                + "    FOREIGN KEY ("+ CORRESPONDENCES_LOCAL_COL_FIELD +") REFERENCES "+COLUMN_DATA+"("+ID_FIELD+")); ";
+
+        executeStatements(new String[] {sql1, sql2, sql3, sql4, sql5, sql6, sql7});
     }
 
     public void deleteTables(){
-        String sql1 = "DROP TABLE "+ COLUMN_DATA +";";
-        String sql2 = "DROP TABLE "+ TABLE_DATA +";";
-        String sql3 = "DROP TABLE "+ DB_DATA +";";
-        String sql4 = "DROP TABLE "+ DB_TYPE_DATA +";";
-        executeStatements(new String[] {sql1, sql2, sql3, sql4});
+        String sql1 = "DROP TABLE "+ CORRESPONDENCES_DATA +";";
+        String sql2 = "DROP TABLE "+ COLUMN_DATA +";";
+        String sql3 = "DROP TABLE "+ TABLE_DATA +";";
+        String sql4 = "DROP TABLE "+ DB_DATA +";";
+        String sql5 = "DROP TABLE "+ DB_TYPE_DATA +";";
+        String sql6 = "DROP TABLE "+ GLOBAL_COLUMN_DATA +";";
+        String sql7 = "DROP TABLE "+ GLOBAL_TABLE_DATA +";";
+        executeStatements(new String[] {sql1, sql2, sql3, sql4, sql5, sql6, sql7});
     }
 
     private void executeStatements(String[] statements){
@@ -372,5 +409,151 @@ public class MetaDataManager {
         }
         return DBModel.valueOf(str);
     }
+
+
+    /**
+     * Insert a list of tables that did not match into the global tables and global columns schemas. Since the tables had no match, they will each have one table each
+     * @param nonMatchedTables
+     * @return a map containing table id of a global table and the list of columns belonging to that table
+     */
+    public Map<Integer, List<ColumnData>> insertGLobalNonMatchedTableData(List<TableData> nonMatchedTables){
+        //store the table id of a global table and the list of columns belonging to that table
+        Map<Integer, List<ColumnData>> globalTablesForColumns = new HashMap<>();
+
+        String sql = "INSERT INTO "+ GLOBAL_TABLE_DATA + "("+GLOBAL_TABLE_DATA_NAME_FIELD+", "+GLOBAL_TABLE_DATA_MULTI_TYPE_FIELD+", "+GLOBAL_TABLE_DATA_CUBE_FIELD+") VALUES(?,?,?)";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            for (int i = 0; i < nonMatchedTables.size() ; i++){
+                TableData table = nonMatchedTables.get(i);
+                int dbID = table.getDB().getId();
+                if (dbID <= 0){
+                    dbID = getDBID(table.getDB().getDbName(), table.getDB().getUrl());
+                    if (dbID == -1){
+                        System.out.println("DB "+table.getDB().getDbName() + " in server " + table.getDB().getUrl() +" not found");
+                        continue;
+                    }
+                }
+                //TODO: complete insertion with multidimensional data (cube and multidimensional type)
+                pstmt.setString(1, table.getTableName());
+                pstmt.setString(2, "");
+                pstmt.setInt(3, 0);
+                pstmt.executeUpdate();
+
+                //get if of inserted global table
+                ResultSet rs = pstmt.getGeneratedKeys();
+                if(rs.next())
+                {
+                    int lastInsertedId = rs.getInt(1);
+                    globalTablesForColumns.put(lastInsertedId, table.getColumnsList());
+                }
+            }
+
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return globalTablesForColumns;
+    }
+
+    /**
+     * Insert a list of tables that matched into the global tables and global columns schemas. Since the tables had no match, they will each have one table each
+     * @param nonMatchedTables
+     * @return a map containing table id of a global table and the list of columns belonging to that table
+     */
+    public Map<Integer, List<ColumnData>> insertGLobalMatchedTableData(List<TableData> nonMatchedTables){
+        //store the table id of a global table and the list of columns belonging to that table
+        Map<Integer, List<ColumnData>> globalTablesForColumns = new HashMap<>();
+
+        String sql = "INSERT INTO "+ GLOBAL_TABLE_DATA + "("+GLOBAL_TABLE_DATA_NAME_FIELD+", "+GLOBAL_TABLE_DATA_MULTI_TYPE_FIELD+", "+GLOBAL_TABLE_DATA_CUBE_FIELD+") VALUES(?,?,?)";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            for (int i = 0; i < nonMatchedTables.size() ; i++){
+                TableData table = nonMatchedTables.get(i);
+                int dbID = table.getDB().getId();
+                if (dbID <= 0){
+                    dbID = getDBID(table.getDB().getDbName(), table.getDB().getUrl());
+                    if (dbID == -1){
+                        System.out.println("DB "+table.getDB().getDbName() + " in server " + table.getDB().getUrl() +" not found");
+                        continue;
+                    }
+                }
+                //TODO: complete insertion with multidimensional data (cube and multidimensional type)
+                pstmt.setString(1, table.getTableName());
+                pstmt.setString(2, "");
+                pstmt.setInt(3, 0);
+                pstmt.executeUpdate();
+
+                //get if of inserted global table
+                ResultSet rs = pstmt.getGeneratedKeys();
+                if(rs.next())
+                {
+                    int lastInsertedId = rs.getInt(1);
+                    globalTablesForColumns.put(lastInsertedId, table.getColumnsList());
+                }
+            }
+
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return globalTablesForColumns;
+    }
+
+    /**
+     * Insert Columns of global tables in the global columns table. Also adds the correspondences between the global and the local table columns in the
+     * correspondences table.
+     * @param columnsInTables
+     * @return
+     */
+    /*public List<TableData> insertGlobalColumnData(Map<Integer, List<ColumnData>> columnsInTables){
+        String sql = "INSERT INTO "+ GLOBAL_COLUMN_DATA + "("+GLOBAL_COLUMN_DATA_NAME_FIELD+", "+GLOBAL_COLUMN_DATA_TYPE_FIELD+", "+GLOBAL_COLUMN_DATA_TABLE_FIELD+", "
+                +GLOBAL_COLUMN_DATA_PRIMARY_KEY_FIELD+") VALUES(?,?,?,?)";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            for (Map.Entry<Integer, List<ColumnData>> entry : columnsInTables.entrySet()) {
+                int globalTableID = entry.getKey();
+                List<ColumnData> columns = entry.getValue();
+                for (int i = 0; i < columns.size(); i++){
+                    pstmt.setString(1, columns.get(i).getName());
+                    pstmt.setString(2, columns.get(i).getDataType());
+                    pstmt.setInt(3, globalTableID);
+                    pstmt.setBoolean(4, columns.get(i).isPrimaryKey());
+                    pstmt.executeUpdate();
+
+                    ResultSet rs = pstmt.getGeneratedKeys();
+                    if(rs.next()) {
+                        int lastInsertedId = rs.getInt(1);
+
+                    }
+                }
+            }
+
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return columnsInTables;
+    }*/
+
+    /**
+     * Insert Columns of global tables in the global columns table. Also adds the correspondences between the global and the local table columns in the
+     * correspondences table.
+     * @param globalToLocalCorrs
+     * @return
+     */
+    public void insertCorrespondencesData(List<Correspondence> globalToLocalCorrs){
+        String sql = "INSERT INTO "+ CORRESPONDENCES_DATA + "("+CORRESPONDENCES_GLOBAL_COL_FIELD+", "+CORRESPONDENCES_LOCAL_COL_FIELD+", "+CORRESPONDENCES_CONVERSION_FIELD+", "
+                +CORRESPONDENCES_TYPE_FIELD+") VALUES(?,?,?,?)";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            for (int i = 0; i < globalToLocalCorrs.size(); i++) {
+
+                pstmt.setInt(1, globalToLocalCorrs.get(i).getGlobalCol().getColumnID());
+                pstmt.setInt(2, globalToLocalCorrs.get(i).getLocalCol().getColumnID());
+                pstmt.setString(3, globalToLocalCorrs.get(i).getConversion());
+                pstmt.setString(4, "");
+                pstmt.executeUpdate();
+            }
+
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
 
 }

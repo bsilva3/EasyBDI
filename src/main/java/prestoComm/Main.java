@@ -1,6 +1,7 @@
 package prestoComm;
 
 import helper_classes.DBData;
+import helper_classes.GlobalTableData;
 import helper_classes.TableData;
 
 import java.util.ArrayList;
@@ -17,7 +18,7 @@ public class Main {
         List<DBData> dbDataList = new ArrayList<>();
         manager.dropTables();
 
-        manager.beginSetup();
+        manager.createDatabaseAndConnectToPresto();
         System.out.println("DB types registered:");
         manager.printQuery("SELECT * FROM "+ DB_TYPE_DATA);
         //insert manually DBs
@@ -32,8 +33,7 @@ public class Main {
         //manager.prestoMediator.makeQuery("SHOW CATALOGS");
         List<TableData> tables = manager.buildLocalSchema(dbDataList);
 
-        SchemaMatcher schemaMatcher = new SchemaMatcher();
-        schemaMatcher.fillTableColumnDataForSchemaMatching(tables);
+        manager.buildGlobalSchemaFromLocalSchema(tables);
 
         System.out.println("databases registered:");
         manager.printQuery("SELECT * FROM "+ DB_DATA);

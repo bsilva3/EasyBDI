@@ -56,6 +56,33 @@ public class Constants {
     public static final String COLUMN_DATA_TABLE_RELATION_FIELD = "table_relation";
     public static final String COLUMN_DATA_TABLE_FIELD = "table_id";
 
+    // ---------- global tables
+    //table for the global table data storage
+    public static final String GLOBAL_TABLE_DATA = "global_table_data";
+    //columns in this table
+    public static final String GLOBAL_TABLE_DATA_NAME_FIELD = "name";
+    public static final String GLOBAL_TABLE_DATA_ID_FIELD = "global_table_id";
+    public static final String GLOBAL_TABLE_DATA_CUBE_FIELD = "cube_id";
+    public static final String GLOBAL_TABLE_DATA_MULTI_TYPE_FIELD = "multidimensional_type";
+
+    //table for the global column data storage
+    public static final String GLOBAL_COLUMN_DATA = "global_column_data";
+    //columns in this table
+    public static final String GLOBAL_COLUMN_DATA_NAME_FIELD = "name";//name of the global table
+    public static final String GLOBAL_COLUMN_DATA_TABLE_FIELD = "global_table_id";//table the column belongs to
+    public static final String GLOBAL_COLUMN_DATA_ID_FIELD = "global_col_id";
+    public static final String GLOBAL_COLUMN_DATA_TYPE_FIELD = "data_type";
+    public static final String GLOBAL_COLUMN_DATA_PRIMARY_KEY_FIELD = "is_primary_key";
+
+    //table for the correspondences between global columns and local columns. 1 local column belongs to 1 global column in 1 cube. 1 Global column may contain
+    //multiple local columns (because they matched)
+    public static final String CORRESPONDENCES_DATA = "global_local_correspondences";
+    //columns in this table
+    public static final String CORRESPONDENCES_GLOBAL_COL_FIELD = "global_col_id";
+    public static final String CORRESPONDENCES_LOCAL_COL_FIELD = "local_col_id";
+    public static final String CORRESPONDENCES_CONVERSION_FIELD = "conversion"; //the necessary conversion from global to local
+    public static final String CORRESPONDENCES_TYPE_FIELD = "conversion_type";
+
     //Presto SHOW COLUMNS FROM column names of query result
     public static final String SHOW_COLS_COLUMN = "Column";
     public static final String SHOW_COLS_TYPE = "Type";

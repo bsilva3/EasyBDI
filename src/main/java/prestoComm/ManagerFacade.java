@@ -2,6 +2,7 @@ package prestoComm;
 
 import helper_classes.ColumnData;
 import helper_classes.DBData;
+import helper_classes.GlobalTableData;
 import helper_classes.TableData;
 
 import java.util.ArrayList;
@@ -21,7 +22,7 @@ public class ManagerFacade {
         metaDataManager = new MetaDataManager();
     }
 
-    public void beginSetup(){
+    public void createDatabaseAndConnectToPresto(){
         //create local table models
         metaDataManager.createTablesAndFillDBModelData();
         //start presto connector
@@ -70,6 +71,14 @@ public class ManagerFacade {
         }
         tables = metaDataManager.insertColumnData(tables);
         return tables;
+    }
+
+    public void buildGlobalSchemaFromLocalSchema(List<TableData> tables){
+        //tables in SQLITE for global schema already created
+        SchemaMatcher schemaMatcher = new SchemaMatcher();
+        //Generate the global schema from the local schemas
+        List<GlobalTableData> globalTables = schemaMatcher.schemaIntegration(tables);
+        //insert into db the global tables and their columns and the correspondences between local and global columns
     }
 
 

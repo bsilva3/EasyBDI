@@ -36,4 +36,22 @@ public class Match {
     public void setColumnMatches(Map<ColumnData, ColumnData> columnMatches) {
         this.columnMatches = columnMatches;
     }
+
+    public boolean tableInMatch(TableData t){
+        if (t.equals(this.tableData1)){
+            return true;
+        }
+        else if (t.equals(this.tableData2)){
+            return true;
+        }
+        return false;
+    }
+
+    public TableData getOtherTable(TableData t){
+        if (t.equals(this.tableData1))
+            return this.tableData2;
+        else if (t.equals(this.tableData2))
+            return this.tableData1;
+        return null;
+    }
 }
