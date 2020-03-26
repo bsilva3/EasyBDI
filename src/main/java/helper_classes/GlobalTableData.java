@@ -1,7 +1,9 @@
 package helper_classes;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class GlobalTableData {
 
@@ -41,6 +43,13 @@ public class GlobalTableData {
 
     public void setGlobalColumnData(List<GlobalColumnData> globalColumnData) {
         this.globalColumnData = globalColumnData;
+    }
+
+    public void setGlobalColumnDataFromLocalColumns(List<ColumnData> columnData) {
+        globalColumnData = new ArrayList<>();
+        for (ColumnData col: columnData){
+            globalColumnData.add(new GlobalColumnData(col.getName(), col.getDataType(), col.isPrimaryKey(), this, col));
+        }
     }
 
     public void setLocalTables(List<TableData> localTables) {

@@ -1,5 +1,6 @@
 package helper_classes;
 
+import java.util.HashSet;
 import java.util.Set;
 
 public class GlobalColumnData {
@@ -17,6 +18,15 @@ public class GlobalColumnData {
         this.isPrimaryKey = isPrimaryKey;
         this.globalTable = globalTable;
         this.localColumns = localCols;
+    }
+
+    public GlobalColumnData(String name, String dataType, boolean isPrimaryKey, GlobalTableData globalTable, ColumnData localCol) {
+        this.name = name;
+        this.dataType = dataType;
+        this.isPrimaryKey = isPrimaryKey;
+        this.globalTable = globalTable;
+        this.localColumns = new HashSet<>();
+        this.localColumns.add(localCol);
     }
 
     public int getColumnID() {

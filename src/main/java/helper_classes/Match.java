@@ -47,6 +47,12 @@ public class Match {
         return false;
     }
 
+    /**
+     * Given a table, return the other table that make this match object. If user gives as an argument table 1, table 2 is returned. If user Gives table 2, table 1 is returned,
+     * If user gives any other table, null is returned. This is usefull to find all matches of a given table.
+     * @param t - table
+     * @return the other table that matches the given table in this object, or null if the given table does not exist in this object
+     */
     public TableData getOtherTable(TableData t){
         if (t.equals(this.tableData1))
             return this.tableData2;

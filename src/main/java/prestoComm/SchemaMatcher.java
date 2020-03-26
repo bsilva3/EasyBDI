@@ -12,6 +12,7 @@ import de.uni_mannheim.informatik.dws.winter.model.defaultmodel.comparators.Labe
 import de.uni_mannheim.informatik.dws.winter.processing.DataIterator;
 import de.uni_mannheim.informatik.dws.winter.processing.Processable;
 import helper_classes.*;
+import jdk.nashorn.internal.objects.Global;
 import org.apache.commons.text.similarity.LevenshteinDistance;
 
 import java.io.BufferedReader;
@@ -31,6 +32,7 @@ public class SchemaMatcher {
         List<TableData> tables = new ArrayList<>();
         //Table 1 -----------
         TableData sales = new TableData("sales", "sales_schema", null);
+        sales.setId(1);
         List<ColumnData> cols = new ArrayList<>();
         cols.add(new ColumnData(1, "sale_id", "integer", true, sales, "", ""));
         cols.add(new ColumnData(2, "ammount", "double", false, sales, "", ""));
@@ -40,6 +42,7 @@ public class SchemaMatcher {
 
         //Table 2 -----------
         TableData employees = new TableData("employees", "sales_schema", null);
+        employees.setId(2);
         cols = new ArrayList<>();
         cols.add(new ColumnData(5, "employeeID", "integer", true, sales, "", ""));
         cols.add(new ColumnData(6, "fullName", "varchar", false, sales, "", ""));
@@ -49,6 +52,7 @@ public class SchemaMatcher {
 
         //Table 3 -----------
         TableData product = new TableData("product", "sales_schema", null);
+        product.setId(3);
         cols = new ArrayList<>();
         cols.add(new ColumnData(9, "prod_id", "integer", true, sales, "", ""));
         cols.add(new ColumnData(10, "price", "double", false, sales, "", ""));
@@ -57,6 +61,7 @@ public class SchemaMatcher {
 
         //Table 4 ----------- similar to 2
         TableData employees2 = new TableData("info_employees", "sales_schema", null);
+        employees2.setId(4);
         cols = new ArrayList<>();
         cols.add(new ColumnData(12, "id", "integer", true, sales, "", ""));
         cols.add(new ColumnData(13, "first_name", "double", false, sales, "", ""));
@@ -66,7 +71,8 @@ public class SchemaMatcher {
         employees2.setColumnsList(cols);
         
         //Table 5 ----------- similar to 3
-        TableData employees3 = new TableData("employees_info", "sales_schema", null);
+        TableData employees3 = new TableData("employees_info", "sales", null);
+        employees3.setId(5);
         cols = new ArrayList<>();
         cols.add(new ColumnData(12, "id", "integer", true, sales, "", ""));
         cols.add(new ColumnData(13, "first_name", "double", false, sales, "", ""));
@@ -84,6 +90,7 @@ public class SchemaMatcher {
         List<GlobalTableData> globalTables = schemaMatcher.schemaIntegration(tables);
         for (GlobalTableData globalTableData: globalTables){
             System.out.println(globalTableData);
+            System.out.println(globalTableData.getLocalTables().size());
         }
     }
 
@@ -91,12 +98,17 @@ public class SchemaMatcher {
         List<Match> matches = labelSchemaMatchingTables(tables);
         //matches = labelTypeSchemaMatchColumns(matches); // column matching (should it be here)
         //get the tables that did not match
-        List<TableData> nonMatchedTables = getNonMatchedTables(matches, tables);
+        List<GlobalTableData> nonMatchedTables = getNonMatchedTables(matches, tables); //NOTE: non matched tables can become matched after user intervention, and vice versa
         //group tables that match to same global table
         List<GlobalTableData> globalTables = groupMatchedTables(matches);
+        //TODO: IN UI show user the global tables, and edit them
         //TODO: add the non matched single tables (iddealy, one function should add both the matched and non matched)
         globalTables = mergeGlobalTableAttributes(globalTables);
+        // In UI, show the result, and edit as user edits them
 
+        //ASSUMING USER ALREADY EDITED EVERYTHING
+        globalTables.addAll(nonMatchedTables);
+        nonMatchedTables.clear();
         return globalTables;
     }
 
@@ -106,8 +118,8 @@ public class SchemaMatcher {
      * @param tables
      * @return a list of tables that didnt had any matches
      */
-    public List<TableData> getNonMatchedTables(List<Match> matches, List<TableData> tables){
-        List<TableData> nonMatched = new ArrayList<>();
+    public List<GlobalTableData> getNonMatchedTables(List<Match> matches, List<TableData> tables){
+        List<GlobalTableData> nonMatched = new ArrayList<>();
         for (TableData t : tables){
             boolean tableMatched = false;
             for (Match m : matches){
@@ -117,7 +129,11 @@ public class SchemaMatcher {
                 }
             }
             if (!tableMatched){
-                nonMatched.add(t);
+                //this single table is going to form a global table
+                GlobalTableData gt = new GlobalTableData(t.getTableName());
+                gt.addLocalTable(t);
+                gt.setGlobalColumnDataFromLocalColumns(t.getColumnsList());
+                nonMatched.add(gt);
             }
         }
         return nonMatched;
@@ -147,6 +163,7 @@ public class SchemaMatcher {
         return tableMatches;
     }
 
+    //TODO: fix, not grouping all local tables
     public List<GlobalTableData> groupMatchedTables(List<Match> matches){
         List<GlobalTableData> groupedTables = new ArrayList<>();
         if (matches.size() == 0){
@@ -156,6 +173,7 @@ public class SchemaMatcher {
         List<Integer> indexesMatchesAdded = new ArrayList<>();
         GlobalTableData globalTable = null;
         TableData localTable = null;
+        TableData localTable2 = null;
         while (matches.size() > 0){
             //check if this table exists in global schema (start from first)
             // each iteration, the match pairs already added to a global table will be deleted
@@ -171,7 +189,7 @@ public class SchemaMatcher {
             }
             //search for all tables that will match to the same global table
             for (int i = 0; i < matches.size(); i++){
-                TableData otherMatchedTable = matches.get(i).getOtherTable(localTable);
+                TableData otherMatchedTable = matches.get(i).getOtherTable(localTable); //Get the matched table of the previous table. If there is no more matches for this table, null is returned
                 if (otherMatchedTable != null){
                     //table exists in this match and the other matched table is added to the same global table
                     globalTable.addLocalTable(otherMatchedTable);

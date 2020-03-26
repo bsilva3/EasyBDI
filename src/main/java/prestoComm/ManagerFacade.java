@@ -78,7 +78,11 @@ public class ManagerFacade {
         SchemaMatcher schemaMatcher = new SchemaMatcher();
         //Generate the global schema from the local schemas
         List<GlobalTableData> globalTables = schemaMatcher.schemaIntegration(tables);
+
+        //user must now indicate the facts and dimension tables
+
         //insert into db the global tables and their columns and the correspondences between local and global columns
+
     }
 
 
