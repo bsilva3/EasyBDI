@@ -81,19 +81,43 @@ public class SchemaMatcher {
         cols.add(new ColumnData(16, "time_hired", "timestamp", false, employees3, "", ""));
         employees3.setColumnsList(cols);
 
-        //Table 6 ----------- similar to 3
-        TableData product2 = new TableData("products", "sales_schema", null);
-        product2.setId(6);
+
+        //Table 6 ----------- similar to 5, 4 and 2
+        TableData employees4 = new TableData("employees6", "sales", null);
+        employees4.setId(6);
         cols = new ArrayList<>();
-        cols.add(new ColumnData(17, "prod_id", "integer", true, product2, "", ""));
-        cols.add(new ColumnData(18, "price", "double", false, product2, "", ""));
-        cols.add(new ColumnData(19, "category", "varchar", false, product2, "", ""));
+        cols.add(new ColumnData(17, "id", "integer", true, employees4, "", ""));
+        cols.add(new ColumnData(18, "first_name", "double", false, employees4, "", ""));
+        cols.add(new ColumnData(19, "second_name", "varchar", false, employees4, "", ""));
+        cols.add(new ColumnData(20, "badge_code", "integer", false, employees4, "", ""));
+        cols.add(new ColumnData(21, "time_hired", "timestamp", false, employees4, "", ""));
+        employees4.setColumnsList(cols);
+
+        //Table 7 ----------- similar to 6, 5, 4 and 2
+        TableData employees5 = new TableData("employees7", "sales", null);
+        employees5.setId(7);
+        cols = new ArrayList<>();
+        cols.add(new ColumnData(22, "id", "integer", true, employees5, "", ""));
+        cols.add(new ColumnData(23, "first_name", "double", false, employees5, "", ""));
+        cols.add(new ColumnData(24, "second_name", "varchar", false, employees5, "", ""));
+        cols.add(new ColumnData(26, "time_hired", "timestamp", false, employees5, "", ""));
+        employees5.setColumnsList(cols);
+
+        //Table 8 ----------- similar to 3
+        TableData product2 = new TableData("products", "sales_schema", null);
+        product2.setId(8);
+        cols = new ArrayList<>();
+        cols.add(new ColumnData(27, "prod_id", "integer", true, product2, "", ""));
+        cols.add(new ColumnData(28, "price", "double", false, product2, "", ""));
+        cols.add(new ColumnData(29, "category", "varchar", false, product2, "", ""));
         product2.setColumnsList(cols);
 
         tables.add(sales);
         tables.add(employees);
         tables.add(employees2);
         tables.add(employees3);
+        tables.add(employees4);
+        tables.add(employees5);
         tables.add(product);
         tables.add(product2);
         SchemaMatcher schemaMatcher = new SchemaMatcher();
@@ -238,7 +262,7 @@ public class SchemaMatcher {
                 for (int i = 0; i < matches.size(); i++){
                     TableData t = matches.get(i).getOtherTable(tables.get(j));
                     if (t == null){
-                        t = matches.get(i).getOtherTable(match.getTableData2());
+                        //t = matches.get(i).getOtherTable(match.getTableData2());
                     }
                     if (t != null){ //if t is null, this table did not matched any other tables
                         matchesToRemove.add(matches.get(i));
@@ -250,7 +274,7 @@ public class SchemaMatcher {
                     matches.remove(m);
                 }
                 j++;
-            } while (j == tables.size());
+            } while (j != tables.size());
             //create a global table
             GlobalTableData globalTable = new GlobalTableData(tables.get(0).getTableName());
             for (TableData table : tables){
@@ -387,7 +411,7 @@ public class SchemaMatcher {
 
     public double getNameSimilarityLevenshtein(String name1, String name2){
         LevenshteinDistance distance = new LevenshteinDistance();
-        double dist = distance.apply(name1, name2);
+        double dist = distance.apply(name1.toLowerCase(), name2.toLowerCase());
         //convert the number of substituitions to a percentage
         double bigger = max(name1.length(), name2.length());
         //double sim = (bigger - dist) / bigger;

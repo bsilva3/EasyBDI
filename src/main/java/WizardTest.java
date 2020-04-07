@@ -21,7 +21,7 @@ public class WizardTest {
          * 		wizardController.startWizard(demoStartPage);
          */
         // Create a new wizard (this one is based on a JFrame)
-        JFrameWizard wizard = new JFrameWizard("g-wiz demo");
+        /*JFrameWizard wizard = new JFrameWizard("g-wiz demo");
 
         // Create the first page of the wizard
         AbstractWizardPage demoStartPage = new DatabaseConnectionWizard();
@@ -31,6 +31,6 @@ public class WizardTest {
 
         // Start the wizard and show it
         wizard.setVisible(true);
-        wizardController.startWizard(demoStartPage);
+        wizardController.startWizard(demoStartPage);*/
     }
 }

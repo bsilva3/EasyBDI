@@ -43,9 +43,9 @@ public class GlobalSchemaConfiguration extends JFrame {
         globalSchemaTree.setComponentPopupMenu(getPopUpMenu());
         globalSchemaTree.addMouseListener(getMouseListener());
         globalSchemaTree.setModel(setExampleData());
-        /*setContentPane(mainPanel);
+        setContentPane(mainPanel);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        pack();*/
+        pack();
         //add(mainPanel); g-wizard
         setVisible(true);
     }
@@ -100,6 +100,7 @@ public class GlobalSchemaConfiguration extends JFrame {
         };
     }
 
+    //pop up meno that shows up when right clicking
     private JPopupMenu getPopUpMenu() {
         JPopupMenu menu = new JPopupMenu();
         JMenuItem item = new JMenuItem("edit");
@@ -180,8 +181,6 @@ public class GlobalSchemaConfiguration extends JFrame {
             }
         };
     }
-
-
 
     private ActionListener getEditActionListener() {
         return new ActionListener() {
