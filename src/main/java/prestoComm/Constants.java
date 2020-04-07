@@ -62,8 +62,6 @@ public class Constants {
     //columns in this table
     public static final String GLOBAL_TABLE_DATA_NAME_FIELD = "name";
     public static final String GLOBAL_TABLE_DATA_ID_FIELD = "global_table_id";
-    public static final String GLOBAL_TABLE_DATA_CUBE_FIELD = "cube_id";
-    public static final String GLOBAL_TABLE_DATA_MULTI_TYPE_FIELD = "multidimensional_type";
 
     //table for the global column data storage
     public static final String GLOBAL_COLUMN_DATA = "global_column_data";
@@ -83,11 +81,25 @@ public class Constants {
     public static final String CORRESPONDENCES_CONVERSION_FIELD = "conversion"; //the necessary conversion from global to local
     public static final String CORRESPONDENCES_TYPE_FIELD = "conversion_type";
     
-    //multiple local columns (because they matched)
+    // Tables for mapping of global tables to star schema -----------------
+    //multidimensional table
+    public static final String MULTIDIM_TABLE = "multidimensional_table";
+    //contains cube id and global table id
+    public static final String MULTIDIM_TABLE_TYPE = "multidimensional_type";
+    public static final String MULTIDIM_TABLE_ID = "multidim_table_id";
+
+    //multidimensional column
+    public static final String MULTIDIM_COLUMN = "multidimensional_column";
+    //contains multidim id and global column id
+    public static final String MULTIDIM_COLUMN_TYPE = "multidimensional_type";
+    public static final String MULTIDIM_COLUMN_MEASURE = "isMeasure";
+
+    public static final String GLOBAL_TABLE_DATA_MULTI_TYPE_FIELD = "multidimensional_type";
     public static final String CUBE_TABLE = "cube";
     //columns in this table
     public static final String CUBE_NAME = "name";
-    public static final String CUBE_TYPE = "local_col_id";
+    public static final String CUBE_ID_FIELD = "cube_id";
+    public static final String CUBE_TYPE_FIELD = "cube_type";
 
     //Presto SHOW COLUMNS FROM column names of query result
     public static final String SHOW_COLS_COLUMN = "Column";

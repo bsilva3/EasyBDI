@@ -44,10 +44,10 @@ public class SchemaMatcher {
         TableData employees = new TableData("employees", "sales_schema", null);
         employees.setId(2);
         cols = new ArrayList<>();
-        cols.add(new ColumnData(5, "employeeID", "integer", true, sales, "", ""));
-        cols.add(new ColumnData(6, "fullName", "varchar", false, sales, "", ""));
-        cols.add(new ColumnData(7, "badge", "char", false, sales, "", ""));
-        cols.add(new ColumnData(8, "hired_date", "date", false, sales, "", ""));
+        cols.add(new ColumnData(5, "employeeID", "integer", true, employees, "", ""));
+        cols.add(new ColumnData(6, "fullName", "varchar", false, employees, "", ""));
+        cols.add(new ColumnData(7, "badge", "char", false, employees, "", ""));
+        cols.add(new ColumnData(8, "hired_date", "date", false, employees, "", ""));
         employees.setColumnsList(cols);
 
         //Table 3 -----------
@@ -63,34 +63,46 @@ public class SchemaMatcher {
         TableData employees2 = new TableData("info_employees", "sales_schema", null);
         employees2.setId(4);
         cols = new ArrayList<>();
-        cols.add(new ColumnData(12, "id", "integer", true, sales, "", ""));
-        cols.add(new ColumnData(13, "first_name", "double", false, sales, "", ""));
-        cols.add(new ColumnData(14, "second_name", "varchar", false, sales, "", ""));
-        cols.add(new ColumnData(15, "badge_code", "integer", false, sales, "", ""));
-        cols.add(new ColumnData(16, "time_hired", "timestamp", false, sales, "", ""));
+        cols.add(new ColumnData(12, "id", "integer", true, employees2, "", ""));
+        cols.add(new ColumnData(13, "first_name", "double", false, employees2, "", ""));
+        cols.add(new ColumnData(14, "second_name", "varchar", false, employees2, "", ""));
+        cols.add(new ColumnData(15, "badge_code", "integer", false, employees2, "", ""));
+        cols.add(new ColumnData(16, "time_hired", "timestamp", false, employees2, "", ""));
         employees2.setColumnsList(cols);
-        
-        //Table 5 ----------- similar to 3
-        TableData employees3 = new TableData("employees_info", "sales", null);
+
+        //Table 5 ----------- similar to 4 and 2
+        TableData employees3 = new TableData("infoEmployees", "sales", null);
         employees3.setId(5);
         cols = new ArrayList<>();
-        cols.add(new ColumnData(12, "id", "integer", true, sales, "", ""));
-        cols.add(new ColumnData(13, "first_name", "double", false, sales, "", ""));
-        cols.add(new ColumnData(14, "second_name", "varchar", false, sales, "", ""));
-        cols.add(new ColumnData(15, "badge_code", "integer", false, sales, "", ""));
-        cols.add(new ColumnData(16, "time_hired", "timestamp", false, sales, "", ""));
+        cols.add(new ColumnData(12, "id", "integer", true, employees3, "", ""));
+        cols.add(new ColumnData(13, "first_name", "double", false, employees3, "", ""));
+        cols.add(new ColumnData(14, "second_name", "varchar", false, employees3, "", ""));
+        cols.add(new ColumnData(15, "badge_code", "integer", false, employees3, "", ""));
+        cols.add(new ColumnData(16, "time_hired", "timestamp", false, employees3, "", ""));
         employees3.setColumnsList(cols);
+
+        //Table 6 ----------- similar to 3
+        TableData product2 = new TableData("products", "sales_schema", null);
+        product2.setId(6);
+        cols = new ArrayList<>();
+        cols.add(new ColumnData(17, "prod_id", "integer", true, product2, "", ""));
+        cols.add(new ColumnData(18, "price", "double", false, product2, "", ""));
+        cols.add(new ColumnData(19, "category", "varchar", false, product2, "", ""));
+        product2.setColumnsList(cols);
 
         tables.add(sales);
         tables.add(employees);
         tables.add(employees2);
         tables.add(employees3);
         tables.add(product);
+        tables.add(product2);
         SchemaMatcher schemaMatcher = new SchemaMatcher();
         List<GlobalTableData> globalTables = schemaMatcher.schemaIntegration(tables);
         for (GlobalTableData globalTableData: globalTables){
-            System.out.println(globalTableData);
-            System.out.println(globalTableData.getLocalTables().size());
+            System.out.println("Global table: " + globalTableData.getTableName());
+            for (TableData t : globalTableData.getLocalTables()){
+                System.out.println(t.getTableName());
+            }
         }
     }
 
@@ -164,7 +176,7 @@ public class SchemaMatcher {
     }
 
     //TODO: fix, not grouping all local tables
-    public List<GlobalTableData> groupMatchedTables(List<Match> matches){
+    /*public List<GlobalTableData> groupMatchedTables(List<Match> matches){
         List<GlobalTableData> groupedTables = new ArrayList<>();
         if (matches.size() == 0){
             return groupedTables;
@@ -206,6 +218,62 @@ public class SchemaMatcher {
             groupedTables.add(globalTable);
         }
         return groupedTables;
+    }*/
+
+    public List<GlobalTableData> groupMatchedTables(List<Match> matches){
+        List<GlobalTableData> groupedTables = new ArrayList<>();
+        if (matches.size() == 0){
+            return groupedTables;
+        }
+        while (matches.size() > 0){
+            List<TableData> tables = new ArrayList<>();
+            Match match = matches.get(0);
+            matches.remove(0);
+            int j = 0;
+            tables.add(match.getTableData1());
+            tables.add(match.getTableData2());
+            do{
+                //get all other tables that match with one of these tables. Those other pairs will also have their pairs searched
+                List<Match> matchesToRemove = new ArrayList<>();
+                for (int i = 0; i < matches.size(); i++){
+                    TableData t = matches.get(i).getOtherTable(tables.get(j));
+                    if (t == null){
+                        t = matches.get(i).getOtherTable(match.getTableData2());
+                    }
+                    if (t != null){ //if t is null, this table did not matched any other tables
+                        matchesToRemove.add(matches.get(i));
+                        tables.add(t);
+                    }
+                }
+                //remove match pairs already matched
+                for (Match m : matchesToRemove){
+                    matches.remove(m);
+                }
+                j++;
+            } while (j == tables.size());
+            //create a global table
+            GlobalTableData globalTable = new GlobalTableData(tables.get(0).getTableName());
+            for (TableData table : tables){
+                globalTable.addLocalTable(table);
+            }
+            groupedTables.add(globalTable);
+        }
+        return groupedTables;
+    }
+
+    private List<TableData> getTablesInAllPairs(List<Match> matches, Match match){
+        List<TableData> tables = new ArrayList<>();
+        for (int i = 0; i < matches.size(); i++){
+            TableData t = matches.get(i).getOtherTable(match.getTableData1());
+            if (t == null){
+                t = matches.get(i).getOtherTable(match.getTableData2());
+            }
+            if (t != null){
+                matches.remove(i);
+                tables.add(t);
+            }
+        }
+        return tables;
     }
 
     /**
@@ -291,7 +359,7 @@ public class SchemaMatcher {
         }
         //finished merging all table into one. Convert to global Column
         for (ColumnData col : mergedCols){
-            globalTableCols.add(new GlobalColumnData(col.getName(), col.getDataType(), col.isPrimaryKey(), globalTableData, col.getMergedColumns()));
+            globalTableCols.add(new GlobalColumnData(col.getName(), col.getDataType(), col.isPrimaryKey(), col.getMergedColumns()));
         }
         return globalTableCols;
     }
@@ -441,7 +509,7 @@ public class SchemaMatcher {
         BlockingKeyGenerator<Record, Attribute, MatchableValue> blockingKeyGenerator = new BlockingKeyGenerator<Record, Attribute, MatchableValue>() {
             @Override
             public void generateBlockingKeys(Record record, Processable<Correspondence<Attribute, Matchable>> processable, DataIterator<Pair<String, MatchableValue>> dataIterator) {
-                
+
             }
         };
         // define a blocker that uses the attribute values to generate pairs

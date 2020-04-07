@@ -13,6 +13,7 @@ public class Main {
 
     public static void main(String[] args){
 
+        MetaDataManager m = new MetaDataManager();
         ManagerFacade manager = new ManagerFacade();
         //register databases
         List<DBData> dbDataList = new ArrayList<>();

@@ -9,22 +9,19 @@ public class GlobalColumnData {
     private String name;
     private String dataType;
     private boolean isPrimaryKey;
-    private GlobalTableData globalTable;
     private String foreignKey;
 
-    public GlobalColumnData(String name, String dataType, boolean isPrimaryKey, GlobalTableData globalTable, Set<ColumnData> localCols) {
+    public GlobalColumnData(String name, String dataType, boolean isPrimaryKey, Set<ColumnData> localCols) {
         this.name = name;
         this.dataType = dataType;
         this.isPrimaryKey = isPrimaryKey;
-        this.globalTable = globalTable;
         this.localColumns = localCols;
     }
 
-    public GlobalColumnData(String name, String dataType, boolean isPrimaryKey, GlobalTableData globalTable, ColumnData localCol) {
+    public GlobalColumnData(String name, String dataType, boolean isPrimaryKey, ColumnData localCol) {
         this.name = name;
         this.dataType = dataType;
         this.isPrimaryKey = isPrimaryKey;
-        this.globalTable = globalTable;
         this.localColumns = new HashSet<>();
         this.localColumns.add(localCol);
     }
@@ -69,14 +66,6 @@ public class GlobalColumnData {
         isPrimaryKey = primaryKey;
     }
 
-    public GlobalTableData getGlobalTable() {
-        return globalTable;
-    }
-
-    public void setGlobalTable(GlobalTableData globalTable) {
-        this.globalTable = globalTable;
-    }
-
     public String getForeignKey() {
         return foreignKey;
     }
@@ -93,7 +82,6 @@ public class GlobalColumnData {
                 ", name='" + name + '\'' +
                 ", dataType='" + dataType + '\'' +
                 ", isPrimaryKey=" + isPrimaryKey +
-                //", globalTable=" + globalTable +
                 ", foreignKey='" + foreignKey + '\'' +
                 '}';
     }

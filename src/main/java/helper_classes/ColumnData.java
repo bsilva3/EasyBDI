@@ -11,7 +11,8 @@ public class ColumnData {
     private TableData table;
     private String foreignKey;
     private String tableRelation;
-    private Set<ColumnData> mergedColumnIds;
+    private Set<ColumnData> mergedColumnIds; //used for schema integration
+    private int tableID;
 
     public ColumnData(int id, String name, String dataType, TableData table) {
         this.columnID = id;
@@ -123,6 +124,14 @@ public class ColumnData {
 
     public void addMergedColumnId(Collection<ColumnData> cols){
         this.mergedColumnIds.addAll(cols);
+    }
+
+    public int getTableID() {
+        return tableID;
+    }
+
+    public void setTableID(int tableID) {
+        this.tableID = tableID;
     }
 
     @Override

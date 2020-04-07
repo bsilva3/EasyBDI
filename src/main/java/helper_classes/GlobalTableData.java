@@ -9,8 +9,9 @@ public class GlobalTableData {
 
     private String tableName;
     private int id;
-    private List<TableData> localTables;
+    //private List<TableData> localTables;
     private List<GlobalColumnData> globalColumnData;
+    private List<TableData> localTables;
 
     public GlobalTableData(String tableName) {
         this.tableName = tableName;
@@ -48,7 +49,7 @@ public class GlobalTableData {
     public void setGlobalColumnDataFromLocalColumns(List<ColumnData> columnData) {
         globalColumnData = new ArrayList<>();
         for (ColumnData col: columnData){
-            globalColumnData.add(new GlobalColumnData(col.getName(), col.getDataType(), col.isPrimaryKey(), this, col));
+            globalColumnData.add(new GlobalColumnData(col.getName(), col.getDataType(), col.isPrimaryKey(), col));
         }
     }
 

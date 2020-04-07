@@ -1,9 +1,6 @@
 package prestoComm;
 
-import helper_classes.ColumnData;
-import helper_classes.DBData;
-import helper_classes.GlobalTableData;
-import helper_classes.TableData;
+import helper_classes.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -79,9 +76,11 @@ public class ManagerFacade {
         //Generate the global schema from the local schemas
         List<GlobalTableData> globalTables = schemaMatcher.schemaIntegration(tables);
 
-        //user must now indicate the facts and dimension tables
+        //insert the global tables, global columns in the database and correspondences between local and global columns
+        metaDataManager.insertGlobalSchemaData(globalTables);
+    }
 
-        //insert into db the global tables and their columns and the correspondences between local and global columns
+    public void buildStarSchema(GlobalTableData factTable, List<GlobalTableData> dimTables, List<GlobalColumnData> measures){
 
     }
 
