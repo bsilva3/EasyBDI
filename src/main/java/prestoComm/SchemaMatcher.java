@@ -64,7 +64,7 @@ public class SchemaMatcher {
         employees2.setId(4);
         cols = new ArrayList<>();
         cols.add(new ColumnData(12, "id", "integer", true, employees2, "", ""));
-        cols.add(new ColumnData(13, "first_name", "double", false, employees2, "", ""));
+        cols.add(new ColumnData(13, "first_name", "varchar", false, employees2, "", ""));
         cols.add(new ColumnData(14, "second_name", "varchar", false, employees2, "", ""));
         cols.add(new ColumnData(15, "badge_code", "integer", false, employees2, "", ""));
         cols.add(new ColumnData(16, "time_hired", "timestamp", false, employees2, "", ""));
@@ -75,7 +75,7 @@ public class SchemaMatcher {
         employees3.setId(5);
         cols = new ArrayList<>();
         cols.add(new ColumnData(12, "id", "integer", true, employees3, "", ""));
-        cols.add(new ColumnData(13, "first_name", "double", false, employees3, "", ""));
+        cols.add(new ColumnData(13, "first_name", "varchar", false, employees3, "", ""));
         cols.add(new ColumnData(14, "second_name", "varchar", false, employees3, "", ""));
         cols.add(new ColumnData(15, "badge_code", "integer", false, employees3, "", ""));
         cols.add(new ColumnData(16, "time_hired", "timestamp", false, employees3, "", ""));
@@ -87,7 +87,7 @@ public class SchemaMatcher {
         employees4.setId(6);
         cols = new ArrayList<>();
         cols.add(new ColumnData(17, "id", "integer", true, employees4, "", ""));
-        cols.add(new ColumnData(18, "first_name", "double", false, employees4, "", ""));
+        cols.add(new ColumnData(18, "first_name", "varchar", false, employees4, "", ""));
         cols.add(new ColumnData(19, "second_name", "varchar", false, employees4, "", ""));
         cols.add(new ColumnData(20, "badge_code", "integer", false, employees4, "", ""));
         cols.add(new ColumnData(21, "time_hired", "timestamp", false, employees4, "", ""));
@@ -98,7 +98,7 @@ public class SchemaMatcher {
         employees5.setId(7);
         cols = new ArrayList<>();
         cols.add(new ColumnData(22, "id", "integer", true, employees5, "", ""));
-        cols.add(new ColumnData(23, "first_name", "double", false, employees5, "", ""));
+        cols.add(new ColumnData(23, "first_name", "varchar", false, employees5, "", ""));
         cols.add(new ColumnData(24, "second_name", "varchar", false, employees5, "", ""));
         cols.add(new ColumnData(26, "time_hired", "timestamp", false, employees5, "", ""));
         employees5.setColumnsList(cols);
@@ -123,9 +123,18 @@ public class SchemaMatcher {
         SchemaMatcher schemaMatcher = new SchemaMatcher();
         List<GlobalTableData> globalTables = schemaMatcher.schemaIntegration(tables);
         for (GlobalTableData globalTableData: globalTables){
-            System.out.println("Global table: " + globalTableData.getTableName());
+            System.out.println("----------Global table: " + globalTableData.getTableName() +"-----------");
+            System.out.println("- local tables -");
             for (TableData t : globalTableData.getLocalTables()){
                 System.out.println(t.getTableName());
+            }
+            System.out.println("- columns -");
+            for (GlobalColumnData gc :globalTableData.getGlobalColumnData()){
+                System.out.print(gc.getName()+": "+gc.getDataType() +" -> ");
+                for (ColumnData c : gc.getLocalColumns()){
+                    System.out.print(c.getName() +": "+c.getDataType() +"("+c.getTable().getTableName()+"), ");
+                }
+                System.out.println();
             }
         }
     }
