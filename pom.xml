@@ -57,6 +57,12 @@
             <artifactId>commons-text</artifactId>
             <version>1.8</version>
         </dependency>
+        <!--g wiz-->
+        <dependency>
+            <groupId>se.gustavkarlsson</groupId>
+            <artifactId>g-wiz</artifactId>
+            <version>1.0.1</version>
+        </dependency>
 
 
 

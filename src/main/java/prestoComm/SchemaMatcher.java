@@ -261,12 +261,13 @@ public class SchemaMatcher {
                 List<Match> matchesToRemove = new ArrayList<>();
                 for (int i = 0; i < matches.size(); i++){
                     TableData t = matches.get(i).getOtherTable(tables.get(j));
-                    if (t == null){
-                        //t = matches.get(i).getOtherTable(match.getTableData2());
-                    }
+                    /*if (t == null){
+                        t = matches.get(i).getOtherTable(match.getTableData2());
+                    }*/
                     if (t != null){ //if t is null, this table did not matched any other tables
                         matchesToRemove.add(matches.get(i));
-                        tables.add(t);
+                        if (!tables.contains(t))
+                            tables.add(t);
                     }
                 }
                 //remove match pairs already matched
