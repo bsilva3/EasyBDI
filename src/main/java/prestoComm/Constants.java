@@ -12,6 +12,7 @@ public class Constants {
 
     //files
     public static final String FILES_DIR = "files";
+    public static final String IMAGES_DIR= FILES_DIR+ File.separator+"images"+File.separator;
     public static final String DATATYPE_CONVERTIBLES_DICT = FILES_DIR + File.separator + "convertible_datatypes.csv";
 
     //SQLITE

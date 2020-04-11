@@ -27,6 +27,7 @@ public class DatabaseConnectionWizard extends JFrame {
         listModel = new DefaultListModel<>();
         databaseList.setModel(listModel);
         dbList = new ArrayList<>();
+        setContentPane(mainPanel);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         pack();
         //add(mainPanel); //g-wizard

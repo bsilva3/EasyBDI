@@ -1,16 +1,14 @@
-import helper_classes.ColumnData;
-import helper_classes.GlobalColumnData;
-import helper_classes.GlobalTableData;
-import helper_classes.TableData;
+import helper_classes.*;
+import prestoComm.Constants;
 import prestoComm.DBModel;
-import se.gustavkarlsson.gwiz.AbstractWizardPage;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreeNode;
-import javax.swing.tree.TreePath;
+import javax.swing.tree.*;
 import java.awt.event.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.HashSet;
@@ -43,6 +41,15 @@ public class GlobalSchemaConfiguration extends JFrame {
         globalSchemaTree.setComponentPopupMenu(getPopUpMenu());
         globalSchemaTree.addMouseListener(getMouseListener());
         globalSchemaTree.setModel(setExampleData());
+        globalSchemaTree.setCellRenderer(new CustomeTreeCellRenderer());
+
+        //local schema tree set up
+        localSchemaTree.setEditable(false);
+        //globalSchemaTree.setComponentPopupMenu(getPopUpMenu());
+        //globalSchemaTree.addMouseListener(getMouseListener());
+        localSchemaTree.setModel(setExampleDataForLocalSchema());
+        localSchemaTree.setCellRenderer(new CustomeTreeCellRenderer());
+        localSchemaTree.setRootVisible(false);
         setContentPane(mainPanel);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         pack();
@@ -116,47 +123,185 @@ public class GlobalSchemaConfiguration extends JFrame {
 
     private DefaultTreeModel setExampleData(){
         List<GlobalTableData> globalTableDataList = new ArrayList<>();
-        GlobalTableData g = new GlobalTableData("Global Table 1");
-        TableData table1 = new TableData("local table 1", "schema", null, 1);
-        TableData table2 = new TableData("local table 2", "schema", null, 2);
+        GlobalTableData g = new GlobalTableData("employees");
+        TableData table1 = new TableData("employees_lisbon", "schema", null, 1);
+        TableData table2 = new TableData("employees_paris", "schema", null, 2);
+        TableData table3 = new TableData("employees_contacts_paris", "schema", null, 2);
         Set<ColumnData> colsA = new HashSet<>();
         Set<ColumnData> colsB = new HashSet<>();
         Set<ColumnData> colsC = new HashSet<>();
-        colsA.add(new ColumnData("local A1", "integer", true));
-        colsA.add(new ColumnData("local A2", "integer", true));
-        colsB.add(new ColumnData("local B1", "double", false));
-        colsB.add(new ColumnData("local B2", "varchar", false));
-        colsC.add(new ColumnData("local C", "integer", false));
-        GlobalColumnData globalColA = new GlobalColumnData("A", "integer", true, colsA);
-        GlobalColumnData globalColB = new GlobalColumnData("B", "varchar", true, colsB);
-        GlobalColumnData globalColC = new GlobalColumnData("C", "integer", true, colsC);
+        Set<ColumnData> colsD = new HashSet<>();
+        colsA.add(new ColumnData.Builder("employee_id", "integer", true).withTable(table1).build());
+        colsB.add(new ColumnData.Builder("full_name", "varchar", false).withTable(table1).build());
+        colsC.add(new ColumnData.Builder("phone_number", "integer", false).withTable(table1).build());
+        colsD.add(new ColumnData.Builder("email", "varchar", false).withTable(table1).build());
+        colsA.add(new ColumnData.Builder("employee_id", "integer", true).withTable(table2).build());
+        colsB.add(new ColumnData.Builder("full_name", "varchar", false).withTable(table2).build());
+        colsA.add(new ColumnData.Builder("employee_id", "integer", true).withTable(table3).build());
+        colsC.add(new ColumnData.Builder("phone_number", "integer", false).withTable(table3).build());
+        colsD.add(new ColumnData.Builder("email", "varchar", false).withTable(table3).build());
+
+        GlobalColumnData globalColA = new GlobalColumnData("id", "integer", true, colsA);
+        GlobalColumnData globalColB = new GlobalColumnData("name", "varchar", true, colsB);
+        GlobalColumnData globalColC = new GlobalColumnData("phone_number", "varchar", false, colsC);
+        GlobalColumnData globalColD = new GlobalColumnData("email", "varchar", false, colsD);
         List<GlobalColumnData> globalCols = new ArrayList<>();
         globalCols.add(globalColA);
         globalCols.add(globalColB);
         globalCols.add(globalColC);
+        globalCols.add(globalColD);
+
+        List<TableData> tableLocals = new ArrayList<>();
+        tableLocals.add(table1);
+        tableLocals.add(table2);
+        tableLocals.add(table3);
         g.setGlobalColumnData(globalCols);
-        DefaultMutableTreeNode data = new DefaultMutableTreeNode("Global Tables");
+        CustomTreeNode data = new CustomTreeNode(loadImageForGlobalSchemaTree(0),"Global Tables");
         //tables
-        DefaultMutableTreeNode tables = new DefaultMutableTreeNode(g.getTableName());
-        //cols
-        DefaultMutableTreeNode cols = new DefaultMutableTreeNode("Columns");
+        CustomTreeNode tables = new CustomTreeNode(loadImageForGlobalSchemaTree(1), g.getTableName());
+        //local tables
+        CustomTreeNode localTable = new CustomTreeNode(loadImageForGlobalSchemaTree(4),"Matched Colums");
         for (GlobalColumnData col : globalCols){
-            DefaultMutableTreeNode column = new DefaultMutableTreeNode(col.getName());
-            column.add(new DefaultMutableTreeNode(col.getDataType()));
-            column.add(new DefaultMutableTreeNode("primary key: "+col.isPrimaryKey()));
+            CustomTreeNode column = new CustomTreeNode(loadImageForGlobalSchemaTree(2), col.getName());
+            column.add(new CustomTreeNode(loadImageForGlobalSchemaTree(-1), col.getDataType()));
+            column.add(new CustomTreeNode(loadImageForGlobalSchemaTree(3), "primary key: "+col.isPrimaryKey()));
             //corrs
-            DefaultMutableTreeNode corrs = new DefaultMutableTreeNode("local columns");
-            for (ColumnData localCol : col.getLocalColumns()){
-                corrs.add(new DefaultMutableTreeNode(localCol.getName()));
+            CustomTreeNode corrs = new CustomTreeNode(loadImageForGlobalSchemaTree(4),"Matches");
+            //THIS PART IS NOT RIGHT!!
+            for (TableData t : tableLocals){
+                CustomTreeNode localTableTree = new CustomTreeNode(loadImageForGlobalSchemaTree(1),t.getTableName());
+                boolean hasMatches = false;
+                for (ColumnData localCol : col.getLocalColumns()){
+                    if (localCol.getTable().equals(t) && col.getLocalColumns().contains(localCol)) {
+                        localTableTree.add(new CustomTreeNode(loadImageForGlobalSchemaTree(2), localCol.getName()));
+                        hasMatches = true;
+                    }
+                }
+                if (hasMatches)
+                    corrs.add(localTableTree);
             }
             column.add(corrs);
-            cols.add(column);
+            tables.add(column);
         }
-        tables.add(cols);
         data.add(tables);
         root = new DefaultTreeModel(data);
         return root;
     }
+
+    private DefaultTreeModel setExampleDataForLocalSchema(){
+        List<DBData> dbs = new ArrayList<>();
+        List<TableData> tables = new ArrayList<>();
+        DBData dbData1 = new DBData("\\http://example.com", DBModel.MYSQL, "lisbonDB");
+        DBData dbData2 = new DBData("\\http://example.com", DBModel.MYSQL, "parisDB");
+        TableData table1 = new TableData("employees_lisbon", "schema", dbData1, 1);
+        TableData table2 = new TableData("employees_paris", "schema", dbData2, 2);
+        TableData table3 = new TableData("employees_contacts_paris", "schema", dbData2, 3);
+        List<ColumnData> colsForTable1 = new ArrayList<>();
+        List<ColumnData> colsForTable2 = new ArrayList<>();
+        List<ColumnData> colsForTable3 = new ArrayList<>();
+        colsForTable1.add(new ColumnData.Builder("employee_id", "integer", true).withTable(table1).build());
+        colsForTable1.add(new ColumnData.Builder("full_name", "varchar", false).withTable(table1).build());
+        colsForTable1.add(new ColumnData.Builder("phone_number", "integer", false).withTable(table1).build());
+        colsForTable1.add(new ColumnData.Builder("email", "varchar", false).withTable(table1).build());
+        colsForTable2.add(new ColumnData.Builder("employee_id", "integer", true).withTable(table2).build());
+        colsForTable2.add(new ColumnData.Builder("full_name", "varchar", false).withTable(table2).build());
+        colsForTable3.add(new ColumnData.Builder("employee_id", "integer", true).withTable(table3)
+                .withForeignKey("employees_paris.employee_id").build());
+        colsForTable3.add(new ColumnData.Builder("phone_number", "integer", false).withTable(table3).build());
+        colsForTable3.add(new ColumnData.Builder("email", "varchar", false).withTable(table3).build());
+        table1.setColumnsList(colsForTable1);
+        table2.setColumnsList(colsForTable2);
+        table3.setColumnsList(colsForTable3);
+        dbs.add(dbData1);
+        dbs.add(dbData2);
+
+        tables.add(table1);
+        tables.add(table2);
+        tables.add(table3);
+        CustomTreeNode data = new CustomTreeNode(loadImageForLocalSchemaTree(0), "root");
+        for (DBData db : dbs){
+            CustomTreeNode dbTree = new CustomTreeNode(loadImageForLocalSchemaTree(0), db.getDbName());
+            dbTree.add(new CustomTreeNode(loadImageForLocalSchemaTree(-1), db.getUrl()));
+            dbTree.add(new CustomTreeNode(loadImageForLocalSchemaTree(-1), db.getDbModel()));
+            for (TableData t : tables){
+                if (!t.getDB().equals(db))
+                    continue;
+                CustomTreeNode tableTree = new CustomTreeNode(loadImageForLocalSchemaTree(1), t.getTableName());
+                for (ColumnData col : t.getColumnsList()){
+                    CustomTreeNode colTree = new CustomTreeNode(loadImageForLocalSchemaTree(2), col.getName());
+                    colTree.add(new CustomTreeNode(loadImageForLocalSchemaTree(-1), col.getDataType()));
+                    if (col.isPrimaryKey())
+                        colTree.add(new CustomTreeNode(loadImageForLocalSchemaTree(3), "primary key"));
+                    if (col.getForeignKey()!=null && !col.getForeignKey().isEmpty()){
+                        colTree.add(new CustomTreeNode(loadImageForLocalSchemaTree(3), "foreign key: "+col.getForeignKey()));
+                    }
+                    tableTree.add(colTree);
+                }
+                dbTree.add(tableTree);
+            }
+            data.add(dbTree);
+        }
+        root = new DefaultTreeModel(data);
+        return root;
+    }
+
+    public ImageIcon loadImageForGlobalSchemaTree(int imageNumber){
+        String fileName = "";
+        switch (imageNumber){
+            case -1:
+                fileName = "info_icon.png";
+                break;
+            case 0: //global schema (root)
+                fileName = "schema_icon.png";
+                break;
+            case 1: //global table
+                fileName = "table_icon.jpg";
+                break;
+            case 2: //global column
+                fileName = "column_icon.png";
+                break;
+            case 3: //primary key
+                fileName = "primary_key_icon.png";
+                break;
+            case 4: //matches
+                fileName = "match_icon.png";
+                break;
+        }
+        BufferedImage img = null;
+        try {
+            img = ImageIO.read(new File(Constants.IMAGES_DIR+fileName));
+        } catch (IOException e) {
+        }
+        return new ImageIcon(img.getScaledInstance(20,20, 5));
+    }
+
+    public ImageIcon loadImageForLocalSchemaTree(int imageNumber){
+        String fileName = "";
+        switch (imageNumber){
+            case -1:
+                fileName = "info_icon.png";
+                break;
+            case 0: //database
+                fileName = "database_icon.png";
+                break;
+            case 1: //global table
+                fileName = "table_icon.jpg";
+                break;
+            case 2: //global column
+                fileName = "column_icon.png";
+                break;
+            case 3: //primary key
+                fileName = "primary_key_icon.png";
+                break;
+        }
+        BufferedImage img = null;
+        try {
+            img = ImageIO.read(new File(Constants.IMAGES_DIR+fileName));
+        } catch (IOException e) {
+        }
+        return new ImageIcon(img.getScaledInstance(20,20, 5));
+    }
+
     private ActionListener getAddActionListener() {
         return new ActionListener() {
 
@@ -194,6 +339,4 @@ public class GlobalSchemaConfiguration extends JFrame {
             }
         };
     }
-
-
 }

@@ -211,7 +211,7 @@ public class PrestoMediator {
             for (Map tableColumn : tableColumns){
                 String columnName = (String) tableColumn.get(SHOW_COLS_COLUMN);
                 String columnDataType = (String) tableColumn.get(SHOW_COLS_TYPE);
-                columnsInTable.add(new ColumnData(columnName, columnDataType, table));
+                columnsInTable.add(new ColumnData.Builder(columnName, columnDataType).withTable(table).build());
             }
             //if this table belongs to a relational DB, get information about primary keys and foreign key constraints
             if(table.getDB().getDbModel().isRelational()){

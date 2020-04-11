@@ -14,45 +14,82 @@ public class ColumnData {
     private Set<ColumnData> mergedColumnIds; //used for schema integration
     private int tableID;
 
-    public ColumnData(int id, String name, String dataType, TableData table) {
-        this.columnID = id;
-        this.name = name;
-        this.dataType = dataType;
-        this.table = table;
-        this.isPrimaryKey = false;
-        mergedColumnIds = new HashSet<>();
+    public static class Builder {
+        private int columnID;
+        private String name;
+        private String dataType;
+        private boolean isPrimaryKey;
+        private TableData table;
+        private String foreignKey;
+        private Set<ColumnData> mergedColumnIds; //used for schema integration
+        private int tableID;
+
+        public Builder (String name, String dataType, boolean isPrimaryKey){
+            this.name = name;
+            this.dataType = dataType;
+            this.isPrimaryKey = isPrimaryKey;
+        }
+
+        public Builder (String name, String dataType){
+            this.name = name;
+            this.dataType = dataType;
+        }
+
+        public Builder withPrimaryKey(boolean isPrimaryKey){
+            this.isPrimaryKey = isPrimaryKey;
+            return this;
+        }
+
+
+        public Builder withID(int id){
+            this.columnID = id;
+            return this;
+        }
+
+        public Builder withTable(TableData table){
+            this.table = table;
+            return this;
+        }
+
+        public Builder withTableID(int tableID){
+            this.tableID = tableID;
+            return this;
+        }
+
+        public Builder withForeignKey(String foreignKey){
+            this.foreignKey = foreignKey;
+            return this;
+        }
+
+        public Builder withMergedCols(Set<ColumnData> mergedColumnIds){
+            this.mergedColumnIds = mergedColumnIds;
+            return this;
+        }
+
+        public ColumnData build(){
+            ColumnData col = new ColumnData();
+            col.columnID = this.columnID;
+            col.dataType = this.dataType;
+            col.isPrimaryKey = this.isPrimaryKey;
+            col.name = this.name;
+            col.table = this.table;
+            col.tableID = this.tableID;
+            col.foreignKey = this.foreignKey;
+            col.mergedColumnIds = this.mergedColumnIds;
+            return col;
+        }
+
     }
 
-    public ColumnData(String name, String dataType, boolean isPrimaryKey) {
+    public ColumnData (String name, String dataType, boolean isPrimaryKey){
         this.name = name;
         this.dataType = dataType;
         this.isPrimaryKey = isPrimaryKey;
-        this.mergedColumnIds = new HashSet<>();
     }
 
-    public ColumnData(String name, String dataType, TableData table) {
-        this.name = name;
-        this.dataType = dataType;
-        this.table = table;
-        this.mergedColumnIds = new HashSet<>();
-    }
-
-    public ColumnData(String name, String dataType, boolean isPrimaryKey, Set<ColumnData> mergedColumnIds) {
-        this(name, dataType, isPrimaryKey);
-        this.mergedColumnIds = mergedColumnIds;
-    }
-
-    public ColumnData(int columnID, String name, String dataType, boolean isPrimaryKey, TableData table, String foreignKey, String tableRelation) {
-        this.columnID = columnID;
-        this.name = name;
-        this.dataType = dataType;
-        this.isPrimaryKey = isPrimaryKey;
-        this.table = table;
-        this.foreignKey = foreignKey;
-        this.tableRelation = tableRelation;
+    private ColumnData() {
         mergedColumnIds = new HashSet<>();
     }
-
     public String getName() {
         return name;
     }

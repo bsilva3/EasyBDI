@@ -34,51 +34,52 @@ public class SchemaMatcher {
         TableData sales = new TableData("sales", "sales_schema", null);
         sales.setId(1);
         List<ColumnData> cols = new ArrayList<>();
-        cols.add(new ColumnData(1, "sale_id", "integer", true, sales, "", ""));
-        cols.add(new ColumnData(2, "ammount", "double", false, sales, "", ""));
-        cols.add(new ColumnData(3, "market", "varchar", false, sales, "", ""));
-        cols.add(new ColumnData(4, "sale_date", "date", false, sales, "", ""));
+        cols.add(new ColumnData.Builder("sale_id", "integer", true).withID(1).withTable(sales).withForeignKey("").build());
+        cols.add(new ColumnData.Builder("ammount", "double", false).withID(2).withTable(sales).withForeignKey("").build());
+        cols.add(new ColumnData.Builder("market", "varchar", false).withID(3).withTable(sales).withForeignKey("").build());
+        cols.add(new ColumnData.Builder("sale_date", "date", false).withID(4).withTable(sales).withForeignKey("").build());
         sales.setColumnsList(cols);
 
         //Table 2 -----------
         TableData employees = new TableData("employees", "sales_schema", null);
         employees.setId(2);
         cols = new ArrayList<>();
-        cols.add(new ColumnData(5, "employeeID", "integer", true, employees, "", ""));
-        cols.add(new ColumnData(6, "fullName", "varchar", false, employees, "", ""));
-        cols.add(new ColumnData(7, "badge", "char", false, employees, "", ""));
-        cols.add(new ColumnData(8, "hired_date", "date", false, employees, "", ""));
+        cols.add(new ColumnData.Builder("employeeID", "integer", true).withID(5).withTable(employees).withForeignKey("").build());
+        cols.add(new ColumnData.Builder("fullName", "varchar", false).withID(6).withTable(employees).withForeignKey("").build());
+        cols.add(new ColumnData.Builder("badge", "char", false).withID(7).withTable(employees).withForeignKey("").build());
+        cols.add(new ColumnData.Builder("hired_date", "date", false).withID(8).withTable(employees).withForeignKey("").build());
         employees.setColumnsList(cols);
 
         //Table 3 -----------
         TableData product = new TableData("product", "sales_schema", null);
         product.setId(3);
         cols = new ArrayList<>();
-        cols.add(new ColumnData(9, "prod_id", "integer", true, sales, "", ""));
-        cols.add(new ColumnData(10, "price", "double", false, sales, "", ""));
-        cols.add(new ColumnData(11, "category", "varchar", false, sales, "", ""));
+        cols.add(new ColumnData.Builder("prod_id", "integer", true).withID(9).withTable(sales).withForeignKey("").build());
+        cols.add(new ColumnData.Builder("price", "double", false).withID(10).withTable(sales).withForeignKey("").build());
+        cols.add(new ColumnData.Builder("category", "varchar", false).withID(11).withTable(sales).withForeignKey("").build());
+
         product.setColumnsList(cols);
 
         //Table 4 ----------- similar to 2
         TableData employees2 = new TableData("info_employees", "sales_schema", null);
         employees2.setId(4);
         cols = new ArrayList<>();
-        cols.add(new ColumnData(12, "id", "integer", true, employees2, "", ""));
-        cols.add(new ColumnData(13, "first_name", "varchar", false, employees2, "", ""));
-        cols.add(new ColumnData(14, "second_name", "varchar", false, employees2, "", ""));
-        cols.add(new ColumnData(15, "badge_code", "integer", false, employees2, "", ""));
-        cols.add(new ColumnData(16, "time_hired", "timestamp", false, employees2, "", ""));
+        cols.add(new ColumnData.Builder("id", "integer", true).withID(12).withTable(employees2).withForeignKey("").build());
+        cols.add(new ColumnData.Builder("first_name", "varchar", false).withID(13).withTable(employees2).withForeignKey("").build());
+        cols.add(new ColumnData.Builder("second_name", "varchar", false).withID(14).withTable(employees2).withForeignKey("").build());
+        cols.add(new ColumnData.Builder("badge_code", "integer", false).withID(15).withTable(employees2).withForeignKey("").build());
+        cols.add(new ColumnData.Builder("time_hired", "timestamp", false).withID(16).withTable(employees2).withForeignKey("").build());
         employees2.setColumnsList(cols);
 
         //Table 5 ----------- similar to 4 and 2
         TableData employees3 = new TableData("infoEmployees", "sales", null);
         employees3.setId(5);
         cols = new ArrayList<>();
-        cols.add(new ColumnData(12, "id", "integer", true, employees3, "", ""));
-        cols.add(new ColumnData(13, "first_name", "varchar", false, employees3, "", ""));
-        cols.add(new ColumnData(14, "second_name", "varchar", false, employees3, "", ""));
-        cols.add(new ColumnData(15, "badge_code", "integer", false, employees3, "", ""));
-        cols.add(new ColumnData(16, "time_hired", "timestamp", false, employees3, "", ""));
+        cols.add(new ColumnData.Builder("id", "integer", true).withID(17).withTable(employees3).withForeignKey("").build());
+        cols.add(new ColumnData.Builder("first_name", "varchar", false).withID(18).withTable(employees3).withForeignKey("").build());
+        cols.add(new ColumnData.Builder("second_name", "varchar", false).withID(19).withTable(employees3).withForeignKey("").build());
+        cols.add(new ColumnData.Builder("badge_code", "integer", false).withID(20).withTable(employees3).withForeignKey("").build());
+        cols.add(new ColumnData.Builder("time_hired", "timestamp", false).withID(21).withTable(employees3).withForeignKey("").build());
         employees3.setColumnsList(cols);
 
 
@@ -86,30 +87,30 @@ public class SchemaMatcher {
         TableData employees4 = new TableData("employees6", "sales", null);
         employees4.setId(6);
         cols = new ArrayList<>();
-        cols.add(new ColumnData(17, "id", "integer", true, employees4, "", ""));
-        cols.add(new ColumnData(18, "first_name", "varchar", false, employees4, "", ""));
-        cols.add(new ColumnData(19, "second_name", "varchar", false, employees4, "", ""));
-        cols.add(new ColumnData(20, "badge_code", "integer", false, employees4, "", ""));
-        cols.add(new ColumnData(21, "time_hired", "timestamp", false, employees4, "", ""));
+        cols.add(new ColumnData.Builder("id", "integer", true).withID(22).withTable(employees4).withForeignKey("").build());
+        cols.add(new ColumnData.Builder("first_name", "varchar", false).withID(23).withTable(employees4).withForeignKey("").build());
+        cols.add(new ColumnData.Builder("second_name", "varchar", false).withID(24).withTable(employees4).withForeignKey("").build());
+        cols.add(new ColumnData.Builder("badge_code", "integer", false).withID(25).withTable(employees4).withForeignKey("").build());
+        cols.add(new ColumnData.Builder("time_hired", "timestamp", false).withID(26).withTable(employees4).withForeignKey("").build());
         employees4.setColumnsList(cols);
 
         //Table 7 ----------- similar to 6, 5, 4 and 2
         TableData employees5 = new TableData("employees7", "sales", null);
         employees5.setId(7);
         cols = new ArrayList<>();
-        cols.add(new ColumnData(22, "id", "integer", true, employees5, "", ""));
-        cols.add(new ColumnData(23, "first_name", "varchar", false, employees5, "", ""));
-        cols.add(new ColumnData(24, "second_name", "varchar", false, employees5, "", ""));
-        cols.add(new ColumnData(26, "time_hired", "timestamp", false, employees5, "", ""));
+        cols.add(new ColumnData.Builder("id", "integer", true).withID(27).withTable(employees5).withForeignKey("").build());
+        cols.add(new ColumnData.Builder("first_name", "varchar", false).withID(28).withTable(employees5).withForeignKey("").build());
+        cols.add(new ColumnData.Builder("second_name", "varchar", false).withID(29).withTable(employees5).withForeignKey("").build());
+        cols.add(new ColumnData.Builder("time_hired", "timestamp", false).withID(30).withTable(employees5).withForeignKey("").build());
         employees5.setColumnsList(cols);
 
         //Table 8 ----------- similar to 3
         TableData product2 = new TableData("products", "sales_schema", null);
         product2.setId(8);
         cols = new ArrayList<>();
-        cols.add(new ColumnData(27, "prod_id", "integer", true, product2, "", ""));
-        cols.add(new ColumnData(28, "price", "double", false, product2, "", ""));
-        cols.add(new ColumnData(29, "category", "varchar", false, product2, "", ""));
+        cols.add(new ColumnData.Builder("prod_id", "integer", true).withID(31).withTable(product2).withForeignKey("").build());
+        cols.add(new ColumnData.Builder("price", "double", false).withID(32).withTable(product2).withForeignKey("").build());
+        cols.add(new ColumnData.Builder("category", "varchar", true).withID(33).withTable(product2).withForeignKey("").build());
         product2.setColumnsList(cols);
 
         tables.add(sales);
@@ -378,13 +379,13 @@ public class SchemaMatcher {
                 if (table1MatchedCols.getDataType().equals(table2MatchedCols.getDataType())){
                     //same data type
                     //globalTableCols.add(new GlobalColumnData(table1MatchedCols.getName(), col1DataType, table1MatchedCols.isPrimaryKey(), globalTableData));
-                    mergedCols.add(new ColumnData(table1MatchedCols.getName(), col1DataType, table1MatchedCols.isPrimaryKey(), ids));
+                    mergedCols.add(new ColumnData.Builder(table1MatchedCols.getName(), col1DataType, table1MatchedCols.isPrimaryKey()).withMergedCols(ids).build());
                 }
                 else{
                     //different data types, select one
                     String dataType = chooseGenerableDataType(col1DataType, col2DataType);
                     //globalTableCols.add(new GlobalColumnData(table1MatchedCols.getName(), dataType, table1MatchedCols.isPrimaryKey(), globalTableData));
-                    mergedCols.add(new ColumnData(table1MatchedCols.getName(), dataType, table1MatchedCols.isPrimaryKey(), ids));
+                    mergedCols.add(new ColumnData.Builder(table1MatchedCols.getName(), dataType, table1MatchedCols.isPrimaryKey()).withMergedCols(ids).build());
                 }
             }
 
