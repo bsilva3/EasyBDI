@@ -2,24 +2,12 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="4372070e-ade1-4e3a-bab8-4e40966e7856" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/files/images/column_icon.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/files/images/database_icon.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/files/images/info_icon.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/files/images/match_icon.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/files/images/primary_key_icon.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/files/images/schema_icon.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/files/images/table_icon.jpg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/CustomTreeNode.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/CustomeTreeCellRenderer.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/files/images/add_column_icon.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/files/images/add_table_icon.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/files/images/search_icon.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/DatabaseConnectionWizard.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/DatabaseConnectionWizard.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/GlobalSchemaConfiguration.form" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/GlobalSchemaConfiguration.form" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/GlobalSchemaConfiguration.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/GlobalSchemaConfiguration.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/helper_classes/ColumnData.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/helper_classes/ColumnData.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/helper_classes/TableData.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/helper_classes/TableData.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/prestoComm/Constants.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/prestoComm/Constants.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/prestoComm/PrestoMediator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/prestoComm/PrestoMediator.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/prestoComm/SchemaMatcher.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/prestoComm/SchemaMatcher.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -50,6 +38,7 @@
     <property name="ASKED_ADD_EXTERNAL_FILES" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
+    <property name="UI_DESIGNER_EDITOR_MODE.UIDesignerToolWindowManager.WIDTH" value="286" />
     <property name="project.structure.last.edited" value="Modules" />
     <property name="project.structure.proportion" value="0.0" />
     <property name="project.structure.side.proportion" value="0.0" />
@@ -180,7 +169,14 @@
       <option name="project" value="LOCAL" />
       <updated>1586383325009</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="interface improvements">
+      <created>1586623588860</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1586623588860</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -192,7 +188,8 @@
     <MESSAGE value="local schema complete (needs robustness).&#10;Schema matching implementation initiation." />
     <MESSAGE value="schema matching and integration implementation" />
     <MESSAGE value="fixes" />
-    <option name="LAST_COMMIT_MESSAGE" value="fixes" />
+    <MESSAGE value="interface improvements" />
+    <option name="LAST_COMMIT_MESSAGE" value="interface improvements" />
   </component>
   <component name="WindowStateProjectService">
     <state x="555" y="180" width="800" height="675" key="#Project_Structure" timestamp="1580818064854">
@@ -207,6 +204,10 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="768" y="238" width="521" height="560" key="#com.intellij.ide.util.MemberChooser/0.0.1920.1040@0.0.1920.1040" timestamp="1584024201108" />
+    <state x="689" y="310" key="#com.intellij.ide.util.TreeFileChooserDialog" timestamp="1586631559478">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="689" y="310" key="#com.intellij.ide.util.TreeFileChooserDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1586631559478" />
     <state x="668" y="266" width="574" height="504" key="#com.intellij.refactoring.memberPullUp.PullUpDialog" timestamp="1581441028574">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -227,54 +228,54 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="1021" y="169" key="#xdebugger.evaluate/0.0.1920.1040@0.0.1920.1040" timestamp="1584384400355" />
-    <state x="607" y="116" width="695" height="803" key="CommitChangelistDialog2" timestamp="1586383324539">
+    <state x="607" y="116" width="695" height="803" key="CommitChangelistDialog2" timestamp="1586623588373">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="607" y="116" width="695" height="803" key="CommitChangelistDialog2/0.0.1920.1040@0.0.1920.1040" timestamp="1586383324539" />
-    <state width="1877" height="233" key="GridCell.Tab.0.bottom" timestamp="1586622978153">
+    <state x="607" y="116" width="695" height="803" key="CommitChangelistDialog2/0.0.1920.1040@0.0.1920.1040" timestamp="1586623588373" />
+    <state width="1877" height="233" key="GridCell.Tab.0.bottom" timestamp="1586729144266">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1877" height="233" key="GridCell.Tab.0.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1586622978153" />
-    <state width="1877" height="233" key="GridCell.Tab.0.center" timestamp="1586622978152">
+    <state width="1877" height="233" key="GridCell.Tab.0.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1586729144266" />
+    <state width="1877" height="233" key="GridCell.Tab.0.center" timestamp="1586729144265">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1877" height="233" key="GridCell.Tab.0.center/0.0.1920.1040@0.0.1920.1040" timestamp="1586622978152" />
-    <state width="1877" height="233" key="GridCell.Tab.0.left" timestamp="1586622978152">
+    <state width="1877" height="233" key="GridCell.Tab.0.center/0.0.1920.1040@0.0.1920.1040" timestamp="1586729144265" />
+    <state width="1877" height="233" key="GridCell.Tab.0.left" timestamp="1586729144265">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1877" height="233" key="GridCell.Tab.0.left/0.0.1920.1040@0.0.1920.1040" timestamp="1586622978152" />
-    <state width="1877" height="233" key="GridCell.Tab.0.right" timestamp="1586622978153">
+    <state width="1877" height="233" key="GridCell.Tab.0.left/0.0.1920.1040@0.0.1920.1040" timestamp="1586729144265" />
+    <state width="1877" height="233" key="GridCell.Tab.0.right" timestamp="1586729144265">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1877" height="233" key="GridCell.Tab.0.right/0.0.1920.1040@0.0.1920.1040" timestamp="1586622978153" />
-    <state width="1877" height="220" key="GridCell.Tab.1.bottom" timestamp="1586620999351">
+    <state width="1877" height="233" key="GridCell.Tab.0.right/0.0.1920.1040@0.0.1920.1040" timestamp="1586729144265" />
+    <state width="1877" height="220" key="GridCell.Tab.1.bottom" timestamp="1586623598169">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1877" height="220" key="GridCell.Tab.1.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1586620999351" />
-    <state width="1877" height="220" key="GridCell.Tab.1.center" timestamp="1586620999351">
+    <state width="1877" height="220" key="GridCell.Tab.1.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1586623598169" />
+    <state width="1877" height="220" key="GridCell.Tab.1.center" timestamp="1586623598169">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1877" height="220" key="GridCell.Tab.1.center/0.0.1920.1040@0.0.1920.1040" timestamp="1586620999351" />
-    <state width="1877" height="220" key="GridCell.Tab.1.left" timestamp="1586620999351">
+    <state width="1877" height="220" key="GridCell.Tab.1.center/0.0.1920.1040@0.0.1920.1040" timestamp="1586623598169" />
+    <state width="1877" height="220" key="GridCell.Tab.1.left" timestamp="1586623598169">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1877" height="220" key="GridCell.Tab.1.left/0.0.1920.1040@0.0.1920.1040" timestamp="1586620999351" />
-    <state width="1877" height="220" key="GridCell.Tab.1.right" timestamp="1586620999351">
+    <state width="1877" height="220" key="GridCell.Tab.1.left/0.0.1920.1040@0.0.1920.1040" timestamp="1586623598169" />
+    <state width="1877" height="220" key="GridCell.Tab.1.right" timestamp="1586623598169">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1877" height="220" key="GridCell.Tab.1.right/0.0.1920.1040@0.0.1920.1040" timestamp="1586620999351" />
+    <state width="1877" height="220" key="GridCell.Tab.1.right/0.0.1920.1040@0.0.1920.1040" timestamp="1586623598169" />
     <state x="464" y="154" key="SettingsEditor" timestamp="1580300483631">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="464" y="154" key="SettingsEditor/0.0.1920.1040@0.0.1920.1040" timestamp="1580300483631" />
-    <state x="555" y="255" width="800" height="526" key="Vcs.Push.Dialog.v2" timestamp="1586383326423">
+    <state x="555" y="255" width="800" height="526" key="Vcs.Push.Dialog.v2" timestamp="1586623590171">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="555" y="255" width="800" height="526" key="Vcs.Push.Dialog.v2/0.0.1920.1040@0.0.1920.1040" timestamp="1586383326423" />
-    <state x="653" y="346" key="com.intellij.ide.util.TipDialog" timestamp="1586615739252">
+    <state x="555" y="255" width="800" height="526" key="Vcs.Push.Dialog.v2/0.0.1920.1040@0.0.1920.1040" timestamp="1586623590171" />
+    <state x="653" y="346" key="com.intellij.ide.util.TipDialog" timestamp="1586729051958">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="653" y="346" key="com.intellij.ide.util.TipDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1586615739252" />
+    <state x="653" y="346" key="com.intellij.ide.util.TipDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1586729051958" />
     <state x="730" y="181" width="449" height="673" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser" timestamp="1581590826176">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -313,7 +314,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-method">
           <url>file://$PROJECT_DIR$/src/main/java/GlobalSchemaConfiguration.java</url>
-          <line>247</line>
+          <line>297</line>
           <properties class="GlobalSchemaConfiguration" method="loadImageForGlobalSchemaTree">
             <option name="EMULATED" value="true" />
           </properties>
@@ -351,7 +352,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/GlobalSchemaConfiguration.java</url>
-          <line>158</line>
+          <line>193</line>
           <option name="timeStamp" value="52" />
         </line-breakpoint>
       </breakpoints>
