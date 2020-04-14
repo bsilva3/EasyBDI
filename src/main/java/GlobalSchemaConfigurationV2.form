@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="GlobalSchemaConfigurationV2">
+  <grid id="27dc6" binding="mainPanel" layout-manager="GridBagLayout">
+    <constraints>
+      <xy x="20" y="20" width="1159" height="444"/>
+    </constraints>
+    <properties/>
+    <border type="none"/>
+    <children>
+      <scrollpane id="5dacf">
+        <constraints>
+          <grid row="4" column="0" row-span="1" col-span="3" vsize-policy="7" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+          <gridbag top="0" left="5" bottom="0" right="10" weightx="1.0" weighty="5.0" ipady="100"/>
+        </constraints>
+        <properties>
+          <maximumSize width="300" height="500"/>
+          <preferredSize width="150" height="300"/>
+        </properties>
+        <border type="none"/>
+        <children>
+          <component id="c418e" class="javax.swing.JTree" binding="globalSchemaTree">
+            <constraints/>
+            <properties>
+              <alignmentX value="0.5"/>
+              <alignmentY value="1.0"/>
+              <dragEnabled value="true"/>
+              <editable value="true"/>
+              <inheritsPopupMenu value="false"/>
+              <largeModel value="false"/>
+            </properties>
+          </component>
+        </children>
+      </scrollpane>
+      <scrollpane id="77d04">
+        <constraints>
+          <grid row="4" column="4" row-span="1" col-span="3" vsize-policy="7" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="5.0" weighty="5.0" ipady="100"/>
+        </constraints>
+        <properties>
+          <verticalScrollBarPolicy value="20"/>
+        </properties>
+        <border type="none"/>
+        <children>
+          <component id="974f3" class="javax.swing.JTree" binding="localSchemaTree">
+            <constraints/>
+            <properties>
+              <alignmentX value="0.5"/>
+              <alignmentY value="1.0"/>
+              <autoscrolls value="false"/>
+              <dragEnabled value="true"/>
+              <editable value="false"/>
+              <largeModel value="false"/>
+              <requestFocusEnabled value="true"/>
+              <visible value="true"/>
+              <visibleRowCount value="20"/>
+            </properties>
+          </component>
+        </children>
+      </scrollpane>
+      <component id="c6392" class="javax.swing.JLabel">
+        <constraints>
+          <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="0" anchor="6" fill="0" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="1.0" weighty="1.0"/>
+        </constraints>
+        <properties>
+          <horizontalTextPosition value="4"/>
+          <text value="Search"/>
+        </properties>
+      </component>
+      <component id="11ba3" class="javax.swing.JTextField" binding="searchGlobalField">
+        <constraints>
+          <grid row="3" column="1" row-span="1" col-span="1" vsize-policy="7" hsize-policy="6" anchor="2" fill="1" indent="0" use-parent-layout="false">
+            <preferred-size width="150" height="-1"/>
+          </grid>
+          <gridbag weightx="2.0" weighty="1.0"/>
+        </constraints>
+        <properties>
+          <alignmentX value="0.5"/>
+          <preferredSize width="100" height="20"/>
+          <text value=""/>
+          <toolTipText value="Global Table Name"/>
+        </properties>
+        <clientProperties>
+          <caretWidth class="java.lang.Integer" value="1"/>
+          <html.disable class="java.lang.Boolean" value="false"/>
+        </clientProperties>
+      </component>
+      <component id="320b4" class="javax.swing.JButton" binding="searchGlobalButton">
+        <constraints>
+          <grid row="3" column="2" row-span="1" col-span="1" vsize-policy="7" hsize-policy="3" anchor="10" fill="0" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="1.0" weighty="1.0"/>
+        </constraints>
+        <properties>
+          <preferredSize width="78" height="25"/>
+          <text value=""/>
+        </properties>
+      </component>
+      <component id="3ea7e" class="javax.swing.JLabel">
+        <constraints>
+          <grid row="3" column="4" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="6" fill="0" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="1.0" weighty="1.0"/>
+        </constraints>
+        <properties>
+          <horizontalTextPosition value="4"/>
+          <text value="Search"/>
+        </properties>
+      </component>
+      <component id="a48ef" class="javax.swing.JButton" binding="searchLocalButton">
+        <constraints>
+          <grid row="3" column="6" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="10" fill="0" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="1.0" weighty="1.0"/>
+        </constraints>
+        <properties>
+          <horizontalAlignment value="0"/>
+          <horizontalTextPosition value="0"/>
+          <preferredSize width="78" height="25"/>
+          <text value=""/>
+        </properties>
+      </component>
+      <component id="fbcf6" class="javax.swing.JTextField">
+        <constraints>
+          <grid row="3" column="5" row-span="1" col-span="1" vsize-policy="4" hsize-policy="6" anchor="2" fill="1" indent="0" use-parent-layout="false">
+            <preferred-size width="150" height="-1"/>
+          </grid>
+          <gridbag weightx="1.0" weighty="1.0"/>
+        </constraints>
+        <properties>
+          <horizontalAlignment value="10"/>
+          <preferredSize width="100" height="20"/>
+          <text value=""/>
+          <toolTipText value="Global Table Name"/>
+        </properties>
+        <clientProperties>
+          <caretWidth class="java.lang.Integer" value="1"/>
+        </clientProperties>
+      </component>
+      <component id="20632" class="javax.swing.JLabel" binding="globalTableLable">
+        <constraints>
+          <grid row="5" column="0" row-span="1" col-span="1" vsize-policy="4" hsize-policy="0" anchor="6" fill="0" indent="0" use-parent-layout="false"/>
+          <gridbag top="0" left="0" bottom="10" right="10" weightx="0.5" weighty="1.0"/>
+        </constraints>
+        <properties>
+          <labelFor value="32bd3"/>
+          <text value="Global Table Name"/>
+        </properties>
+      </component>
+      <component id="9d961" class="javax.swing.JTextField" binding="globalTableName">
+        <constraints>
+          <grid row="5" column="1" row-span="1" col-span="1" vsize-policy="4" hsize-policy="6" anchor="2" fill="1" indent="0" use-parent-layout="false">
+            <preferred-size width="150" height="-1"/>
+          </grid>
+          <gridbag top="0" left="10" bottom="10" right="10" weightx="1.0" weighty="1.0"/>
+        </constraints>
+        <properties>
+          <text value=""/>
+          <toolTipText value="Global Table Name"/>
+        </properties>
+      </component>
+      <component id="e3cd0" class="javax.swing.JLabel" binding="globalTableColumn">
+        <constraints>
+          <grid row="6" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="5" fill="0" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="1.0" weighty="1.0"/>
+        </constraints>
+        <properties>
+          <text value="Global Column Name"/>
+        </properties>
+      </component>
+      <component id="97a8" class="javax.swing.JTextField" binding="globalColumnName">
+        <constraints>
+          <grid row="6" column="1" row-span="1" col-span="1" vsize-policy="4" hsize-policy="2" anchor="1" fill="1" indent="0" use-parent-layout="false">
+            <preferred-size width="150" height="-1"/>
+          </grid>
+          <gridbag top="0" left="10" bottom="0" right="10" weightx="1.0" weighty="1.0"/>
+        </constraints>
+        <properties>
+          <text value=""/>
+          <toolTipText value="Column Name"/>
+        </properties>
+      </component>
+      <component id="dc59f" class="javax.swing.JLabel">
+        <constraints>
+          <grid row="2" column="3" row-span="1" col-span="4" vsize-policy="0" hsize-policy="0" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
+          <gridbag top="10" left="0" bottom="0" right="0" weightx="1.0" weighty="1.0"/>
+        </constraints>
+        <properties>
+          <text value="Local Schema"/>
+        </properties>
+      </component>
+      <component id="6dc38" class="javax.swing.JLabel" binding="helpLabel">
+        <constraints>
+          <grid row="1" column="0" row-span="1" col-span="7" vsize-policy="0" hsize-policy="0" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+          <gridbag top="5" left="0" bottom="0" right="0" weightx="1.0" weighty="1.0"/>
+        </constraints>
+        <properties>
+          <alignmentX value="0.5"/>
+          <horizontalAlignment value="0"/>
+          <horizontalTextPosition value="0"/>
+          <text value=""/>
+        </properties>
+      </component>
+      <component id="f47ae" class="javax.swing.JLabel" binding="stepLabel">
+        <constraints>
+          <grid row="0" column="0" row-span="1" col-span="7" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="1.0" weighty="1.0"/>
+        </constraints>
+        <properties>
+          <alignmentX value="0.5"/>
+          <horizontalAlignment value="0"/>
+          <horizontalTextPosition value="0"/>
+          <text value=""/>
+        </properties>
+      </component>
+      <component id="8331" class="javax.swing.JLabel" binding="globalSchemaLabel">
+        <constraints>
+          <grid row="2" column="0" row-span="1" col-span="3" vsize-policy="0" hsize-policy="0" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
+          <gridbag top="10" left="0" bottom="0" right="0" weightx="0.0" weighty="0.0"/>
+        </constraints>
+        <properties>
+          <text value="Global Schema Configuration"/>
+        </properties>
+      </component>
+      <component id="46b57" class="javax.swing.JButton" binding="addGlobalTableButton" default-binding="true">
+        <constraints>
+          <grid row="5" column="2" row-span="1" col-span="2" vsize-policy="4" hsize-policy="3" anchor="10" fill="0" indent="0" use-parent-layout="false"/>
+          <gridbag top="0" left="10" bottom="10" right="0" weightx="1.0" weighty="1.0"/>
+        </constraints>
+        <properties>
+          <alignmentX value="0.5"/>
+          <preferredSize width="78" height="25"/>
+          <text value=""/>
+          <toolTipText value="Add Global Table"/>
+        </properties>
+      </component>
+      <component id="bd2e2" class="javax.swing.JComboBox" binding="dataTypeBox">
+        <constraints>
+          <grid row="6" column="2" row-span="1" col-span="1" vsize-policy="4" hsize-policy="2" anchor="1" fill="1" indent="0" use-parent-layout="false"/>
+          <gridbag top="0" left="10" bottom="0" right="10" weightx="0.1" weighty="1.0"/>
+        </constraints>
+        <properties>
+          <alignmentX value="0.1"/>
+          <toolTipText value="DataType"/>
+        </properties>
+      </component>
+      <component id="a545a" class="javax.swing.JButton" binding="addColumnToSelectedButton" default-binding="true">
+        <constraints>
+          <grid row="6" column="3" row-span="1" col-span="2" vsize-policy="4" hsize-policy="3" anchor="9" fill="0" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="1.0" weighty="1.0"/>
+        </constraints>
+        <properties>
+          <horizontalAlignment value="0"/>
+          <preferredSize width="78" height="25"/>
+          <text value=""/>
+          <toolTipText value="Add Global Column to Selected Global Table"/>
+        </properties>
+      </component>
+    </children>
+  </grid>
+</form>

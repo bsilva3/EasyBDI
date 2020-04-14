@@ -63,6 +63,13 @@
             <artifactId>g-wiz</artifactId>
             <version>1.0.1</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/com.jgoodies/forms -->
+        <dependency>
+            <groupId>com.jgoodies</groupId>
+            <artifactId>forms</artifactId>
+            <version>1.2.1</version>
+        </dependency>
+
 
 
 

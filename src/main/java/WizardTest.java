@@ -1,6 +1,6 @@
 import se.gustavkarlsson.gwiz.AbstractWizardPage;
 import se.gustavkarlsson.gwiz.WizardController;
-import se.gustavkarlsson.gwiz.wizards.JFrameWizard;;
+import se.gustavkarlsson.gwiz.wizards.JFrameWizard;;import java.awt.*;
 
 public class WizardTest {
 
@@ -21,16 +21,17 @@ public class WizardTest {
          * 		wizardController.startWizard(demoStartPage);
          */
         // Create a new wizard (this one is based on a JFrame)
-        /*JFrameWizard wizard = new JFrameWizard("g-wiz demo");
+        JFrameWizard wizard = new JFrameWizard("Configuration Wizard");
 
         // Create the first page of the wizard
-        AbstractWizardPage demoStartPage = new DatabaseConnectionWizard();
+        AbstractWizardPage demoStartPage = new DatabaseConnectionWizardV2();
 
         // Create the controller for wizard
         WizardController wizardController = new WizardController(wizard);
 
         // Start the wizard and show it
+        wizard.setResizable(true);
         wizard.setVisible(true);
-        wizardController.startWizard(demoStartPage);*/
+        wizardController.startWizard(demoStartPage);
     }
 }
