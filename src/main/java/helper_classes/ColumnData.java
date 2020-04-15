@@ -76,6 +76,8 @@ public class ColumnData {
             col.tableID = this.tableID;
             col.foreignKey = this.foreignKey;
             col.mergedColumnIds = this.mergedColumnIds;
+            if (col.mergedColumnIds == null)
+                col.mergedColumnIds = new HashSet<>();
             return col;
         }
 

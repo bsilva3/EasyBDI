@@ -399,6 +399,12 @@ public class SchemaMatcher {
         return globalTableCols;
     }
 
+    public List<GlobalColumnData> getColumnsForGlobalTableV2(GlobalTableData globalTableData, Map<String, String> convertibleDataTypes){
+        List<TableData> localTables = globalTableData.getLocalTables();
+        
+
+    }
+
     /**
      * Given 2 datatype, choose the one that is more generable. For example, varchar e is more generable than integer
      * @param dataType1
