@@ -9,7 +9,6 @@ public class GlobalTableData {
 
     private String tableName;
     private int id;
-    //private List<TableData> localTables;
     private List<GlobalColumnData> globalColumnData;
     private List<TableData> localTables;
 
@@ -38,6 +37,17 @@ public class GlobalTableData {
         return localTables;
     }
 
+    public Set<Integer> getLocalTablesIDs() {
+        Set<Integer> tablesIDS = new HashSet<>();
+        for (GlobalColumnData gc : this.globalColumnData){
+            for (ColumnData c : gc.getLocalColumns())
+                tablesIDS.add(c.getTableID());
+        }
+
+        return tablesIDS;
+    }
+
+
     public List<GlobalColumnData> getGlobalColumnData() {
         return globalColumnData;
     }
@@ -59,6 +69,15 @@ public class GlobalTableData {
 
     public void addLocalTable(TableData table){
         this.localTables.add(table);
+    }
+
+    public void addGlobalColumn(GlobalColumnData col){
+        try {
+            this.globalColumnData.add(col);
+        } catch (NullPointerException e){
+            this.globalColumnData = new ArrayList<>();
+            this.globalColumnData.add(col);
+        }
     }
 
     @Override

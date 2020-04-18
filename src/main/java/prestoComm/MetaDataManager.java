@@ -6,10 +6,7 @@ import io.prestosql.jdbc.$internal.client.Column;
 
 import java.io.File;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static prestoComm.Constants.*;
 
@@ -649,6 +646,12 @@ public class MetaDataManager {
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
+    }
+
+    public List<TableData> getLocalTablesByID(Set<Integer> tableIDs){
+        List<TableData> tables = new ArrayList<>();
+
+        return tables;
     }
 
 

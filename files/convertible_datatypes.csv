@@ -1,33 +1,30 @@
-boolean,varchar
-boolean,char
-integer,tinyint
-integer,smallint
-integer,bigint
-integer,real
-integer,double
-integer,decimal
-integer,uuid
-tinyint,integer
-tinyint,double
-smallint,double
-smallint,integer
-smallint,bigint
-bigint,integer
-bigint,double
-bigint,integer
-double,decimal
-decimal,double
-varchar,char
-char,varchar
-varbinary,varchar
-json,varchar
-json,char
-date,varchar
-date,char
-time,varchar
-time with time zone,varchar
-timestamp,varchar
-timestamp with time zone,varchar
-ipaddress,char
-ipaddress,varchar
-uuid,integer
+boolean,varchar,varchar
+boolean,char,char
+integer,tinyint,integer
+integer,smallint,integer
+integer,bigint,integer
+integer,real,integer
+integer,double,integer
+integer,decimal,integer
+integer,uuid,integer
+tinyint,integer,integer
+tinyint,double,double
+smallint,double,double
+smallint,integer,integer
+smallint,bigint,bigint
+double,decimal,double
+decimal,double,double
+varchar,char,varchar
+varbinary,varchar,varchar
+json,varchar,varchar
+json,char,char
+date,varchar,varchar
+date,char,varchar
+time,varchar,varchar
+time with time zone,time,time
+time with time zone,varchar,varchar
+timestamp,varchar,varchar
+timestamp,timestamp with time zone,timestamp
+timestamp with time zone,varchar,varchar
+ipaddress,char,char
+ipaddress,varchar,varchar

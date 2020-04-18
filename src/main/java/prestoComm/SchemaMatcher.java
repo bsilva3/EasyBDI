@@ -12,7 +12,6 @@ import de.uni_mannheim.informatik.dws.winter.model.defaultmodel.comparators.Labe
 import de.uni_mannheim.informatik.dws.winter.processing.DataIterator;
 import de.uni_mannheim.informatik.dws.winter.processing.Processable;
 import helper_classes.*;
-import jdk.nashorn.internal.objects.Global;
 import org.apache.commons.text.similarity.LevenshteinDistance;
 
 import java.io.BufferedReader;
@@ -26,7 +25,8 @@ import static prestoComm.Constants.DATATYPE_CONVERTIBLES_DICT;
 
 
 public class SchemaMatcher {
-    private final double similarityThreshold = 0.6;
+    private final double tableNameSimilarityThreshold = 0.6;
+    private final double columnSimilarityThreshold = 0.75;
 
     public static void main(String[] args){
         List<TableData> tables = new ArrayList<>();
@@ -44,7 +44,7 @@ public class SchemaMatcher {
         TableData employees = new TableData("employees", "sales_schema", null);
         employees.setId(2);
         cols = new ArrayList<>();
-        cols.add(new ColumnData.Builder("employeeID", "integer", true).withID(5).withTable(employees).withForeignKey("").build());
+        cols.add(new ColumnData.Builder("id", "integer", true).withID(5).withTable(employees).withForeignKey("").build());
         cols.add(new ColumnData.Builder("fullName", "varchar", false).withID(6).withTable(employees).withForeignKey("").build());
         cols.add(new ColumnData.Builder("badge", "char", false).withID(7).withTable(employees).withForeignKey("").build());
         cols.add(new ColumnData.Builder("hired_date", "date", false).withID(8).withTable(employees).withForeignKey("").build());
@@ -54,9 +54,9 @@ public class SchemaMatcher {
         TableData product = new TableData("product", "sales_schema", null);
         product.setId(3);
         cols = new ArrayList<>();
-        cols.add(new ColumnData.Builder("prod_id", "integer", true).withID(9).withTable(sales).withForeignKey("").build());
-        cols.add(new ColumnData.Builder("price", "double", false).withID(10).withTable(sales).withForeignKey("").build());
-        cols.add(new ColumnData.Builder("category", "varchar", false).withID(11).withTable(sales).withForeignKey("").build());
+        cols.add(new ColumnData.Builder("prod_id", "integer", true).withID(9).withTable(product).withForeignKey("").build());
+        cols.add(new ColumnData.Builder("price", "double", false).withID(10).withTable(product).withForeignKey("").build());
+        cols.add(new ColumnData.Builder("category", "varchar", false).withID(11).withTable(product).withForeignKey("").build());
 
         product.setColumnsList(cols);
 
@@ -199,7 +199,7 @@ public class SchemaMatcher {
                     //use Levenshtein distance to get the name similarity
                     double sim = getNameSimilarityLevenshtein(tables.get(i).getTableName(), tables.get(j).getTableName());
                     System.out.println("Levenshtein sim between " + tables.get(i).getTableName() + " and "+ tables.get(j).getTableName() +" = "+sim);
-                    if (sim >= similarityThreshold){
+                    if (sim >= tableNameSimilarityThreshold){
                         //match between the tables
                         tableMatches.add(new Match(tables.get(i), tables.get(j)));
                     }
@@ -318,16 +318,17 @@ public class SchemaMatcher {
      */
     private List<GlobalTableData> mergeGlobalTableAttributes(List<GlobalTableData> globalTables){
         //to check if the datatypes between two columns is compatible
-        Map<String, String> convertibleDataTypes = loadConvertibleDataTypeFile();
+        Map<DatatypePair, String> convertibleDataTypes = loadConvertibleDataTypeFile();
         for (int i = 0; i < globalTables.size(); i++){
             List<TableData> localTables = globalTables.get(i).getLocalTables();
             if (localTables.size() < 2){
                 continue;//nothing to merge
             }
             //schema matching between table columns and merging columns between tables for this global table
-            List<GlobalColumnData> columnsForGlobalTable = getColumnsForGlobalTable(globalTables.get(i), localTables, convertibleDataTypes);
+            /*List<GlobalColumnData> columnsForGlobalTable = getColumnsForGlobalTable(globalTables.get(i), localTables, convertibleDataTypes);
             GlobalTableData globalTableData = globalTables.get(i);
-            globalTableData.setGlobalColumnData(columnsForGlobalTable);
+            globalTableData.setGlobalColumnData(columnsForGlobalTable);*/
+            GlobalTableData globalTableData = getColumnsForGlobalTableV2(globalTables.get(i), convertibleDataTypes);
             globalTables.set(i, globalTableData);
         }
         return globalTables;
@@ -341,7 +342,7 @@ public class SchemaMatcher {
      * @param convertibleDataTypes
      * @return
      */
-    public List<GlobalColumnData> getColumnsForGlobalTable(GlobalTableData globalTableData, List<TableData> localTables, Map<String, String> convertibleDataTypes){
+    public List<GlobalColumnData> getColumnsForGlobalTable(GlobalTableData globalTableData, List<TableData> localTables, Map<DatatypePair, String> convertibleDataTypes){
         List<GlobalColumnData> globalTableCols = new ArrayList<>();//columns of all local tables merged and belonging to the global table
         List <ColumnData> mergedCols = localTables.get(0).getColumnsList();
         //iterate through all tables, and merge the tables into one list of columns for a global table
@@ -383,7 +384,7 @@ public class SchemaMatcher {
                 }
                 else{
                     //different data types, select one
-                    String dataType = chooseGenerableDataType(col1DataType, col2DataType);
+                    String dataType = chooseGenericDataType(col1DataType, col2DataType, convertibleDataTypes);
                     //globalTableCols.add(new GlobalColumnData(table1MatchedCols.getName(), dataType, table1MatchedCols.isPrimaryKey(), globalTableData));
                     mergedCols.add(new ColumnData.Builder(table1MatchedCols.getName(), dataType, table1MatchedCols.isPrimaryKey()).withMergedCols(ids).build());
                 }
@@ -399,30 +400,87 @@ public class SchemaMatcher {
         return globalTableCols;
     }
 
-    public List<GlobalColumnData> getColumnsForGlobalTableV2(GlobalTableData globalTableData, Map<String, String> convertibleDataTypes){
+    public GlobalTableData getColumnsForGlobalTableV2(GlobalTableData globalTableData, Map<DatatypePair, String> convertibleDataTypes){
         List<TableData> localTables = globalTableData.getLocalTables();
-        
+        List<ColumnData> initialCols = localTables.get(0).getColumnsList(); //the result of the merging of tables. Starts from the first table
+        Map<ColumnData, Set<ColumnData>> correspondences = new HashMap<>(); //for each merged column, contains a list of tables and columns in those tables that make the merge column
+        for (ColumnData c : initialCols){
+            correspondences.put(c, new HashSet<>(Arrays.asList(c)));
+        }
+        //Map<ColumnData, List<TableData>>
+        for (int i = 1; i < localTables.size(); i++){
+            //iterate each local table in a binary way (table A +  Table B = Table AB; Table AB + Table C = Table ABC...)
+            Map<ColumnData, Set<ColumnData>> previousMergedColumns = new HashMap<>();
+            previousMergedColumns.putAll(correspondences);
+            List<ColumnData> columnsPreviousMergedTables = new ArrayList<>();
+            columnsPreviousMergedTables.addAll(correspondences.keySet());
+            List<ColumnData> columnsCurrentLocalTable = localTables.get(i).getColumnsList();
+            correspondences.clear();
 
+            //perform column table schema match to match pairs of columns
+            Map<ColumnData, ColumnData> columnMatches = schemaMatchingColumn(columnsPreviousMergedTables, localTables.get(i).getColumnsList(), convertibleDataTypes);
+            //if (columnMatches.isEmpty())
+                //continue;//if there are no matches, move on, this table is MAYBE not part of the semantic domain
+            //for each pair of mathes, create a new column that is combination of both similar columns
+            for (Map.Entry<ColumnData, ColumnData> entry : columnMatches.entrySet()) {
+                ColumnData colFromMergedTables = entry.getKey();
+                ColumnData colFromNewTable = entry.getValue();
+                //remove from each tables to merge the columns that matched. The remaining columns have no match
+                columnsPreviousMergedTables.remove(colFromMergedTables);
+                columnsCurrentLocalTable.remove(colFromNewTable);
+
+                // ---- handle data type conflicts
+                String datatype = "";
+                //remove possible <datatype>(x) (such as char(7), only the 'char' part is relevant) in the type defining fixed or max length
+                String col1DataType = colFromMergedTables.getDataTypeNoLimit();
+                String col2DataType = colFromNewTable.getDataTypeNoLimit();
+                if (col1DataType.equalsIgnoreCase(col2DataType)){
+                    //same datatypes
+                    datatype = colFromMergedTables.getDataType();
+                }
+                else{
+                    //different data types, choose the most generic one
+                    datatype = chooseGenericDataType(col1DataType, col2DataType, convertibleDataTypes);
+                }
+                //create a new column, the merge of both columns
+                ColumnData newColumn = new ColumnData.Builder(colFromMergedTables.getName(), datatype).build();
+                //mergedColumns.add(newColumn);
+                Set<ColumnData> previousCorrs = previousMergedColumns.get(colFromMergedTables);//get previous local columns
+                previousCorrs.add(colFromNewTable);// add the new local column merged
+                correspondences.put(newColumn, previousCorrs);
+                //associate with the merged cols the local columns and their tables
+            }
+            // add unique columns in each table to the new table
+            for (ColumnData localCol : columnsPreviousMergedTables) {
+                Set<ColumnData> localCols = previousMergedColumns.get(localCol);
+                if (localCols == null || localCols.isEmpty()) //add possible previously detected correspondences of  merged tables
+                    localCols = new HashSet<ColumnData>(Arrays.asList(localCol));
+                correspondences.put(localCol, new HashSet<ColumnData>(localCols));
+            }
+            for (ColumnData localCol : columnsCurrentLocalTable) {
+                correspondences.put(localCol, new HashSet<ColumnData>(Arrays.asList(localCol))); //no correspondences, these are new columns from the new local table to be merged. Corrs are the column itself
+            }
+        }
+        //finished marging all tables into one global table.
+        for (Map.Entry<ColumnData, Set<ColumnData>> entry : correspondences.entrySet()){
+            ColumnData mergedCol = entry.getKey();
+            globalTableData.addGlobalColumn(new GlobalColumnData(mergedCol.getName(), mergedCol.getDataType(), mergedCol.isPrimaryKey(), entry.getValue()));
+        }
+        return globalTableData;
     }
 
     /**
-     * Given 2 datatype, choose the one that is more generable. For example, varchar e is more generable than integer
+     * Given 2 datatype, choose the one that is more generic. For example, varchar e is more generic than integer
      * @param dataType1
      * @param dataType2
      * @return
      */
-    private String chooseGenerableDataType(String dataType1, String dataType2){
-        if (dataType1.equalsIgnoreCase("varchar") || dataType2.equalsIgnoreCase("varchar"))
-            return "varchar";
-        else if (dataType1.equalsIgnoreCase("char") || dataType2.equalsIgnoreCase("char"))
-            return "varchar";
-        else if (dataType1.equalsIgnoreCase("integer") || dataType2.equalsIgnoreCase("integer"))
-            return "integer";
-        else if (dataType1.equalsIgnoreCase("double") || dataType2.equalsIgnoreCase("double"))
-            return "double";
-        //time, date, timestamp...?
-        else
-            return "varchar";
+    private String chooseGenericDataType(String dataType1, String dataType2, Map<DatatypePair, String> convertibleDataTypes){
+        String datatype = convertibleDataTypes.get(new DatatypePair(dataType1, dataType2));
+        if (datatype == null || datatype.isEmpty()){
+            datatype = convertibleDataTypes.get(new DatatypePair(dataType2, dataType1));
+        }
+        return datatype;
     }
 
 
@@ -439,7 +497,7 @@ public class SchemaMatcher {
     //
     public List<Match> labelTypeSchemaMatchColumns(List<Match> tableMatches){
         //to check if the datatypes between two columns is compatible
-        Map<String, String> convertibleDataTypes = loadConvertibleDataTypeFile();
+        Map<DatatypePair, String> convertibleDataTypes = loadConvertibleDataTypeFile();
         for (int k = 0; k < tableMatches.size(); k++){
             Match m = tableMatches.get(k);
             TableData t1 = m.getTableData1();
@@ -455,22 +513,47 @@ public class SchemaMatcher {
         return tableMatches;
     }
 
-    private Map<ColumnData, ColumnData> schemaMatchingColumn(List<ColumnData> cd1, List<ColumnData> cd2, Map<String, String> convertibleDataTypes){
+    /**
+     * Given two lists of columns from two tables, perform schema matching on te columns.
+     * To determine if 2 columns are similar, name similarity, data type similarity and if it is or not primary key are used.
+     * The following formula is used:
+     * nameSim * 0.4 + datatypeSim * 0.4 + isPrimKey - 0.2
+     * @param cd1
+     * @param cd2
+     * @param convertibleDataTypes
+     * @return
+     */
+    private Map<ColumnData, ColumnData> schemaMatchingColumn(List<ColumnData> cd1, List<ColumnData> cd2, Map<DatatypePair, String> convertibleDataTypes){
         //to check if the datatypes between two columns is compatible
         Map<ColumnData, ColumnData> columnMappings = new HashMap<>();
         for (int i = 0; i < cd1.size(); i++) {
             //avoid inverse permutations ( (col1, col2) and (col2, col1) should not happen)
             ColumnData c1 = cd1.get(i);
-            for (int j = i; j < cd2.size(); j++) {
+            for (int j = 0; j < cd2.size(); j++) {
                 ColumnData c2 = cd2.get(j);
-                if ( getNameSimilarityLevenshtein(c1.getName(), c2.getName()) >= similarityThreshold){
-                    String dataType = convertibleDataTypes.get(c1.getDataType());
-                    //the map contains, for each datatype supported by presto, an associated datatype that is convertable or
-                    //similar (numeric, string, etc..)
-                    if (dataType != null && dataType.equalsIgnoreCase(c2.getDataType())){
-                        //its a match, these columns have similar datatypes and similar names
-                        columnMappings.put(c1, c2);
-                    }
+                double datatypeSim = 0.0;
+                if (c1.getDataTypeNoLimit().equalsIgnoreCase(c2.getDataTypeNoLimit()))
+                    datatypeSim = 1.0; //same datatype
+                else {
+                    //check to see if the 2 datatypes are present in the list of convertable data types. If not, the data types are considered to be too diferent (double and boolean for example)
+                    if (convertibleDataTypes.containsKey(new DatatypePair(c1.getDataTypeNoLimit(), c2.getDataTypeNoLimit())))
+                        datatypeSim = 0.5;
+                    else if (convertibleDataTypes.containsKey(new DatatypePair(c2.getDataTypeNoLimit(), c1.getDataTypeNoLimit())))//switch order to find in the map if not yet found
+                        datatypeSim = 0.5;
+                    else
+                        continue; //if data types are not convertible, then do not consider as match
+                }
+                double nameSim = getNameSimilarityLevenshtein(c1.getName().toLowerCase(), c2.getName().toLowerCase());
+                // if not present, types are too diferent, datatypeSim remains at 0.0
+
+                // ---- check primary keys: if both have or dont have, chance of being similar increases
+                double primaryKeySim = 0.0;
+                if (c1.isPrimaryKey() == c2.isPrimaryKey())
+                    primaryKeySim = 1.0;
+
+                double columnSim = nameSim * 0.4 + datatypeSim * 0.4 + primaryKeySim * 0.2;
+                if (columnSim >= columnSimilarityThreshold){
+                    columnMappings.put(c1, c2); //considered to be semantically similar
                 }
             }
         }
@@ -481,14 +564,14 @@ public class SchemaMatcher {
     /**
      * Load into memory a list of convertible data types from presto to use for column schema matching
      */
-    private Map<String, String> loadConvertibleDataTypeFile(){
+    private Map<DatatypePair, String> loadConvertibleDataTypeFile(){
         String line = "";
         String csvSplitBy = ",";
-        Map<String, String> convertipleDataTypes = new HashMap<>();
+        Map<DatatypePair, String> convertipleDataTypes = new HashMap<>();
         try (BufferedReader br = new BufferedReader(new FileReader(DATATYPE_CONVERTIBLES_DICT))) {
             while ((line = br.readLine()) != null) {
                 String[] elements = line.split(csvSplitBy);
-                convertipleDataTypes.put(elements[0], elements[1]);
+                convertipleDataTypes.put(new DatatypePair(elements[0], elements[1]), elements[2]);
             }
 
         } catch (IOException e) {
@@ -580,5 +663,16 @@ public class SchemaMatcher {
                     cor.getSecondRecord().getName(),
                     cor.getSimilarityScore()));
         }
+    }
+
+    /**
+     * Define if between the type of mapping between the global and local table(s). Local tables can be only one (0), be vertically partioned (1),
+     * be horizontally partitioned (2) or...
+     * @param globalTable
+     * @return
+     */
+    private int defineDistributionType(GlobalTableData globalTable){
+        //List<TableData> tables = globalTable.getLocalTablesFromLocalColumns();
+        return 0;
     }
 }

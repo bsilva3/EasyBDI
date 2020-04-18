@@ -104,6 +104,12 @@ public class ColumnData {
         return dataType;
     }
 
+    public String getDataTypeNoLimit() {
+        String datatypeNoLimit =  dataType.split("\\(")[0];
+        datatypeNoLimit = datatypeNoLimit.replaceAll("\\s+","");
+        return datatypeNoLimit;
+    }
+
     public void setDataType(String dataType) {
         this.dataType = dataType;
     }
@@ -184,5 +190,24 @@ public class ColumnData {
                 ", foreignKey='" + foreignKey + '\'' +
                 ", tableRelation='" + tableRelation + '\'' +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ColumnData that = (ColumnData) o;
+        return columnID == that.columnID &&
+                isPrimaryKey == that.isPrimaryKey &&
+                tableID == that.tableID &&
+                name.equals(that.name) &&
+                dataType.equals(that.dataType) &&
+                Objects.equals(table, that.table) &&
+                Objects.equals(foreignKey, that.foreignKey);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(columnID, name, dataType, isPrimaryKey, table, foreignKey, tableID);
     }
 }

@@ -1,6 +1,8 @@
 package helper_classes;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class GlobalColumnData {
@@ -72,6 +74,15 @@ public class GlobalColumnData {
 
     public void setForeignKey(String foreignKey) {
         this.foreignKey = foreignKey;
+    }
+
+    public List<TableData> getLocalTables() {
+        List<TableData> tables = new ArrayList<>();
+        for (ColumnData col : localColumns){
+            if (!tables.contains(col.getTable()))
+                tables.add(col.getTable());
+        }
+        return tables;
     }
 
     @Override

@@ -20,6 +20,10 @@ public class TableData {
         id = -1;
     }
 
+    public TableData(String tableName){
+        this.tableName = tableName;
+    }
+
     public TableData(String tableName, String schemaName, DBData db, int id) {
         this.tableName = tableName;
         this.db = db;
