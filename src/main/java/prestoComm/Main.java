@@ -24,9 +24,10 @@ public class Main {
         manager.printQuery("SELECT * FROM "+ DB_TYPE_DATA);
         //insert manually DBs
         //dbDataList.add(new DBData("http://localhost:27017", DBModel.MongoDB,""));
-        dbDataList.add(new DBData("http://localhost:3306", DBModel.MYSQL,"", "bruno", "brunosilva"));
-        dbDataList.add(new DBData("http://deti-lei-2.ua.pt:5432/", DBModel.PostgreSQL,"presto2", "bruno", "brunosilva"));
-        dbDataList.add(new DBData("http://deti-lei-2.ua.pt:5432/", DBModel.PostgreSQL,"presto", "bruno", "brunosilva"));
+        //dbDataList.add(new DBData("http://localhost:3306", DBModel.MYSQL,"", "bruno", "brunosilva"));
+        //dbDataList.add(new DBData("http://deti-lei-2.ua.pt:5432/", DBModel.PostgreSQL,"presto2", "bruno", "brunosilva"));
+        //dbDataList.add(new DBData("http://deti-lei-2.ua.pt:5432/", DBModel.PostgreSQL,"presto", "bruno", "brunosilva"));
+        dbDataList.add(new DBData("http://localhost:5432/", DBModel.PostgreSQL,"employees_horizontal", "postgres", "brunosilva"));
         boolean success = manager.generatePrestoDBConfigFiles(dbDataList);
         if (!success){
             System.exit(1);
