@@ -275,7 +275,7 @@ public class PrestoMediator {
                 String referencedColumn = res.getString(METADATA_VIEW_REFERENCED_COLUMN);
                 //TODO: review. It is assumed that referenced table is in same database!
                 //in the form database.schema.table.column
-                String referencedKeyFullPath = table.getDB().getCatalogName()+"."+referencedSchema+"."+referencedTable+"."+referencedColumn;
+                String referencedKeyFullPath = table.getDB().getCatalogName()+"."+referencedSchema+"."+referencedTable+"."+referencedColumn;//could use id, but would be tricky because of order of insertion (referenced table might not have been insetrted)
                 columnToUpdate.setForeignKey(referencedKeyFullPath);
                 columns.add(columnToUpdate);
 

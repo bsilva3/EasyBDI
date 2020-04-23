@@ -650,9 +650,82 @@ public class MetaDataManager {
 
     public List<TableData> getLocalTablesByID(Set<Integer> tableIDs){
         List<TableData> tables = new ArrayList<>();
-
+        for (Integer id : tableIDs) {
+            try {
+                Statement stmt = conn.createStatement();
+                ResultSet rs = stmt.executeQuery("SELECT "+ TABLE_DATA_NAME_FIELD +" FROM " + TABLE_DATA + " where "+ID_FIELD+"="+id+";");
+                // loop through the result set
+                while (rs.next()) {
+                    TableData table = new TableData(rs.getString(TABLE_DATA_NAME_FIELD));
+                    table.setColumnsList(getColumnsInTable(id));
+                    tables.add(table);
+                }
+            } catch (SQLException e) {
+                System.out.println(e.getMessage());
+            }
+        }
         return tables;
     }
 
+    public List<ColumnData> getColumnsInTable(int tableID){
+        List<ColumnData> cols = new ArrayList<>();
+        try {
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery("SELECT "+ COLUMN_DATA_NAME_FIELD+ ", " + COLUMN_DATA_TYPE_FIELD+", " + COLUMN_DATA_IS_PRIMARY_KEY_FIELD
+                    +", "+ COLUMN_DATA_FOREIGN_KEY_FIELD +", "+ ID_FIELD +" FROM " + COLUMN_DATA + " where "+COLUMN_DATA_TABLE_FIELD+"="+tableID+";");
+            // loop through the result set
+            while (rs.next()) {
+                ColumnData col = new ColumnData.Builder(rs.getString(COLUMN_DATA_NAME_FIELD), rs.getString(COLUMN_DATA_TYPE_FIELD), rs.getBoolean(COLUMN_DATA_IS_PRIMARY_KEY_FIELD))
+                        .withForeignKey(rs.getString(COLUMN_DATA_FOREIGN_KEY_FIELD)).withID(rs.getInt(ID_FIELD)).build();
+                cols.add(col);
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return cols;
+    }
 
+    /**
+     * return a column
+     * @param
+     * @param schemaName
+     * @param tableName
+     * @param columnName
+     * @return
+     */
+    public ColumnData getColumn(DBData db, String schemaName, String tableName, String columnName){
+        ColumnData col = null;
+        TableData t = getTable(db, schemaName, tableName);
+        try {
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery("SELECT "+ COLUMN_DATA_TYPE_FIELD+", " + COLUMN_DATA_IS_PRIMARY_KEY_FIELD
+                    +", "+ COLUMN_DATA_FOREIGN_KEY_FIELD +", "+ ID_FIELD +" FROM " + COLUMN_DATA + " where "+COLUMN_DATA_TABLE_FIELD+"="+t.getId()
+                    +"and "+COLUMN_DATA_NAME_FIELD + " = '"+columnName+"';");
+            // loop through the result set
+            if (rs.next()) {
+
+                col = new ColumnData.Builder(columnName, rs.getString(COLUMN_DATA_TYPE_FIELD), rs.getBoolean(COLUMN_DATA_IS_PRIMARY_KEY_FIELD))
+                        .withForeignKey(rs.getString(COLUMN_DATA_FOREIGN_KEY_FIELD)).withID(rs.getInt(ID_FIELD)).build();
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return col;
+    }
+
+    public TableData getTable(DBData db, String schemaName, String tableName){
+        TableData t = null;
+        try {
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery("SELECT "+ ID_FIELD+" FROM " + TABLE_DATA + " where "+TABLE_DATA_DB_ID_FIELD+"="+db.getId()+" and "
+                    +TABLE_DATA_NAME_FIELD +" ='" + tableName +"' and "+TABLE_DATA_SCHEMA_NAME_FIELD+" = '"+schemaName+"';");
+            // loop through the result set
+            if (rs.next()) {
+                t = new TableData(tableName, schemaName,db, rs.getInt(ID_FIELD));
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return t;
+    }
 }

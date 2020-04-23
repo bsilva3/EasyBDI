@@ -1,5 +1,7 @@
 package helper_classes;
 
+import prestoComm.MetaDataManager;
+
 import java.util.*;
 
 //Helper class. Shows info about a column (data type, name..)
@@ -9,10 +11,10 @@ public class ColumnData {
     private String dataType;
     private boolean isPrimaryKey;
     private TableData table;
-    private String foreignKey;
+    private String foreignKey; //in the type "catalogName.schemaName.TableName.ColumnName"
     private String tableRelation;
-    private Set<ColumnData> mergedColumnIds; //used for schema integration
     private int tableID;
+    private MappingType mapping;
 
     public static class Builder {
         private int columnID;
@@ -21,8 +23,8 @@ public class ColumnData {
         private boolean isPrimaryKey;
         private TableData table;
         private String foreignKey;
-        private Set<ColumnData> mergedColumnIds; //used for schema integration
         private int tableID;
+        private MappingType mapping;
 
         public Builder (String name, String dataType, boolean isPrimaryKey){
             this.name = name;
@@ -61,8 +63,12 @@ public class ColumnData {
             return this;
         }
 
+        public Builder withMappingType(MappingType mapping){
+            this.mapping = mapping;
+            return this;
+        }
+
         public Builder withMergedCols(Set<ColumnData> mergedColumnIds){
-            this.mergedColumnIds = mergedColumnIds;
             return this;
         }
 
@@ -75,9 +81,6 @@ public class ColumnData {
             col.table = this.table;
             col.tableID = this.tableID;
             col.foreignKey = this.foreignKey;
-            col.mergedColumnIds = this.mergedColumnIds;
-            if (col.mergedColumnIds == null)
-                col.mergedColumnIds = new HashSet<>();
             return col;
         }
 
@@ -90,7 +93,6 @@ public class ColumnData {
     }
 
     private ColumnData() {
-        mergedColumnIds = new HashSet<>();
     }
     public String getName() {
         return name;
@@ -154,29 +156,35 @@ public class ColumnData {
         this.tableRelation = tableRelation;
     }
 
-    public Set<ColumnData> getMergedColumns() {
-        mergedColumnIds.add(this);
-        return mergedColumnIds;
-    }
-
-    public void setMergedColumnIds(Set<ColumnData> mergedColumns) {
-        this.mergedColumnIds = mergedColumns;
-    }
-
-    public void addMergedColumnId(ColumnData cols){
-        this.mergedColumnIds.add(cols);
-    }
-
-    public void addMergedColumnId(Collection<ColumnData> cols){
-        this.mergedColumnIds.addAll(cols);
-    }
-
     public int getTableID() {
         return tableID;
     }
 
     public void setTableID(int tableID) {
         this.tableID = tableID;
+    }
+
+    public MappingType getMapping() {
+        return mapping;
+    }
+
+    public void setMapping(MappingType mapping) {
+        this.mapping = mapping;
+    }
+
+    public ColumnData getForeignKeyColumn(){
+        if (!hasForeignKey())
+            return null;
+        MetaDataManager m = new MetaDataManager();
+        String[] foreignKeySplit = this.getForeignKey().split("."); //"catalogName.schemaName.TableName.ColumnName"
+        ColumnData c = m.getColumn(this.getTable().getDB(), foreignKeySplit[1], foreignKeySplit[2], foreignKeySplit[3]); //need schemaname, table name and column as well as the dbID
+        return c;
+    }
+
+    public boolean hasForeignKey(){
+        if (this.foreignKey == null || this.foreignKey.isEmpty())
+            return false;
+        return true;
     }
 
     @Override

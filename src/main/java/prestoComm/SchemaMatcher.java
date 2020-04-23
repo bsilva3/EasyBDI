@@ -209,51 +209,6 @@ public class SchemaMatcher {
         return tableMatches;
     }
 
-    //TODO: fix, not grouping all local tables
-    /*public List<GlobalTableData> groupMatchedTables(List<Match> matches){
-        List<GlobalTableData> groupedTables = new ArrayList<>();
-        if (matches.size() == 0){
-            return groupedTables;
-        }
-        List<TableData> matchedTables = new ArrayList<>();
-        List<Integer> indexesMatchesAdded = new ArrayList<>();
-        GlobalTableData globalTable = null;
-        TableData localTable = null;
-        TableData localTable2 = null;
-        while (matches.size() > 0){
-            //check if this table exists in global schema (start from first)
-            // each iteration, the match pairs already added to a global table will be deleted
-            if (!matchedTables.contains(matches.get(0).getTableData1())){
-                if (globalTable == null){
-                    globalTable =  new GlobalTableData(matches.get(0).getTableData1().getTableName());
-                    globalTable.addLocalTable(matches.get(0).getTableData1());
-                    globalTable.addLocalTable(matches.get(0).getTableData2());
-                    localTable = matches.get(0).getTableData2();
-                    indexesMatchesAdded.add(0);
-                    matches.remove(0); //remove the match tables that were already added
-                }
-            }
-            //search for all tables that will match to the same global table
-            for (int i = 0; i < matches.size(); i++){
-                TableData otherMatchedTable = matches.get(i).getOtherTable(localTable); //Get the matched table of the previous table. If there is no more matches for this table, null is returned
-                if (otherMatchedTable != null){
-                    //table exists in this match and the other matched table is added to the same global table
-                    globalTable.addLocalTable(otherMatchedTable);
-                    indexesMatchesAdded.add(i);
-                    localTable = otherMatchedTable;
-                }
-            }
-            Collections.sort(indexesMatchesAdded);
-            for (int i = indexesMatchesAdded.size() -1; i >= 0; i-- ){
-                int index = indexesMatchesAdded.get(i);
-                matches.remove(index);
-            }
-            indexesMatchesAdded.clear();
-            groupedTables.add(globalTable);
-        }
-        return groupedTables;
-    }*/
-
     public List<GlobalTableData> groupMatchedTables(List<Match> matches){
         List<GlobalTableData> groupedTables = new ArrayList<>();
         if (matches.size() == 0){
@@ -332,72 +287,6 @@ public class SchemaMatcher {
             globalTables.set(i, globalTableData);
         }
         return globalTables;
-    }
-
-    /**
-     * Performs schema match on 2 tables's columns given a list of tables and merges them together into one table.
-     * Iterates the list, merges the first 2 tables and generates a merged table which is used to be merged with the
-     * 3rd table if there are more than 2 tables and so on.
-     * @param localTables
-     * @param convertibleDataTypes
-     * @return
-     */
-    public List<GlobalColumnData> getColumnsForGlobalTable(GlobalTableData globalTableData, List<TableData> localTables, Map<DatatypePair, String> convertibleDataTypes){
-        List<GlobalColumnData> globalTableCols = new ArrayList<>();//columns of all local tables merged and belonging to the global table
-        List <ColumnData> mergedCols = localTables.get(0).getColumnsList();
-        //iterate through all tables, and merge the tables into one list of columns for a global table
-        for (int i = 1; i < localTables.size(); i++){
-            //perform column table schema match to match pairs of columns
-            Map<ColumnData, ColumnData> columnMatches = schemaMatchingColumn(mergedCols, localTables.get(i).getColumnsList(), convertibleDataTypes);
-
-            //add columns that did not had any match
-            List<ColumnData> previousMergedCols = mergedCols;
-            mergedCols.clear();//clear the previous merged tables and create a new one
-            for(ColumnData col : previousMergedCols){
-                if (!columnMatches.keySet().contains(col)){
-                    //does not belong to match list
-                    //globalTableCols.add(new GlobalColumnData(col.getName(), col.getDataType(), col.isPrimaryKey(), globalTableData));
-                    mergedCols.add(col);
-                }
-            }
-            for(ColumnData col : localTables.get(i).getColumnsList()){
-                if (!columnMatches.values().contains(col)){
-                    //does not belong to match list
-                    //globalTableCols.add(new GlobalColumnData(col.getName(), col.getDataType(), col.isPrimaryKey(), globalTableData));
-                    mergedCols.add(col);
-                }
-            }
-            //merge tables
-            for (Map.Entry<ColumnData, ColumnData> entry : columnMatches.entrySet()) { //iterate through the column matches for this local table
-                ColumnData table1MatchedCols = entry.getKey(); //column from the first table
-                ColumnData table2MatchedCols = entry.getValue(); //column from 2nd table
-                //TODO: Do nothing with primary key and foreign key for now
-                //remove possible (x) in the type defining fixed or max length
-                String col1DataType = table1MatchedCols.getDataType().split("\\(")[0];
-                String col2DataType = table2MatchedCols.getDataType().split("\\(")[0];
-                Set<ColumnData> ids = table1MatchedCols.getMergedColumns(); //get list of columns previously used to merge and create this column
-                ids.addAll(table2MatchedCols.getMergedColumns());
-                if (table1MatchedCols.getDataType().equals(table2MatchedCols.getDataType())){
-                    //same data type
-                    //globalTableCols.add(new GlobalColumnData(table1MatchedCols.getName(), col1DataType, table1MatchedCols.isPrimaryKey(), globalTableData));
-                    mergedCols.add(new ColumnData.Builder(table1MatchedCols.getName(), col1DataType, table1MatchedCols.isPrimaryKey()).withMergedCols(ids).build());
-                }
-                else{
-                    //different data types, select one
-                    String dataType = chooseGenericDataType(col1DataType, col2DataType, convertibleDataTypes);
-                    //globalTableCols.add(new GlobalColumnData(table1MatchedCols.getName(), dataType, table1MatchedCols.isPrimaryKey(), globalTableData));
-                    mergedCols.add(new ColumnData.Builder(table1MatchedCols.getName(), dataType, table1MatchedCols.isPrimaryKey()).withMergedCols(ids).build());
-                }
-            }
-
-            //finished merging 2 tables
-
-        }
-        //finished merging all table into one. Convert to global Column
-        for (ColumnData col : mergedCols){
-            globalTableCols.add(new GlobalColumnData(col.getName(), col.getDataType(), col.isPrimaryKey(), col.getMergedColumns()));
-        }
-        return globalTableCols;
     }
 
     public GlobalTableData getColumnsForGlobalTableV2(GlobalTableData globalTableData, Map<DatatypePair, String> convertibleDataTypes){
@@ -671,8 +560,110 @@ public class SchemaMatcher {
      * @param globalTable
      * @return
      */
-    private int defineDistributionType(GlobalTableData globalTable){
-        //List<TableData> tables = globalTable.getLocalTablesFromLocalColumns();
-        return 0;
+    private GlobalTableData defineDistributionType(GlobalTableData globalTable, List<TableData> completeLocalTables){
+        //test if its a simple mapping 1 - 1 and only 1 local table
+
+        if (isSimpleMapping(globalTable, completeLocalTables)){
+            for (GlobalColumnData gc : globalTable.getGlobalColumnData()){
+                Set<ColumnData> localCols = gc.getLocalColumns();
+                Set<ColumnData> updatedLocalCols = new HashSet<>();
+                //for each local table corresponding to this global column, set the mapping, simple mapping in this case
+                for (ColumnData c : localCols){
+                    c.setMapping(MappingType.Simple);
+                    updatedLocalCols.add(c);
+                }
+                gc.setLocalColumns(updatedLocalCols);
+            }
+            return globalTable;
+        }
+
+        //test for vertical partioning
+        for (GlobalColumnData globalCol : globalTable.getGlobalColumnData()){
+            //Set <Integer> localTableIds = globalCol.getLocalTablesIDs();
+            for (ColumnData localCol : globalCol.getLocalColumns()){
+
+            }
+        }
+        return globalTable;
+    }
+
+    /**
+     * GIven  a global table, and the local tables that have correspondences, check to see if there is a simple mapping between them.
+     * A simple mapping means that the local table is constituted by one unique local table, whose attributes (columns) are the same in the local and global tables
+     * @param globalTable
+     * @param completeLocalTables
+     * @return
+     */
+    private boolean isSimpleMapping(GlobalTableData globalTable, List<TableData> completeLocalTables) {
+        if (completeLocalTables.size() == 1) {
+            boolean allTableSimilar = true;
+            for (GlobalColumnData gc : globalTable.getGlobalColumnData()) {
+                Set<ColumnData> localCols = gc.getLocalColumns();
+                //check to see if all local tables have the same datatype and name. If they have, each local table have a simple mapping to the global table (1 - 1, no replication)
+                for (ColumnData c : localCols) {
+                    if (!(c.getName().equals(gc.getName()) && c.getDataTypeNoLimit().equals(gc.getDataType()))) {
+                        allTableSimilar = false;
+                    }
+                }
+            }
+            return allTableSimilar;
+        }
+        return false;
+    }
+
+    /**
+     * GIven  a global table, and the local tables that have correspondences, check to see if there is a vertical partioning mapping between them.
+     * A simple mapping means that the local table is constituted by one unique local table, whose attributes (columns) are the same in the local and global tables
+     * NOTE: considering that there is only one table that does not have a foreign key and primary key
+     * @param globalTable
+     * @param completeLocalTables
+     * @return
+     */
+    private boolean isVerticalMapping(GlobalTableData globalTable, List<TableData> completeLocalTables) {
+        if (completeLocalTables.size() > 1) {
+            Map<TableData, List<TableData>> tablesVerticallyPartioned = new HashMap<>();
+            ColumnData referencedColumn = null;
+            List<ColumnData> fullLocalCols = globalTable.getFullListColumnsCorrespondences();
+            for (TableData  localTable : completeLocalTables) {
+                for (ColumnData localColumn : localTable.getColumnsList()){
+                    //check for columns that are both primary and foreign keys
+                    if (localColumn.isPrimaryKey() && localColumn.hasForeignKey()){
+                        if (referencedColumn == null)
+                            referencedColumn = localColumn.getForeignKeyColumn();
+                        if (!referencedColumn.equals(localColumn.getForeignKeyColumn())){
+                            return false;
+                        }
+                        else{
+                            //this column references the same column as foreign key, check if all its columns exist in the list of references tables
+                            if (!fullLocalCols.contains(localColumn)){
+                                return false;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Given  a global table, and the local tables that have correspondences with the global table, check to see if there is a horizontal partioning
+     * mapping between them. This means that the global table is constituted by several equal local tables,
+     * whose attributes (columns) are the same in all local and global tables.
+     * @param globalTable
+     * @param completeLocalTables
+     * @return
+     */
+    private boolean isHorizontalMapping(GlobalTableData globalTable, List<TableData> completeLocalTables) {
+        if (completeLocalTables.size() > 1) {
+            for (TableData localTable : completeLocalTables) {
+                for (GlobalColumnData gc : globalTable.getGlobalColumnData()){
+                    //if all column in all local tables are the same as the cols in global table, then there is vertical partiotioning
+                    if (!localTable.columnExists(gc.getName(), gc.getDataType(), gc.isPrimaryKey()))
+                        return false;
+                }
+            }
+        }
+        return true;
     }
 }

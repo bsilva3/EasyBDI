@@ -63,6 +63,14 @@ public class GlobalTableData {
         }
     }
 
+    public List<ColumnData> getFullListColumnsCorrespondences(){
+        List<ColumnData> fullLocalCols = new ArrayList<>();
+        for (GlobalColumnData globalCol : this.globalColumnData){
+            fullLocalCols.addAll(globalCol.getLocalColumns());
+        }
+        return fullLocalCols;
+    }
+
     public void setLocalTables(List<TableData> localTables) {
         this.localTables = localTables;
     }

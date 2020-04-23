@@ -76,13 +76,26 @@ public class GlobalColumnData {
         this.foreignKey = foreignKey;
     }
 
-    public List<TableData> getLocalTables() {
-        List<TableData> tables = new ArrayList<>();
+    public Set<TableData> getLocalTables() {
+        Set<TableData> tables = new HashSet<>();
         for (ColumnData col : localColumns){
-            if (!tables.contains(col.getTable()))
                 tables.add(col.getTable());
         }
         return tables;
+    }
+
+    public Set<Integer> getLocalTablesIDs(){
+        Set<Integer> tableIds = new HashSet<>();
+        for (ColumnData c : this.localColumns){
+            tableIds.add(c.getTableID());
+        }
+        return tableIds;
+    }
+
+    public boolean correspondenceColumnExist(ColumnData col){
+        if (this.localColumns.contains(col))
+            return true;
+        return false;
     }
 
     @Override

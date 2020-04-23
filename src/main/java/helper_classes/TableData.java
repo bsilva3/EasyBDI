@@ -79,6 +79,22 @@ public class TableData {
         this.columnsList = columnsList;
     }
 
+    /**
+     * Search for a column in this table whose name, data type and primary key constraint is the same
+     * @param name
+     * @param dataType
+     * @param isPrimaryKey
+     * @return true if there is at least one table with same name, datatype, and primary key constraint. false otherwise
+     */
+    public boolean columnExists(String name, String dataType, boolean isPrimaryKey){
+        for (ColumnData c : this.columnsList){
+            if (c.getName().equals(name) && c.getDataTypeNoLimit().equals(dataType) && c.isPrimaryKey() == isPrimaryKey){
+                return true;
+            }
+        }
+        return false;
+    }
+
     @Override
     public String toString() {
         return "TableData{" +
