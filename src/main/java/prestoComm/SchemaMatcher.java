@@ -28,6 +28,8 @@ public class SchemaMatcher {
     private final double tableNameSimilarityThreshold = 0.6;
     private final double columnSimilarityThreshold = 0.75;
 
+    private MetaDataManager metaDataManager;
+
     public static void main(String[] args){
         List<TableData> tables = new ArrayList<>();
         //Table 1 -----------
@@ -140,6 +142,10 @@ public class SchemaMatcher {
         }
     }
 
+    public SchemaMatcher(){
+        metaDataManager = new MetaDataManager();
+    }
+
     public List<GlobalTableData> schemaIntegration(List<TableData> tables){
         List<Match> matches = labelSchemaMatchingTables(tables);
         //matches = labelTypeSchemaMatchColumns(matches); // column matching (should it be here)
@@ -155,6 +161,16 @@ public class SchemaMatcher {
         //ASSUMING USER ALREADY EDITED EVERYTHING
         globalTables.addAll(nonMatchedTables);
         nonMatchedTables.clear();
+        //define mapping type between local and global tables
+        for (int i = 0; i < globalTables.size(); i++){
+            GlobalTableData globalTableData = globalTables.get(i);
+            //get ids of all local tables that have at least 1 column mapping to this
+            List<TableData> tableData = metaDataManager.getLocalTablesByID(globalTableData.getLocalTablesIDs());
+            //define mapping type
+            defineDistributionType(globalTableData, tableData);
+            //add global table again with mappings
+            globalTables.add(i, globalTableData);
+        }
         return globalTables;
     }
 
@@ -562,27 +578,25 @@ public class SchemaMatcher {
      */
     private GlobalTableData defineDistributionType(GlobalTableData globalTable, List<TableData> completeLocalTables){
         //test if its a simple mapping 1 - 1 and only 1 local table
-
+        MappingType mappingType = MappingType.Simple;
         if (isSimpleMapping(globalTable, completeLocalTables)){
-            for (GlobalColumnData gc : globalTable.getGlobalColumnData()){
-                Set<ColumnData> localCols = gc.getLocalColumns();
-                Set<ColumnData> updatedLocalCols = new HashSet<>();
-                //for each local table corresponding to this global column, set the mapping, simple mapping in this case
-                for (ColumnData c : localCols){
-                    c.setMapping(MappingType.Simple);
-                    updatedLocalCols.add(c);
-                }
-                gc.setLocalColumns(updatedLocalCols);
-            }
-            return globalTable;
+            mappingType = MappingType.Simple;
         }
-
-        //test for vertical partioning
-        for (GlobalColumnData globalCol : globalTable.getGlobalColumnData()){
-            //Set <Integer> localTableIds = globalCol.getLocalTablesIDs();
-            for (ColumnData localCol : globalCol.getLocalColumns()){
-
+        else if (isHorizontalMapping(globalTable, completeLocalTables)){
+            mappingType = MappingType.Horizontal;
+        }
+        else if (isVerticalMapping(globalTable, completeLocalTables)){
+            mappingType = MappingType.Vertical;
+        }
+        for (GlobalColumnData gc : globalTable.getGlobalColumnData()){
+            Set<ColumnData> localCols = gc.getLocalColumns();
+            Set<ColumnData> updatedLocalCols = new HashSet<>();
+            //for each local table corresponding to this global column, set the mapping, simple mapping in this case
+            for (ColumnData c : localCols){
+                c.setMapping(mappingType);
+                updatedLocalCols.add(c);
             }
+            gc.setLocalColumns(updatedLocalCols);
         }
         return globalTable;
     }
