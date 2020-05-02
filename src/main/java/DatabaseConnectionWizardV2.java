@@ -8,7 +8,8 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DatabaseConnectionWizardV2 extends AbstractWizardPage {
+public class DatabaseConnectionWizardV2 extends JFrame {
+    //extends AbstractWizardPage
     private JPanel mainPanel;
     private JList databaseList;
     private JTextField nameText;
@@ -28,10 +29,10 @@ public class DatabaseConnectionWizardV2 extends AbstractWizardPage {
         listModel = new DefaultListModel<>();
         databaseList.setModel(listModel);
         dbList = new ArrayList<>();
-        //setContentPane(mainPanel);
-        //setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        //pack();
-        add(mainPanel); //g-wizard
+        setContentPane(mainPanel);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        pack();
+        //add(mainPanel); //g-wizard
         setVisible(true);
 
         addDatabaseButton.addActionListener(new ActionListener() {
@@ -52,7 +53,7 @@ public class DatabaseConnectionWizardV2 extends AbstractWizardPage {
 
 
     //for g-wizard
-    @Override
+    /*@Override
     protected AbstractWizardPage getNextPage() {
         return new GlobalSchemaConfigurationV2();//TODO: passar lista bases de dados
     }
@@ -75,7 +76,7 @@ public class DatabaseConnectionWizardV2 extends AbstractWizardPage {
     @Override
     protected boolean isFinishAllowed() {
         return false;
-    }
+    }*/
 
 
     public static void main(String[] args){

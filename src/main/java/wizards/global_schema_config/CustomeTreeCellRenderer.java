@@ -1,3 +1,7 @@
+package wizards.global_schema_config;
+
+import wizards.global_schema_config.CustomTreeNode;
+
 import javax.swing.*;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import java.awt.*;

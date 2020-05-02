@@ -3,7 +3,11 @@ package helper_classes;
 import prestoComm.Constants;
 import prestoComm.DBModel;
 
-public class DBData {
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+
+public class DBData implements Serializable {
 
     private String dbName;
     private DBModel dbModel;
@@ -12,6 +16,7 @@ public class DBData {
     private String pass;
     private String catalogName; //for presto file name
     private int id;
+    List<TableData> tableList;
 
     public DBData(String url, DBModel dbModel, String dbName) {
         this.dbModel = dbModel;
@@ -37,6 +42,20 @@ public class DBData {
     public DBData(String url, DBModel dbModel, String dbName, String user, String pass, int id) {
         this(url, dbModel, dbName, user, pass);
         this.id = id;
+    }
+
+    public List<TableData> getTableList() {
+        return this.tableList;
+    }
+
+    public void setTableList(List<TableData> tableList) {
+        this.tableList = tableList;
+    }
+
+    public void addTable(TableData table){
+        if (this.tableList == null)
+            tableList = new ArrayList<>();
+        tableList.add(table);
     }
 
     public String getDbName() {

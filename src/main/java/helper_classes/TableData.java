@@ -1,11 +1,12 @@
 package helper_classes;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
 //helper class. For a given table, shows its name, columns and information of each column
-public class TableData {
+public class TableData implements Serializable {
 
     private String tableName;
     private String schemaName;
@@ -100,7 +101,7 @@ public class TableData {
         return "TableData{" +
                 "tableName='" + tableName + '\'' +
                 ", schemaName='" + schemaName + '\'' +
-                ", db=" + db +
+                ", db=" + db.getDbName() +
                 ", id=" + id +
                 ", columnsList=" + columnsList +
                 '}';

@@ -2,10 +2,11 @@ package helper_classes;
 
 import prestoComm.MetaDataManager;
 
+import java.io.Serializable;
 import java.util.*;
 
 //Helper class. Shows info about a column (data type, name..)
-public class ColumnData {
+public class ColumnData implements Serializable {
     private int columnID;
     private String name;
     private String dataType;

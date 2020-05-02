@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="GlobalSchemaConfigurationV2">
+<form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="wizards.global_schema_config.GlobalSchemaConfigurationV2">
   <grid id="27dc6" binding="mainPanel" layout-manager="GridBagLayout">
     <constraints>
       <xy x="20" y="20" width="1159" height="444"/>
@@ -18,15 +18,12 @@
         </properties>
         <border type="none"/>
         <children>
-          <component id="c418e" class="javax.swing.JTree" binding="globalSchemaTree">
+          <component id="f54e1" class="javax.swing.JTree" binding="globalSchemaTree">
             <constraints/>
             <properties>
               <alignmentX value="0.5"/>
               <alignmentY value="1.0"/>
-              <dragEnabled value="true"/>
-              <editable value="true"/>
               <inheritsPopupMenu value="false"/>
-              <largeModel value="false"/>
             </properties>
           </component>
         </children>
@@ -41,7 +38,7 @@
         </properties>
         <border type="none"/>
         <children>
-          <component id="974f3" class="javax.swing.JTree" binding="localSchemaTree">
+          <component id="eea52" class="javax.swing.JTree" binding="localSchemaTree">
             <constraints/>
             <properties>
               <alignmentX value="0.5"/>

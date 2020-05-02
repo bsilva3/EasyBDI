@@ -13,6 +13,7 @@ import de.uni_mannheim.informatik.dws.winter.processing.DataIterator;
 import de.uni_mannheim.informatik.dws.winter.processing.Processable;
 import helper_classes.*;
 import org.apache.commons.text.similarity.LevenshteinDistance;
+import wizards.global_schema_config.GlobalSchemaConfigurationV2;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -31,100 +32,16 @@ public class SchemaMatcher {
     private MetaDataManager metaDataManager;
 
     public static void main(String[] args){
-        List<TableData> tables = new ArrayList<>();
-        //Table 1 -----------
-        TableData sales = new TableData("sales", "sales_schema", null);
-        sales.setId(1);
-        List<ColumnData> cols = new ArrayList<>();
-        cols.add(new ColumnData.Builder("sale_id", "integer", true).withID(1).withTable(sales).withForeignKey("").build());
-        cols.add(new ColumnData.Builder("ammount", "double", false).withID(2).withTable(sales).withForeignKey("").build());
-        cols.add(new ColumnData.Builder("market", "varchar", false).withID(3).withTable(sales).withForeignKey("").build());
-        cols.add(new ColumnData.Builder("sale_date", "date", false).withID(4).withTable(sales).withForeignKey("").build());
-        sales.setColumnsList(cols);
 
-        //Table 2 -----------
-        TableData employees = new TableData("employees", "sales_schema", null);
-        employees.setId(2);
-        cols = new ArrayList<>();
-        cols.add(new ColumnData.Builder("id", "integer", true).withID(5).withTable(employees).withForeignKey("").build());
-        cols.add(new ColumnData.Builder("fullName", "varchar", false).withID(6).withTable(employees).withForeignKey("").build());
-        cols.add(new ColumnData.Builder("badge", "char", false).withID(7).withTable(employees).withForeignKey("").build());
-        cols.add(new ColumnData.Builder("hired_date", "date", false).withID(8).withTable(employees).withForeignKey("").build());
-        employees.setColumnsList(cols);
-
-        //Table 3 -----------
-        TableData product = new TableData("product", "sales_schema", null);
-        product.setId(3);
-        cols = new ArrayList<>();
-        cols.add(new ColumnData.Builder("prod_id", "integer", true).withID(9).withTable(product).withForeignKey("").build());
-        cols.add(new ColumnData.Builder("price", "double", false).withID(10).withTable(product).withForeignKey("").build());
-        cols.add(new ColumnData.Builder("category", "varchar", false).withID(11).withTable(product).withForeignKey("").build());
-
-        product.setColumnsList(cols);
-
-        //Table 4 ----------- similar to 2
-        TableData employees2 = new TableData("info_employees", "sales_schema", null);
-        employees2.setId(4);
-        cols = new ArrayList<>();
-        cols.add(new ColumnData.Builder("id", "integer", true).withID(12).withTable(employees2).withForeignKey("").build());
-        cols.add(new ColumnData.Builder("first_name", "varchar", false).withID(13).withTable(employees2).withForeignKey("").build());
-        cols.add(new ColumnData.Builder("second_name", "varchar", false).withID(14).withTable(employees2).withForeignKey("").build());
-        cols.add(new ColumnData.Builder("badge_code", "integer", false).withID(15).withTable(employees2).withForeignKey("").build());
-        cols.add(new ColumnData.Builder("time_hired", "timestamp", false).withID(16).withTable(employees2).withForeignKey("").build());
-        employees2.setColumnsList(cols);
-
-        //Table 5 ----------- similar to 4 and 2
-        TableData employees3 = new TableData("infoEmployees", "sales", null);
-        employees3.setId(5);
-        cols = new ArrayList<>();
-        cols.add(new ColumnData.Builder("id", "integer", true).withID(17).withTable(employees3).withForeignKey("").build());
-        cols.add(new ColumnData.Builder("first_name", "varchar", false).withID(18).withTable(employees3).withForeignKey("").build());
-        cols.add(new ColumnData.Builder("second_name", "varchar", false).withID(19).withTable(employees3).withForeignKey("").build());
-        cols.add(new ColumnData.Builder("badge_code", "integer", false).withID(20).withTable(employees3).withForeignKey("").build());
-        cols.add(new ColumnData.Builder("time_hired", "timestamp", false).withID(21).withTable(employees3).withForeignKey("").build());
-        employees3.setColumnsList(cols);
-
-
-        //Table 6 ----------- similar to 5, 4 and 2
-        TableData employees4 = new TableData("employees6", "sales", null);
-        employees4.setId(6);
-        cols = new ArrayList<>();
-        cols.add(new ColumnData.Builder("id", "integer", true).withID(22).withTable(employees4).withForeignKey("").build());
-        cols.add(new ColumnData.Builder("first_name", "varchar", false).withID(23).withTable(employees4).withForeignKey("").build());
-        cols.add(new ColumnData.Builder("second_name", "varchar", false).withID(24).withTable(employees4).withForeignKey("").build());
-        cols.add(new ColumnData.Builder("badge_code", "integer", false).withID(25).withTable(employees4).withForeignKey("").build());
-        cols.add(new ColumnData.Builder("time_hired", "timestamp", false).withID(26).withTable(employees4).withForeignKey("").build());
-        employees4.setColumnsList(cols);
-
-        //Table 7 ----------- similar to 6, 5, 4 and 2
-        TableData employees5 = new TableData("employees7", "sales", null);
-        employees5.setId(7);
-        cols = new ArrayList<>();
-        cols.add(new ColumnData.Builder("id", "integer", true).withID(27).withTable(employees5).withForeignKey("").build());
-        cols.add(new ColumnData.Builder("first_name", "varchar", false).withID(28).withTable(employees5).withForeignKey("").build());
-        cols.add(new ColumnData.Builder("second_name", "varchar", false).withID(29).withTable(employees5).withForeignKey("").build());
-        cols.add(new ColumnData.Builder("time_hired", "timestamp", false).withID(30).withTable(employees5).withForeignKey("").build());
-        employees5.setColumnsList(cols);
-
-        //Table 8 ----------- similar to 3
-        TableData product2 = new TableData("products", "sales_schema", null);
-        product2.setId(8);
-        cols = new ArrayList<>();
-        cols.add(new ColumnData.Builder("prod_id", "integer", true).withID(31).withTable(product2).withForeignKey("").build());
-        cols.add(new ColumnData.Builder("price", "double", false).withID(32).withTable(product2).withForeignKey("").build());
-        cols.add(new ColumnData.Builder("category", "varchar", true).withID(33).withTable(product2).withForeignKey("").build());
-        product2.setColumnsList(cols);
-
-        tables.add(sales);
-        tables.add(employees);
-        tables.add(employees2);
-        tables.add(employees3);
-        tables.add(employees4);
-        tables.add(employees5);
-        tables.add(product);
-        tables.add(product2);
         SchemaMatcher schemaMatcher = new SchemaMatcher();
+        List<DBData> dbs = schemaMatcher.generateLocalSchema();
+        List<TableData> tables = new ArrayList<>();
+
+        for (DBData db: dbs)
+            tables.addAll(db.getTableList());
+
         List<GlobalTableData> globalTables = schemaMatcher.schemaIntegration(tables);
+
         for (GlobalTableData globalTableData: globalTables){
             System.out.println("----------Global table: " + globalTableData.getTableName() +"-----------");
             System.out.println("- local tables -");
@@ -140,10 +57,117 @@ public class SchemaMatcher {
                 System.out.println();
             }
         }
+
+        GlobalSchemaConfigurationV2 schemaConfigurationV2 = new GlobalSchemaConfigurationV2(schemaMatcher.generateLocalSchema(), globalTables);
     }
 
     public SchemaMatcher(){
         metaDataManager = new MetaDataManager();
+    }
+
+    public List<DBData> generateLocalSchema(){
+        DBData db1 = new DBData("http://example", DBModel.MYSQL, "sales");
+        DBData db2 = new DBData("http://example", DBModel.MYSQL, "business");
+        DBData db3 = new DBData("http://example", DBModel.PostgreSQL, "employees");
+        List<TableData> tables = new ArrayList<>();
+        //Table 1 -----------
+        TableData sales = new TableData("sales", "sales_schema", db1);
+        sales.setId(1);
+        List<ColumnData> cols = new ArrayList<>();
+        cols.add(new ColumnData.Builder("sale_id", "integer", true).withID(1).withTable(sales).withForeignKey("").build());
+        cols.add(new ColumnData.Builder("ammount", "double", false).withID(2).withTable(sales).withForeignKey("").build());
+        cols.add(new ColumnData.Builder("market", "varchar", false).withID(3).withTable(sales).withForeignKey("").build());
+        cols.add(new ColumnData.Builder("sale_date", "date", false).withID(4).withTable(sales).withForeignKey("").build());
+        sales.setColumnsList(cols);
+
+        //Table 2 -----------
+        TableData employees = new TableData("employees", "sales_schema", db1);
+        employees.setId(2);
+        cols = new ArrayList<>();
+        cols.add(new ColumnData.Builder("id", "integer", true).withID(5).withTable(employees).withForeignKey("").build());
+        cols.add(new ColumnData.Builder("fullName", "varchar", false).withID(6).withTable(employees).withForeignKey("").build());
+        cols.add(new ColumnData.Builder("badge", "char", false).withID(7).withTable(employees).withForeignKey("").build());
+        cols.add(new ColumnData.Builder("hired_date", "date", false).withID(8).withTable(employees).withForeignKey("").build());
+        employees.setColumnsList(cols);
+
+        //Table 3 -----------
+        TableData product = new TableData("product", "sales_schema", db1);
+        product.setId(3);
+        cols = new ArrayList<>();
+        cols.add(new ColumnData.Builder("prod_id", "integer", true).withID(9).withTable(product).withForeignKey("").build());
+        cols.add(new ColumnData.Builder("price", "double", false).withID(10).withTable(product).withForeignKey("").build());
+        cols.add(new ColumnData.Builder("category", "varchar", false).withID(11).withTable(product).withForeignKey("").build());
+
+        product.setColumnsList(cols);
+
+        db1.addTable(sales);
+        db1.addTable(employees);
+        db1.addTable(product);
+
+        //Table 4 ----------- similar to 2
+        TableData employees2 = new TableData("info_employees", "sales_schema", db2);
+        employees2.setId(4);
+        cols = new ArrayList<>();
+        cols.add(new ColumnData.Builder("id", "integer", true).withID(12).withTable(employees2).withForeignKey("").build());
+        cols.add(new ColumnData.Builder("first_name", "varchar", false).withID(13).withTable(employees2).withForeignKey("").build());
+        cols.add(new ColumnData.Builder("second_name", "varchar", false).withID(14).withTable(employees2).withForeignKey("").build());
+        cols.add(new ColumnData.Builder("badge_code", "integer", false).withID(15).withTable(employees2).withForeignKey("").build());
+        cols.add(new ColumnData.Builder("time_hired", "timestamp", false).withID(16).withTable(employees2).withForeignKey("").build());
+        employees2.setColumnsList(cols);
+
+        //Table 5 ----------- similar to 4 and 2
+        TableData employees3 = new TableData("infoEmployees", "sales", db2);
+        employees3.setId(5);
+        cols = new ArrayList<>();
+        cols.add(new ColumnData.Builder("id", "integer", true).withID(17).withTable(employees3).withForeignKey("").build());
+        cols.add(new ColumnData.Builder("first_name", "varchar", false).withID(18).withTable(employees3).withForeignKey("").build());
+        cols.add(new ColumnData.Builder("second_name", "varchar", false).withID(19).withTable(employees3).withForeignKey("").build());
+        cols.add(new ColumnData.Builder("badge_code", "integer", false).withID(20).withTable(employees3).withForeignKey("").build());
+        cols.add(new ColumnData.Builder("time_hired", "timestamp", false).withID(21).withTable(employees3).withForeignKey("").build());
+        employees3.setColumnsList(cols);
+
+
+        //Table 6 ----------- similar to 5, 4 and 2
+        TableData employees4 = new TableData("employees6", "sales", db2);
+        employees4.setId(6);
+        cols = new ArrayList<>();
+        cols.add(new ColumnData.Builder("id", "integer", true).withID(22).withTable(employees4).withForeignKey("").build());
+        cols.add(new ColumnData.Builder("first_name", "varchar", false).withID(23).withTable(employees4).withForeignKey("").build());
+        cols.add(new ColumnData.Builder("second_name", "varchar", false).withID(24).withTable(employees4).withForeignKey("").build());
+        cols.add(new ColumnData.Builder("badge_code", "integer", false).withID(25).withTable(employees4).withForeignKey("").build());
+        cols.add(new ColumnData.Builder("time_hired", "timestamp", false).withID(26).withTable(employees4).withForeignKey("").build());
+        employees4.setColumnsList(cols);
+
+        db2.addTable(employees2);
+        db2.addTable(employees3);
+        db2.addTable(employees4);
+
+        //Table 7 ----------- similar to 6, 5, 4 and 2
+        TableData employees5 = new TableData("employees7", "sales", db3);
+        employees5.setId(7);
+        cols = new ArrayList<>();
+        cols.add(new ColumnData.Builder("id", "integer", true).withID(27).withTable(employees5).withForeignKey("").build());
+        cols.add(new ColumnData.Builder("first_name", "varchar", false).withID(28).withTable(employees5).withForeignKey("").build());
+        cols.add(new ColumnData.Builder("second_name", "varchar", false).withID(29).withTable(employees5).withForeignKey("").build());
+        cols.add(new ColumnData.Builder("time_hired", "timestamp", false).withID(30).withTable(employees5).withForeignKey("").build());
+        employees5.setColumnsList(cols);
+
+        //Table 8 ----------- similar to 3
+        TableData product2 = new TableData("products", "sales_schema", db3);
+        product2.setId(8);
+        cols = new ArrayList<>();
+        cols.add(new ColumnData.Builder("prod_id", "integer", true).withID(31).withTable(product2).withForeignKey("").build());
+        cols.add(new ColumnData.Builder("price", "double", false).withID(32).withTable(product2).withForeignKey("").build());
+        cols.add(new ColumnData.Builder("category", "varchar", true).withID(33).withTable(product2).withForeignKey("").build());
+        product2.setColumnsList(cols);
+
+        db3.addTable(employees5);
+        db3.addTable(product2);
+        List<DBData> dbs = new ArrayList<>();
+        dbs.add(db1);
+        dbs.add(db2);
+        dbs.add(db3);
+        return dbs;
     }
 
     public List<GlobalTableData> schemaIntegration(List<TableData> tables){
@@ -153,8 +177,6 @@ public class SchemaMatcher {
         List<GlobalTableData> nonMatchedTables = getNonMatchedTables(matches, tables); //NOTE: non matched tables can become matched after user intervention, and vice versa
         //group tables that match to same global table
         List<GlobalTableData> globalTables = groupMatchedTables(matches);
-        //TODO: IN UI show user the global tables, and edit them
-        //TODO: add the non matched single tables (iddealy, one function should add both the matched and non matched)
         globalTables = mergeGlobalTableAttributes(globalTables);
         // In UI, show the result, and edit as user edits them
 
@@ -169,7 +191,7 @@ public class SchemaMatcher {
             //define mapping type
             defineDistributionType(globalTableData, tableData);
             //add global table again with mappings
-            globalTables.add(i, globalTableData);
+            globalTables.set(i, globalTableData);
         }
         return globalTables;
     }

@@ -2,7 +2,24 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="4372070e-ade1-4e3a-bab8-4e40966e7856" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/src/main/java/wizards/global_schema_config/CustomTreeNode.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/wizards/global_schema_config/NodeType.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/uiDesigner.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/uiDesigner.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/CustomTreeNode.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/CustomeTreeCellRenderer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/wizards/global_schema_config/CustomeTreeCellRenderer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/DatabaseConnectionWizardV2.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/DatabaseConnectionWizardV2.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/GlobalSchemaConfiguration.form" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/GlobalSchemaConfiguration.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/GlobalSchemaConfigurationV2.form" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/wizards/global_schema_config/GlobalSchemaConfigurationV2.form" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/GlobalSchemaConfigurationV2.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/wizards/global_schema_config/GlobalSchemaConfigurationV2.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/WizardTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/WizardTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/helper_classes/ColumnData.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/helper_classes/ColumnData.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/helper_classes/DBData.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/helper_classes/DBData.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/helper_classes/GlobalColumnData.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/helper_classes/GlobalColumnData.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/helper_classes/GlobalTableData.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/helper_classes/GlobalTableData.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/helper_classes/TableData.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/helper_classes/TableData.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/prestoComm/SchemaMatcher.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/prestoComm/SchemaMatcher.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -12,8 +29,8 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="Class" />
         <option value="Enum" />
+        <option value="Class" />
       </list>
     </option>
   </component>
@@ -41,6 +58,14 @@
     <property name="project.structure.side.proportion" value="0.0" />
     <property name="settings.editor.selected.configurable" value="preferences.editor" />
   </component>
+  <component name="RecentsManager">
+    <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
+      <recent name="wizards.global_schema_config" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\bsilva\IdeaProjects\prestoConnector\src\main\java\wizards\global_schema_config" />
+    </key>
+  </component>
   <component name="RunManager" selected="Application.SchemaMatcher">
     <configuration name="DatabaseConnectionWizardV2" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="DatabaseConnectionWizardV2" />
@@ -49,16 +74,22 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="GlobalSchemaConfiguration" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="GlobalSchemaConfiguration" />
+    <configuration name="DatabaseConnectionWizardV2" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="DatabaseConnectionWizardV2" />
       <module name="prestoConnector" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
     </configuration>
     <configuration name="GlobalSchemaConfigurationV2" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="GlobalSchemaConfigurationV2" />
+      <option name="MAIN_CLASS_NAME" value="wizards.global_schema_config.GlobalSchemaConfigurationV2" />
       <module name="prestoConnector" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="wizards.global_schema_config.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
@@ -83,13 +114,19 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <list>
+      <item itemvalue="Application.DatabaseConnectionWizardV2" />
+      <item itemvalue="Application.SchemaMatcher" />
+      <item itemvalue="Application.WizardTest" />
+      <item itemvalue="Application.GlobalSchemaConfigurationV2" />
+    </list>
     <recent_temporary>
       <list>
         <item itemvalue="Application.SchemaMatcher" />
-        <item itemvalue="Application.WizardTest" />
-        <item itemvalue="Application.GlobalSchemaConfiguration" />
         <item itemvalue="Application.GlobalSchemaConfigurationV2" />
         <item itemvalue="Application.DatabaseConnectionWizardV2" />
+        <item itemvalue="Application.DatabaseConnectionWizardV2" />
+        <item itemvalue="Application.WizardTest" />
       </list>
     </recent_temporary>
   </component>
@@ -202,7 +239,14 @@
       <option name="project" value="LOCAL" />
       <updated>1587658584952</updated>
     </task>
-    <option name="localTasksCounter" value="15" />
+    <task id="LOCAL-00015" summary="Mapping type added">
+      <created>1587740732681</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1587740732682</updated>
+    </task>
+    <option name="localTasksCounter" value="16" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -233,10 +277,22 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="677" y="178" key="#SchemaMatcher/0.0.1920.1040@0.0.1920.1040" timestamp="1586370770126" />
-    <state x="768" y="238" width="521" height="560" key="#com.intellij.ide.util.MemberChooser" timestamp="1587312141299">
+    <state x="414" y="175" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1587988327425">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="768" y="238" width="521" height="560" key="#com.intellij.ide.util.MemberChooser/0.0.1920.1040@0.0.1920.1040" timestamp="1587312141299" />
+    <state x="414" y="175" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1587988327425" />
+    <state x="768" y="238" width="521" height="560" key="#com.intellij.ide.util.MemberChooser" timestamp="1588283730467">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="768" y="238" width="521" height="560" key="#com.intellij.ide.util.MemberChooser/0.0.1920.1040@0.0.1920.1040" timestamp="1588283730467" />
+    <state x="690" y="299" key="#com.intellij.ide.util.PackageChooserDialog" timestamp="1587988040434">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="690" y="299" key="#com.intellij.ide.util.PackageChooserDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1587988040434" />
+    <state x="689" y="304" key="#com.intellij.ide.util.TreeClassChooserDialog" timestamp="1587988300448">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="689" y="304" key="#com.intellij.ide.util.TreeClassChooserDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1587988300448" />
     <state x="689" y="310" key="#com.intellij.ide.util.TreeFileChooserDialog" timestamp="1586631559478">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -245,10 +301,10 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="668" y="266" width="574" height="504" key="#com.intellij.refactoring.memberPullUp.PullUpDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1581441028574" />
-    <state x="748" y="379" width="423" height="287" key="#com.intellij.refactoring.move.moveClassesOrPackages.MoveClassesOrPackagesDialog.classes" timestamp="1587396371836">
+    <state x="748" y="379" width="423" height="287" key="#com.intellij.refactoring.move.moveClassesOrPackages.MoveClassesOrPackagesDialog.classes" timestamp="1587988072846">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="748" y="379" width="423" height="287" key="#com.intellij.refactoring.move.moveClassesOrPackages.MoveClassesOrPackagesDialog.classes/0.0.1920.1040@0.0.1920.1040" timestamp="1587396371836" />
+    <state x="748" y="379" width="423" height="287" key="#com.intellij.refactoring.move.moveClassesOrPackages.MoveClassesOrPackagesDialog.classes/0.0.1920.1040@0.0.1920.1040" timestamp="1587988072846" />
     <state x="287" y="0" width="1336" height="1038" key="#com.intellij.refactoring.rename.AutomaticRenamingDialog" timestamp="1583842360230">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -257,50 +313,62 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="693" y="268" width="524" height="499" key="#com.intellij.refactoring.safeDelete.UnsafeUsagesDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1582132044033" />
-    <state x="741" y="308" key="#com.intellij.uiDesigner.palette.ComponentItemDialog" timestamp="1586778806832">
+    <state x="741" y="308" key="#com.intellij.uiDesigner.palette.ComponentItemDialog" timestamp="1587925809529">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="741" y="308" key="#com.intellij.uiDesigner.palette.ComponentItemDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1586778806832" />
-    <state x="1021" y="169" key="#xdebugger.evaluate" timestamp="1587145616334">
+    <state x="820" y="407" key="#com.intellij.uiDesigner.palette.ComponentItemDialog.OneOff" timestamp="1587925827169">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="1021" y="169" key="#xdebugger.evaluate/0.0.1920.1040@0.0.1920.1040" timestamp="1587145616334" />
-    <state x="607" y="116" width="695" height="803" key="CommitChangelistDialog2" timestamp="1587658584273">
+    <state x="820" y="407" key="#com.intellij.uiDesigner.palette.ComponentItemDialog.OneOff/0.0.1920.1040@0.0.1920.1040" timestamp="1587925827169" />
+    <state x="741" y="308" key="#com.intellij.uiDesigner.palette.ComponentItemDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1587925809529" />
+    <state x="1021" y="169" key="#xdebugger.evaluate" timestamp="1587989632143">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="607" y="116" width="695" height="803" key="CommitChangelistDialog2/0.0.1920.1040@0.0.1920.1040" timestamp="1587658584273" />
-    <state width="1877" height="220" key="GridCell.Tab.0.bottom" timestamp="1587159011929">
+    <state x="1021" y="169" key="#xdebugger.evaluate/0.0.1920.1040@0.0.1920.1040" timestamp="1587989632143" />
+    <state x="607" y="116" width="695" height="803" key="CommitChangelistDialog2" timestamp="1587740731903">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1877" height="220" key="GridCell.Tab.0.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1587159011929" />
-    <state width="1877" height="220" key="GridCell.Tab.0.center" timestamp="1587159011929">
+    <state x="607" y="116" width="695" height="803" key="CommitChangelistDialog2/0.0.1920.1040@0.0.1920.1040" timestamp="1587740731903" />
+    <state width="1877" height="226" key="GridCell.Tab.0.bottom" timestamp="1588443384491">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1877" height="220" key="GridCell.Tab.0.center/0.0.1920.1040@0.0.1920.1040" timestamp="1587159011929" />
-    <state width="1877" height="220" key="GridCell.Tab.0.left" timestamp="1587159011929">
+    <state width="1877" height="226" key="GridCell.Tab.0.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1588443384491" />
+    <state width="1877" height="226" key="GridCell.Tab.0.center" timestamp="1588443384491">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1877" height="220" key="GridCell.Tab.0.left/0.0.1920.1040@0.0.1920.1040" timestamp="1587159011929" />
-    <state width="1877" height="220" key="GridCell.Tab.0.right" timestamp="1587159011929">
+    <state width="1877" height="226" key="GridCell.Tab.0.center/0.0.1920.1040@0.0.1920.1040" timestamp="1588443384491" />
+    <state width="1877" height="226" key="GridCell.Tab.0.left" timestamp="1588443384491">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1877" height="220" key="GridCell.Tab.0.right/0.0.1920.1040@0.0.1920.1040" timestamp="1587159011929" />
-    <state width="1877" height="220" key="GridCell.Tab.1.bottom" timestamp="1587159011930">
+    <state width="1877" height="226" key="GridCell.Tab.0.left/0.0.1920.1040@0.0.1920.1040" timestamp="1588443384491" />
+    <state width="1877" height="226" key="GridCell.Tab.0.right" timestamp="1588443384491">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1877" height="220" key="GridCell.Tab.1.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1587159011930" />
-    <state width="1877" height="220" key="GridCell.Tab.1.center" timestamp="1587159011929">
+    <state width="1877" height="226" key="GridCell.Tab.0.right/0.0.1920.1040@0.0.1920.1040" timestamp="1588443384491" />
+    <state width="1877" height="220" key="GridCell.Tab.1.bottom" timestamp="1588443105727">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1877" height="220" key="GridCell.Tab.1.center/0.0.1920.1040@0.0.1920.1040" timestamp="1587159011929" />
-    <state width="1877" height="220" key="GridCell.Tab.1.left" timestamp="1587159011929">
+    <state width="1877" height="220" key="GridCell.Tab.1.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1588443105727" />
+    <state width="1877" height="220" key="GridCell.Tab.1.center" timestamp="1588443105727">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1877" height="220" key="GridCell.Tab.1.left/0.0.1920.1040@0.0.1920.1040" timestamp="1587159011929" />
-    <state width="1877" height="220" key="GridCell.Tab.1.right" timestamp="1587159011930">
+    <state width="1877" height="220" key="GridCell.Tab.1.center/0.0.1920.1040@0.0.1920.1040" timestamp="1588443105727" />
+    <state width="1877" height="220" key="GridCell.Tab.1.left" timestamp="1588443105727">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1877" height="220" key="GridCell.Tab.1.right/0.0.1920.1040@0.0.1920.1040" timestamp="1587159011930" />
+    <state width="1877" height="220" key="GridCell.Tab.1.left/0.0.1920.1040@0.0.1920.1040" timestamp="1588443105727" />
+    <state width="1877" height="220" key="GridCell.Tab.1.right" timestamp="1588443105727">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1877" height="220" key="GridCell.Tab.1.right/0.0.1920.1040@0.0.1920.1040" timestamp="1588443105727" />
+    <state x="184" y="86" key="MergeDialog" timestamp="1587740750964">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="184" y="86" key="MergeDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1587740750964" />
+    <state x="672" y="236" key="MultipleFileMergeDialog" timestamp="1587740752952">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="672" y="236" key="MultipleFileMergeDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1587740752952" />
     <state x="464" y="154" key="SettingsEditor" timestamp="1580300483631">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -309,26 +377,26 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="555" y="255" width="800" height="526" key="Vcs.Push.Dialog.v2/0.0.1920.1040@0.0.1920.1040" timestamp="1587658586390" />
-    <state x="653" y="346" key="com.intellij.ide.util.TipDialog" timestamp="1587740382742">
+    <state x="653" y="346" key="com.intellij.ide.util.TipDialog" timestamp="1588439967952">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="653" y="346" key="com.intellij.ide.util.TipDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1587740382742" />
+    <state x="653" y="346" key="com.intellij.ide.util.TipDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1588439967952" />
     <state x="730" y="181" width="449" height="673" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser" timestamp="1581590826176">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="730" y="181" width="449" height="673" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser/0.0.1920.1040@0.0.1920.1040" timestamp="1581590826176" />
-    <state x="676" y="312" width="574" height="412" key="git4idea.merge.GitPullDialog" timestamp="1587740392906">
+    <state x="676" y="312" width="574" height="412" key="git4idea.merge.GitPullDialog" timestamp="1587740738330">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="676" y="312" width="574" height="412" key="git4idea.merge.GitPullDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1587740392906" />
+    <state x="676" y="312" width="574" height="412" key="git4idea.merge.GitPullDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1587740738330" />
     <state width="1918" height="242" key="javadoc.popup" timestamp="1586864029090">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="1918" height="242" key="javadoc.popup/0.0.1920.1040@0.0.1920.1040" timestamp="1586864029090" />
-    <state x="624" y="237" width="672" height="677" key="run.anything.popup" timestamp="1586616433071">
+    <state x="624" y="237" width="672" height="677" key="run.anything.popup" timestamp="1588351210751">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="624" y="237" width="672" height="677" key="run.anything.popup/0.0.1920.1040@0.0.1920.1040" timestamp="1586616433071" />
+    <state x="624" y="237" width="672" height="677" key="run.anything.popup/0.0.1920.1040@0.0.1920.1040" timestamp="1588351210751" />
     <state x="623" y="228" width="672" height="678" key="search.everywhere.popup" timestamp="1586778947427">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -346,16 +414,40 @@
           <option name="timeStamp" value="14" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-method">
-          <url>file://$PROJECT_DIR$/src/main/java/GlobalSchemaConfiguration.java</url>
-          <line>297</line>
-          <properties class="GlobalSchemaConfiguration" method="loadImageForGlobalSchemaTree">
+          <url>file://$PROJECT_DIR$/src/main/java/wizards/global_schema_config/GlobalSchemaConfigurationV2.java</url>
+          <line>672</line>
+          <properties class="wizards.global_schema_config.GlobalSchemaConfigurationV2.TreeTransferHandler" method="importData">
             <option name="EMULATED" value="true" />
           </properties>
-          <option name="timeStamp" value="51" />
+          <option name="timeStamp" value="79" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-method">
+          <url>file://$PROJECT_DIR$/src/main/java/wizards/global_schema_config/GlobalSchemaConfigurationV2.java</url>
+          <line>567</line>
+          <properties method="actionPerformed">
+            <option name="EMULATED" value="true" />
+          </properties>
+          <option name="timeStamp" value="80" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-method">
+          <url>file://$PROJECT_DIR$/src/main/java/wizards/global_schema_config/GlobalSchemaConfigurationV2.java</url>
+          <line>48</line>
+          <properties class="wizards.global_schema_config.GlobalSchemaConfigurationV2" method="&lt;init&gt;">
+            <option name="EMULATED" value="true" />
+          </properties>
+          <option name="timeStamp" value="85" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-method">
+          <url>file://$PROJECT_DIR$/src/main/java/prestoComm/SchemaMatcher.java</url>
+          <line>330</line>
+          <properties class="prestoComm.SchemaMatcher" method="getColumnsForGlobalTableV2">
+            <option name="EMULATED" value="true" />
+          </properties>
+          <option name="timeStamp" value="88" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/prestoComm/Main.java</url>
-          <line>33</line>
+          <line>34</line>
           <option name="timeStamp" value="17" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
@@ -364,32 +456,40 @@
           <option name="timeStamp" value="29" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/GlobalSchemaConfiguration.java</url>
-          <line>193</line>
-          <option name="timeStamp" value="52" />
+          <url>file://$PROJECT_DIR$/src/main/java/prestoComm/SchemaMatcher.java</url>
+          <line>43</line>
+          <option name="timeStamp" value="81" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/prestoComm/SchemaMatcher.java</url>
-          <line>135</line>
-          <option name="timeStamp" value="63" />
+          <line>180</line>
+          <option name="timeStamp" value="83" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/prestoComm/SchemaMatcher.java</url>
-          <line>427</line>
-          <option name="timeStamp" value="74" />
+          <line>179</line>
+          <option name="timeStamp" value="84" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/prestoComm/SchemaMatcher.java</url>
-          <line>309</line>
-          <option name="timeStamp" value="75" />
+          <line>61</line>
+          <option name="timeStamp" value="86" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
     <watches-manager>
       <configuration name="Application">
         <watch expression="localTables" />
-        <watch expression="((HashSet)((HashMap.Node)((HashMap)correspondences).entrySet().toArray()[1]).getValue()).toArray()[0]" custom="java.util.HashSet,java.util.HashMap.Node,java.util.HashMap" />
+        <watch expression="((HashSet)((HashMap.Node)((HashMap)correspondences).entrySet().toArray()[1]).getValue()).toArray()[0]" language="JAVA" custom="java.util.HashSet,java.util.HashMap.Node,java.util.HashMap" />
+        <watch expression="((HashSet)((HashMap.Node)((HashMap)correspondences).entrySet().toArray()[1]).getValue()).toArray()[0]" language="JAVA" custom="java.util.HashSet,java.util.HashMap.Node,java.util.HashMap" />
+        <watch expression="dbs" />
+        <watch expression="dbs.get(2).tableList.get(1).columnsList" />
       </configuration>
     </watches-manager>
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/prestoConnector$SchemaMatcher.ic" NAME="SchemaMatcher Coverage Results" MODIFIED="1588440892349" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false">
+      <FILTER>prestoComm.*</FILTER>
+    </SUITE>
   </component>
 </project>
