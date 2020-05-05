@@ -16,7 +16,11 @@ public enum DBModel {
         }
         @Override
         public String[] getSchemaExclusions() {
-            return new String[] {"information_schemas", "pg_stats", METADATA_VIEW_SCHEMA_NAME};
+            return new String[] {"information_schema", "pg_stats", "pg_catalog", METADATA_VIEW_SCHEMA_NAME};
+        }
+        @Override
+        public String[] getTableExclusions() {
+            return new String[] {METADATA_VIEW_SCHEMA_NAME, METADATA_VIEW_FOREIGN_KEY_NAME, METADATA_VIEW_PRIMARY_KEY_NAME};
         }
     },
     SQLServer {
@@ -32,6 +36,10 @@ public enum DBModel {
         public String[] getSchemaExclusions() {
             return new String[] {"information_schemas", METADATA_VIEW_SCHEMA_NAME};
         }//TODO: fill
+        @Override
+        public String[] getTableExclusions() {
+            return new String[] {METADATA_VIEW_SCHEMA_NAME, METADATA_VIEW_FOREIGN_KEY_NAME, METADATA_VIEW_PRIMARY_KEY_NAME};
+        }
     },
     MYSQL {
         @Override
@@ -46,8 +54,12 @@ public enum DBModel {
 
         @Override
         public String[] getSchemaExclusions() {
-            return new String[] {"information_schema", "sys", METADATA_VIEW_SCHEMA_NAME};
-        }//TODO: fill
+            return new String[] {"information_schema", "sys", METADATA_VIEW_SCHEMA_NAME, METADATA_VIEW_FOREIGN_KEY_NAME, METADATA_VIEW_PRIMARY_KEY_NAME};
+        }
+        @Override
+        public String[] getTableExclusions() {
+            return new String[] {METADATA_VIEW_SCHEMA_NAME, METADATA_VIEW_FOREIGN_KEY_NAME, METADATA_VIEW_PRIMARY_KEY_NAME};
+        }
     },
     Redis {
         @Override
@@ -64,6 +76,11 @@ public enum DBModel {
         public String[] getSchemaExclusions() {
             return new String[] {};
         }//TODO: fill
+
+        @Override
+        public String[] getTableExclusions() {
+            return new String[] {};
+        }
     },
     Cassandra {
         @Override
@@ -79,6 +96,10 @@ public enum DBModel {
         public String[] getSchemaExclusions() {
             return new String[] {};
         }//TODO: fill
+        @Override
+        public String[] getTableExclusions() {
+            return new String[] {};
+        }
     },
     MongoDB {
         @Override
@@ -95,6 +116,10 @@ public enum DBModel {
         public String[] getSchemaExclusions() {
             return new String[] {"admin", "config"};
         }
+        @Override
+        public String[] getTableExclusions() {
+            return new String[] {};
+        }
     };
 
     public boolean isRelational(){
@@ -109,6 +134,8 @@ public enum DBModel {
     public abstract String getMetaDataQuery();
 
     public abstract String[] getSchemaExclusions();
+
+    public abstract String[] getTableExclusions();
 
     //public abstract String[] getTableExclusions();
 

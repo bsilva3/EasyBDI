@@ -28,14 +28,14 @@ public class Main {
         //dbDataList.add(new DBData("http://deti-lei-2.ua.pt:5432/", DBModel.PostgreSQL,"presto2", "bruno", "brunosilva"));
         //dbDataList.add(new DBData("http://deti-lei-2.ua.pt:5432/", DBModel.PostgreSQL,"presto", "bruno", "brunosilva"));
         dbDataList.add(new DBData("http://localhost:5432/", DBModel.PostgreSQL,"employees_horizontal", "postgres", "brunosilva"));
+        /*dbDataList.add(new DBData("http://localhost:3306/", DBModel.MYSQL,"employees_horizontal", "bruno", "brunosilva"));
+        dbDataList.add(new DBData("http://localhost:3306/", DBModel.MYSQL, METADATA_VIEW_SCHEMA_NAME, "bruno", "brunosilva"));*/
         boolean success = manager.generatePrestoDBConfigFiles(dbDataList);
         if (!success){
             System.exit(1);
         }
         //manager.prestoMediator.makeQuery("SHOW CATALOGS");
-        List<TableData> tables = manager.buildLocalSchema(dbDataList);
-
-        manager.buildGlobalSchemaFromLocalSchema(tables);
+        dbDataList = manager.buildLocalSchema(dbDataList);
 
         System.out.println("databases registered:");
         manager.printQuery("SELECT * FROM "+ DB_DATA);
@@ -45,5 +45,13 @@ public class Main {
 
         System.out.println("Columns registered:");
         manager.printQuery("SELECT * FROM "+ COLUMN_DATA);
+
+        manager.buildGlobalSchemaFromLocalSchema(dbDataList);
+
+        System.out.println("--------------- Global Schema ------------------");
+        System.out.println("global tables registered:");
+        manager.printQuery("SELECT * FROM "+ GLOBAL_TABLE_DATA);
+
+
     }
 }

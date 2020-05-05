@@ -173,7 +173,10 @@ public class PrestoMediator {
 
         else {
             //relational dbs (mysql, sql server or postgresql) have identical .properties files
-            config += "connection-url=jdbc:" + dbData.getDbModel().toString().toLowerCase() + "://"+ dbData.getUrl() +"/"+dbData.getDbName()+"\n";
+            if (dbData.getDbModel() == DBModel.MYSQL)
+                config += "connection-url=jdbc:" + dbData.getDbModel().toString().toLowerCase() + "://"+ dbData.getUrl() +"\n"; //mysql connector throws exception if database is specified. DBs are separed in schemas
+            else
+                config += "connection-url=jdbc:" + dbData.getDbModel().toString().toLowerCase() + "://"+ dbData.getUrl() +"/"+dbData.getDbName()+"\n";
             config += "connection-user="+dbData.getUser()+"\n";
             config += "connection-password="+dbData.getPass()+"\n";
         }
@@ -191,6 +194,8 @@ public class PrestoMediator {
             //for each schema, get the tables and store them
             for (String schema : schemaNames){
                 Set<String> tableNames = getOneColumnResultQuery("show tables from " +  db.getCatalogName()+"."+schema, false);
+                tableNames = removeIrrelevantTables(tableNames, db.getDbModel());
+                //remove unwanted tables
                 for (String tableName : tableNames){
                     tablesInDB.add(new TableData(tableName, schema, db));
                 }
@@ -215,7 +220,7 @@ public class PrestoMediator {
             }
             //if this table belongs to a relational DB, get information about primary keys and foreign key constraints
             if(table.getDB().getDbModel().isRelational()){
-                updateTableConstraints(table, columnsInTable);
+                columnsInTable = updateTableConstraints(table, columnsInTable);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -231,6 +236,13 @@ public class PrestoMediator {
         return new HashSet<>(schemaList);
     }
 
+    private Set<String> removeIrrelevantTables(Set<String> tables, DBModel dbModel){
+        List<String> tableList = new ArrayList<>();
+        tableList.addAll(tables);
+        tableList.removeAll(Arrays.asList(dbModel.getSchemaExclusions()));
+        return new HashSet<>(tableList);
+    }
+
     /**
      * Completes data regarding primary keys and foreign keys in a table
      * @param table
@@ -240,6 +252,7 @@ public class PrestoMediator {
     private List<ColumnData> updateTableConstraints(TableData table, List<ColumnData> columns){
         //update with foreign key constraints
         columns = updateForeignKeyInfo(table, columns);
+
         // update with  primary key(s) constraints
         columns = updatePrimaryKeyInfo(table, columns);
         return columns;
@@ -282,6 +295,13 @@ public class PrestoMediator {
             }
         } catch (SQLException e) {
             e.printStackTrace();
+            if (e.getMessage().contains("Schema "+ METADATA_VIEW_SCHEMA_NAME+" does not exist")){
+                JOptionPane.showMessageDialog(null,
+                        "The necessary schema '"+METADATA_VIEW_FOREIGN_KEY_NAME+"' is not created in the database "+table.getDB().getDbName()+". Please create it before moving on.",
+                        "Schema "+METADATA_VIEW_FOREIGN_KEY_NAME+" not found",
+                        JOptionPane.ERROR_MESSAGE);
+                System.exit(1);
+            }
         }
         return columns;
     }
@@ -316,6 +336,13 @@ public class PrestoMediator {
             }
         } catch (SQLException e) {
             e.printStackTrace();
+            if (e.getMessage().contains("Schema "+ METADATA_VIEW_SCHEMA_NAME+" does not exist")){
+                JOptionPane.showMessageDialog(null,
+                        "The necessary schema '"+METADATA_VIEW_PRIMARY_KEY_NAME+"' is not created in the database "+table.getDB().getDbName()+". Please create it before moving on.",
+                        "Schema "+METADATA_VIEW_PRIMARY_KEY_NAME+" not found",
+                        JOptionPane.ERROR_MESSAGE);
+                System.exit(1);
+            }
         }
 
         return columns;

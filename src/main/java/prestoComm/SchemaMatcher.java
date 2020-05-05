@@ -40,8 +40,13 @@ public class SchemaMatcher {
         for (DBData db: dbs)
             tables.addAll(db.getTableList());
 
-        List<GlobalTableData> globalTables = schemaMatcher.schemaIntegration(tables);
+        List<GlobalTableData> globalTables = schemaMatcher.schemaIntegration(dbs);
+        schemaMatcher.printGlobalTables(globalTables);
 
+        GlobalSchemaConfigurationV2 schemaConfigurationV2 = new GlobalSchemaConfigurationV2(schemaMatcher.generateLocalSchema(), globalTables);
+    }
+
+    public void printGlobalTables(List<GlobalTableData> globalTables){
         for (GlobalTableData globalTableData: globalTables){
             System.out.println("----------Global table: " + globalTableData.getTableName() +"-----------");
             System.out.println("- local tables -");
@@ -52,13 +57,11 @@ public class SchemaMatcher {
             for (GlobalColumnData gc :globalTableData.getGlobalColumnData()){
                 System.out.print(gc.getName()+": "+gc.getDataType() +" -> ");
                 for (ColumnData c : gc.getLocalColumns()){
-                    System.out.print(c.getName() +": "+c.getDataType() +"("+c.getTable().getTableName()+"), ");
+                    System.out.print(c.getName() +": "+c.getDataType()+", mapping type: "+c.getMapping() +"("+c.getTable().getTableName()+"), ");
                 }
                 System.out.println();
             }
         }
-
-        GlobalSchemaConfigurationV2 schemaConfigurationV2 = new GlobalSchemaConfigurationV2(schemaMatcher.generateLocalSchema(), globalTables);
     }
 
     public SchemaMatcher(){
@@ -170,7 +173,16 @@ public class SchemaMatcher {
         return dbs;
     }
 
-    public List<GlobalTableData> schemaIntegration(List<TableData> tables){
+    public List<TableData> getAllTablesInDB(List<DBData> dbs){
+        List<TableData> tables = new ArrayList<>();
+
+        for (DBData db: dbs)
+            tables.addAll(db.getTableList());
+        return tables;
+    }
+
+    public List<GlobalTableData> schemaIntegration(List<DBData> dbs){
+        List<TableData> tables = getAllTablesInDB(dbs);
         List<Match> matches = labelSchemaMatchingTables(tables);
         //matches = labelTypeSchemaMatchColumns(matches); // column matching (should it be here)
         //get the tables that did not match
@@ -193,6 +205,7 @@ public class SchemaMatcher {
             //add global table again with mappings
             globalTables.set(i, globalTableData);
         }
+        printGlobalTables(globalTables);
         return globalTables;
     }
 
@@ -236,7 +249,7 @@ public class SchemaMatcher {
                 if (!tables.get(i).equals(tables.get(j))){
                     //use Levenshtein distance to get the name similarity
                     double sim = getNameSimilarityLevenshtein(tables.get(i).getTableName(), tables.get(j).getTableName());
-                    System.out.println("Levenshtein sim between " + tables.get(i).getTableName() + " and "+ tables.get(j).getTableName() +" = "+sim);
+                    //System.out.println("Levenshtein sim between " + tables.get(i).getTableName() + " and "+ tables.get(j).getTableName() +" = "+sim);
                     if (sim >= tableNameSimilarityThreshold){
                         //match between the tables
                         tableMatches.add(new Match(tables.get(i), tables.get(j)));
@@ -341,7 +354,7 @@ public class SchemaMatcher {
             previousMergedColumns.putAll(correspondences);
             List<ColumnData> columnsPreviousMergedTables = new ArrayList<>();
             columnsPreviousMergedTables.addAll(correspondences.keySet());
-            List<ColumnData> columnsCurrentLocalTable = localTables.get(i).getColumnsList();
+            List<ColumnData> columnsCurrentLocalTable = new ArrayList<>(localTables.get(i).getColumnsList());
             correspondences.clear();
 
             //perform column table schema match to match pairs of columns

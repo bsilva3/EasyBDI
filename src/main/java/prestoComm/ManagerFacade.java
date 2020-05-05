@@ -1,6 +1,7 @@
 package prestoComm;
 
 import helper_classes.*;
+import wizards.global_schema_config.GlobalSchemaConfigurationV2;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -50,34 +51,33 @@ public class ManagerFacade {
      * AND that database info has already been retrieved
      * return - List of table data, with info regarding its columns and database.
      **/
-    public List<TableData> buildLocalSchema(List<DBData> dbs){
+    public List<DBData> buildLocalSchema(List<DBData> dbs){
         //insert DB Data
         dbs = metaDataManager.insertDBData(dbs);
         //get information about tables
-        List<TableData> tables = new ArrayList<>();
-        for (DBData db : dbs)
-            tables.addAll(prestoMediator.getTablesInDatabase(db));
-        dbs.clear();
-        //insert tables in database
-        tables = metaDataManager.insertTableData(tables);
-
-        //get information about columns (for each table check information about theyr columns)
-        for (int i = 0; i < tables.size(); i++){
-            TableData tableUpdatedWithColumns = prestoMediator.getColumnsInTable(tables.get(i));
-            tables.set(i, tableUpdatedWithColumns);
+        for (DBData db : dbs) {
+            List<TableData> dbTables = prestoMediator.getTablesInDatabase(db);
+            dbTables = metaDataManager.insertTableData(dbTables); //tables updated with their id
+            //get information about columns (for each table check information about their columns)
+            for (int i = 0; i < dbTables.size(); i++){
+                TableData tableUpdatedWithColumns = prestoMediator.getColumnsInTable(dbTables.get(i));
+                dbTables.set(i, tableUpdatedWithColumns);
+            }
+            dbTables = metaDataManager.insertColumnData(dbTables);//columns in tables updates with their id
+            db.setTableList(dbTables);
         }
-        tables = metaDataManager.insertColumnData(tables);
-        return tables;
+
+        return dbs;
     }
 
-    public void buildGlobalSchemaFromLocalSchema(List<TableData> tables){
+    public void buildGlobalSchemaFromLocalSchema(List<DBData> dbs){
         //tables in SQLITE for global schema already created
         SchemaMatcher schemaMatcher = new SchemaMatcher();
         //Generate the global schema from the local schemas
-        List<GlobalTableData> globalTables = schemaMatcher.schemaIntegration(tables);
-
+        List<GlobalTableData> globalTables = schemaMatcher.schemaIntegration(dbs);
+        GlobalSchemaConfigurationV2 schemaConfigurationV2 = new GlobalSchemaConfigurationV2(dbs, globalTables);
         //insert the global tables, global columns in the database and correspondences between local and global columns
-        metaDataManager.insertGlobalSchemaData(globalTables);
+        //metaDataManager.insertGlobalSchemaData(globalTables);
     }
 
     public void buildStarSchema(GlobalTableData factTable, List<GlobalTableData> dimTables, List<GlobalColumnData> measures){
