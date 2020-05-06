@@ -158,7 +158,7 @@ public class ColumnData implements Serializable {
     }
 
     public int getTableID() {
-        return tableID;
+        return getTable().getId();
     }
 
     public void setTableID(int tableID) {
@@ -177,7 +177,7 @@ public class ColumnData implements Serializable {
         if (!hasForeignKey())
             return null;
         MetaDataManager m = new MetaDataManager();
-        String[] foreignKeySplit = this.getForeignKey().split("."); //"catalogName.schemaName.TableName.ColumnName"
+        String[] foreignKeySplit = this.getForeignKey().split("\\."); //"catalogName.schemaName.TableName.ColumnName"
         ColumnData c = m.getColumn(this.getTable().getDB(), foreignKeySplit[1], foreignKeySplit[2], foreignKeySplit[3]); //need schemaname, table name and column as well as the dbID
         return c;
     }
@@ -208,7 +208,6 @@ public class ColumnData implements Serializable {
         ColumnData that = (ColumnData) o;
         return columnID == that.columnID &&
                 isPrimaryKey == that.isPrimaryKey &&
-                tableID == that.tableID &&
                 name.equals(that.name) &&
                 dataType.equals(that.dataType) &&
                 Objects.equals(table, that.table) &&
@@ -217,6 +216,6 @@ public class ColumnData implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hash(columnID, name, dataType, isPrimaryKey, table, foreignKey, tableID);
+        return Objects.hash(columnID, name, dataType, isPrimaryKey, table, foreignKey);
     }
 }

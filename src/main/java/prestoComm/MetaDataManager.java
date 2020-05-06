@@ -340,6 +340,24 @@ public class MetaDataManager {
         return dbs;
     }
 
+    public DBData getDatabaseByID(int id){
+        DBData db = null;
+        try{
+            Statement stmt  = conn.createStatement();
+            ResultSet rs    = stmt.executeQuery("SELECT * FROM " + DB_DATA +" WHERE "+ID_FIELD+" = "+id+";");
+            ResultSetMetaData rsmd = rs.getMetaData();
+            //
+            if (rs.next()) {
+                DBModel dbModel = this.getDBModelFromID(rs.getInt(DB_DATA_TYPE_ID_FIELD));
+                db = new DBData(rs.getString(DB_DATA_SERVER_FIELD), dbModel, rs.getString(DB_DATA_NAME_FIELD),
+                        rs.getString(DB_DATA_USER_FIELD), rs.getString(DB_DATA_PASS_FIELD), rs.getInt(ID_FIELD));
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return db;
+    }
+
     public List<TableData> getTablesInDB(DBData dbData){
         List<TableData> tables = new ArrayList<>();
         try{
@@ -653,11 +671,13 @@ public class MetaDataManager {
         for (Integer id : tableIDs) {
             try {
                 Statement stmt = conn.createStatement();
-                ResultSet rs = stmt.executeQuery("SELECT "+ TABLE_DATA_NAME_FIELD +" FROM " + TABLE_DATA + " where "+ID_FIELD+"="+id+";");
+                ResultSet rs = stmt.executeQuery("SELECT "+ TABLE_DATA_NAME_FIELD +", "+TABLE_DATA_SCHEMA_NAME_FIELD+
+                        ", "+TABLE_DATA_DB_ID_FIELD+" FROM " + TABLE_DATA + " where "+ID_FIELD+"="+id+";");
                 // loop through the result set
                 while (rs.next()) {
-                    TableData table = new TableData(rs.getString(TABLE_DATA_NAME_FIELD));
-                    table.setColumnsList(getColumnsInTable(id));
+                    DBData db = this.getDatabaseByID(rs.getInt(TABLE_DATA_DB_ID_FIELD));
+                    TableData table = new TableData(rs.getString(TABLE_DATA_NAME_FIELD), rs.getString(TABLE_DATA_SCHEMA_NAME_FIELD), db, id);
+                    table.setColumnsList(getColumnsInTable(table));
                     tables.add(table);
                 }
             } catch (SQLException e) {
@@ -667,16 +687,34 @@ public class MetaDataManager {
         return tables;
     }
 
-    public List<ColumnData> getColumnsInTable(int tableID){
+    public TableData getTableByID(int tableID){
+        TableData table = null;
+            try {
+                Statement stmt = conn.createStatement();
+                ResultSet rs = stmt.executeQuery("SELECT "+ TABLE_DATA_NAME_FIELD +", "+TABLE_DATA_SCHEMA_NAME_FIELD+
+                        ", "+TABLE_DATA_DB_ID_FIELD+" FROM " + TABLE_DATA + " where "+ID_FIELD+"="+tableID+";");
+                // loop through the result set
+                while (rs.next()) {
+                    DBData db = this.getDatabaseByID(rs.getInt(TABLE_DATA_DB_ID_FIELD));
+                    table = new TableData(rs.getString(TABLE_DATA_NAME_FIELD), rs.getString(TABLE_DATA_SCHEMA_NAME_FIELD), db, tableID);
+                    table.setColumnsList(getColumnsInTable(table));
+                }
+            } catch (SQLException e) {
+                System.out.println(e.getMessage());
+            }
+        return table;
+    }
+
+    public List<ColumnData> getColumnsInTable(TableData table){
         List<ColumnData> cols = new ArrayList<>();
         try {
             Statement stmt = conn.createStatement();
             ResultSet rs = stmt.executeQuery("SELECT "+ COLUMN_DATA_NAME_FIELD+ ", " + COLUMN_DATA_TYPE_FIELD+", " + COLUMN_DATA_IS_PRIMARY_KEY_FIELD
-                    +", "+ COLUMN_DATA_FOREIGN_KEY_FIELD +", "+ ID_FIELD +" FROM " + COLUMN_DATA + " where "+COLUMN_DATA_TABLE_FIELD+"="+tableID+";");
+                    +", "+ COLUMN_DATA_FOREIGN_KEY_FIELD +", "+ ID_FIELD +" FROM " + COLUMN_DATA + " where "+COLUMN_DATA_TABLE_FIELD+"="+table.getId()+";");
             // loop through the result set
             while (rs.next()) {
                 ColumnData col = new ColumnData.Builder(rs.getString(COLUMN_DATA_NAME_FIELD), rs.getString(COLUMN_DATA_TYPE_FIELD), rs.getBoolean(COLUMN_DATA_IS_PRIMARY_KEY_FIELD))
-                        .withForeignKey(rs.getString(COLUMN_DATA_FOREIGN_KEY_FIELD)).withID(rs.getInt(ID_FIELD)).build();
+                        .withForeignKey(rs.getString(COLUMN_DATA_FOREIGN_KEY_FIELD)).withID(rs.getInt(ID_FIELD)).withTable(table).build();
                 cols.add(col);
             }
         } catch (SQLException e) {
@@ -700,12 +738,11 @@ public class MetaDataManager {
             Statement stmt = conn.createStatement();
             ResultSet rs = stmt.executeQuery("SELECT "+ COLUMN_DATA_TYPE_FIELD+", " + COLUMN_DATA_IS_PRIMARY_KEY_FIELD
                     +", "+ COLUMN_DATA_FOREIGN_KEY_FIELD +", "+ ID_FIELD +" FROM " + COLUMN_DATA + " where "+COLUMN_DATA_TABLE_FIELD+"="+t.getId()
-                    +"and "+COLUMN_DATA_NAME_FIELD + " = '"+columnName+"';");
+                    +" and "+COLUMN_DATA_NAME_FIELD + " = '"+columnName+"';");
             // loop through the result set
             if (rs.next()) {
-
                 col = new ColumnData.Builder(columnName, rs.getString(COLUMN_DATA_TYPE_FIELD), rs.getBoolean(COLUMN_DATA_IS_PRIMARY_KEY_FIELD))
-                        .withForeignKey(rs.getString(COLUMN_DATA_FOREIGN_KEY_FIELD)).withID(rs.getInt(ID_FIELD)).build();
+                        .withForeignKey(rs.getString(COLUMN_DATA_FOREIGN_KEY_FIELD)).withID(rs.getInt(ID_FIELD)).withTable(t).build();
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
@@ -728,4 +765,6 @@ public class MetaDataManager {
         }
         return t;
     }
+
+
 }

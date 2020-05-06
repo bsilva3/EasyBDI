@@ -6,6 +6,7 @@ import prestoComm.DBModel;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class DBData implements Serializable {
 
@@ -133,5 +134,24 @@ public class DBData implements Serializable {
                 ", catalogName='" + catalogName + '\'' +
                 ", id=" + id +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || this.getClass() != o.getClass()) return false;
+        DBData dbData = (DBData) o;
+        return this.id == dbData.id &&
+                this.dbName.equals(dbData.dbName) &&
+                this.dbModel == dbData.dbModel &&
+                this.url.equals(dbData.url) &&
+                Objects.equals(this.user, dbData.user) &&
+                Objects.equals(this.pass, dbData.pass) &&
+                Objects.equals(this.catalogName, dbData.catalogName);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.dbName, this.dbModel, this.url, this.user, this.pass, this.catalogName, this.id);
     }
 }

@@ -27,7 +27,7 @@ public class Main {
         //dbDataList.add(new DBData("http://localhost:3306", DBModel.MYSQL,"", "bruno", "brunosilva"));
         //dbDataList.add(new DBData("http://deti-lei-2.ua.pt:5432/", DBModel.PostgreSQL,"presto2", "bruno", "brunosilva"));
         //dbDataList.add(new DBData("http://deti-lei-2.ua.pt:5432/", DBModel.PostgreSQL,"presto", "bruno", "brunosilva"));
-        dbDataList.add(new DBData("http://localhost:5432/", DBModel.PostgreSQL,"employees_horizontal", "postgres", "brunosilva"));
+        dbDataList.add(new DBData("http://localhost:5432/", DBModel.PostgreSQL,"employees_vertical", "postgres", "brunosilva"));
         /*dbDataList.add(new DBData("http://localhost:3306/", DBModel.MYSQL,"employees_horizontal", "bruno", "brunosilva"));
         dbDataList.add(new DBData("http://localhost:3306/", DBModel.MYSQL, METADATA_VIEW_SCHEMA_NAME, "bruno", "brunosilva"));*/
         boolean success = manager.generatePrestoDBConfigFiles(dbDataList);

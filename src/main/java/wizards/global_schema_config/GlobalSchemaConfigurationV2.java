@@ -202,6 +202,7 @@ public class GlobalSchemaConfigurationV2 extends JFrame {
                     for (ColumnData localCol : col.getLocalColumns()) {
                         if (localCol.getTable().equals(t) && col.getLocalColumns().contains(localCol)) {
                             localTableTree.add(new CustomTreeNode(localCol.getName(), localCol, NodeType.COLUMN_MATCHES));
+                            localTableTree.add(new CustomTreeNode("Mapping Type: "+localCol.getMapping(), null, NodeType.COLUMN_MATCHES_TYPE)); //node indicating mapping type
                             hasMatches = true;
                         }
                     }
@@ -335,6 +336,7 @@ public class GlobalSchemaConfigurationV2 extends JFrame {
                     for (ColumnData localCol : col.getLocalColumns()) {
                         if (localCol.getTable().equals(t) && col.getLocalColumns().contains(localCol)) {
                             localTableTree.add(new CustomTreeNode(localCol.getName(), localCol, NodeType.COLUMN_MATCHES));
+                            localTableTree.add(new CustomTreeNode("Mapping Type: "+localCol.getMapping(), null, NodeType.COLUMN_MATCHES_TYPE));
                             hasMatches = true;
                         }
                     }

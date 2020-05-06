@@ -382,8 +382,12 @@ public class SchemaMatcher {
                     //different data types, choose the most generic one
                     datatype = chooseGenericDataType(col1DataType, col2DataType, convertibleDataTypes);
                 }
+                //primary key
+                boolean isPrimaryKey = false;
+                if (colFromMergedTables.isPrimaryKey() || colFromNewTable.isPrimaryKey())
+                    isPrimaryKey = true;
                 //create a new column, the merge of both columns
-                ColumnData newColumn = new ColumnData.Builder(colFromMergedTables.getName(), datatype).build();
+                ColumnData newColumn = new ColumnData.Builder(colFromMergedTables.getName(), datatype).withPrimaryKey(isPrimaryKey).build();
                 //mergedColumns.add(newColumn);
                 Set<ColumnData> previousCorrs = previousMergedColumns.get(colFromMergedTables);//get previous local columns
                 previousCorrs.add(colFromNewTable);// add the new local column merged
@@ -662,7 +666,8 @@ public class SchemaMatcher {
 
     /**
      * GIven  a global table, and the local tables that have correspondences, check to see if there is a vertical partioning mapping between them.
-     * A simple mapping means that the local table is constituted by one unique local table, whose attributes (columns) are the same in the local and global tables
+     * A vertical mapping means that the local table is constituted by tables that contain primary keys that reference one table's primary key
+     * (columns of one table was distributed to multiple tables)
      * NOTE: considering that there is only one table that does not have a foreign key and primary key
      * @param globalTable
      * @param completeLocalTables
@@ -679,20 +684,16 @@ public class SchemaMatcher {
                     if (localColumn.isPrimaryKey() && localColumn.hasForeignKey()){
                         if (referencedColumn == null)
                             referencedColumn = localColumn.getForeignKeyColumn();
-                        if (!referencedColumn.equals(localColumn.getForeignKeyColumn())){
-                            return false;
-                        }
-                        else{
                             //this column references the same column as foreign key, check if all its columns exist in the list of references tables
-                            if (!fullLocalCols.contains(localColumn)){
+                            if (!fullLocalCols.contains(referencedColumn)){
                                 return false;
                             }
-                        }
+                            return true;
                     }
                 }
             }
         }
-        return true;
+        return false;
     }
 
     /**
@@ -712,7 +713,8 @@ public class SchemaMatcher {
                         return false;
                 }
             }
+            return true;
         }
-        return true;
+        return false;
     }
 }
