@@ -324,7 +324,7 @@ public class GlobalSchemaConfigurationV2 extends JFrame {
             CustomTreeNode tables = new CustomTreeNode(gt.getTableName(), gt, NodeType.GLOBAL_TABLE);
             //global cols
             for (GlobalColumnData col : gt.getGlobalColumnData()) {
-                CustomTreeNode column = new CustomTreeNode(col.getName(), col, NodeType.COLUMN);
+                CustomTreeNode column = new CustomTreeNode(col.getName(), col, NodeType.GLOBAL_COLUMN);
                 column.add(new CustomTreeNode(col.getDataType(), NodeType.COLUMN_INFO));
                 if (col.isPrimaryKey())
                     column.add(new CustomTreeNode("primary key", NodeType.PRIMARY_KEY));
@@ -358,26 +358,39 @@ public class GlobalSchemaConfigurationV2 extends JFrame {
 
             @Override
             public void mousePressed(MouseEvent arg0) {
-                if(arg0.getButton() == MouseEvent.BUTTON3){
+                System.out.println("pressed " + arg0.getButton() + "is right mouse: "+SwingUtilities.isRightMouseButton(arg0));
+                globalSchemaTree.setComponentPopupMenu(null);
+                //if(arg0.getButton() == MouseEvent.BUTTON3){
+                if (SwingUtilities.isRightMouseButton(arg0)){
+                    System.out.println("right mouse");
                     TreePath pathForLocation = globalSchemaTree.getPathForLocation(arg0.getPoint().x, arg0.getPoint().y);
+                    globalSchemaTree.setSelectionPath(pathForLocation);
+                    System.out.println("path: "+pathForLocation.toString());
+                    JPopupMenu menu = null;
                     if(pathForLocation != null){
                         selectedNode = (CustomTreeNode) pathForLocation.getLastPathComponent();
+                        System.out.println("node type -> "+selectedNode.getNodeType());
                         if (selectedNode.getNodeType() == NodeType.GLOBAL_TABLE)
-                            globalSchemaTree.setComponentPopupMenu(getPopUpMenuForGlobalTable());//show menu with option to create tables
+                            menu = getPopUpMenuForGlobalTable();
+                            //globalSchemaTree.setComponentPopupMenu(getPopUpMenuForGlobalTable());//show menu with option to create tables
                         else if (selectedNode.getNodeType() == NodeType.GLOBAL_TABLES){
-                            globalSchemaTree.setComponentPopupMenu(getPopUpMenuForGlobalTableRoot());
+                            //globalSchemaTree.setComponentPopupMenu(getPopUpMenuForGlobalTableRoot());
+                            menu = getPopUpMenuForGlobalTableRoot();
                         }
                         else if (selectedNode.getNodeType() == NodeType.GLOBAL_COLUMN)
-                            globalSchemaTree.setComponentPopupMenu(getPopUpMenuForColumn());
+                            //globalSchemaTree.setComponentPopupMenu(getPopUpMenuForColumn());
+                            menu = getPopUpMenuForColumn();
                         else if (selectedNode.getNodeType() == NodeType.PRIMARY_KEY)
-                            globalSchemaTree.setComponentPopupMenu(getPopUpMenuForPrimaryKey());
+                            //globalSchemaTree.setComponentPopupMenu(getPopUpMenuForPrimaryKey());
+                            menu = getPopUpMenuForPrimaryKey();
                         else
-                            globalSchemaTree.setComponentPopupMenu(getPopUpMenuGeneral());
+                            //globalSchemaTree.setComponentPopupMenu(getPopUpMenuGeneral());
+                            menu = getPopUpMenuGeneral();
+                        menu.show(arg0.getComponent(), arg0.getX(), arg0.getY());
                     } else{
-                        selectedNode = null;
+                        //selectedNode = null;
                         globalSchemaTree.setComponentPopupMenu(null);
                     }
-
                 }
                 super.mousePressed(arg0);
             }
