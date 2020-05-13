@@ -3,6 +3,7 @@ package wizards.global_schema_config;
 import helper_classes.*;
 import prestoComm.Constants;
 import prestoComm.DBModel;
+import se.gustavkarlsson.gwiz.AbstractWizardPage;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -16,14 +17,11 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
+import java.util.*;
 import java.util.List;
-import java.util.Set;
 
-public class GlobalSchemaConfigurationV2 extends JFrame {
-    // extends AbstractWizardPage
+public class GlobalSchemaConfigurationV2 extends AbstractWizardPage{
+    //extends JFrame {
     private JTree globalSchemaTree;
     private JTree localSchemaTree;
     private JTextField searchGlobalField;
@@ -40,6 +38,10 @@ public class GlobalSchemaConfigurationV2 extends JFrame {
     private JLabel globalSchemaLabel;
     private JLabel helpLabel;
     private JLabel stepLabel;
+    private JTextField localTableSearchField;
+    private JButton resetFilterLocalSchemaBtn;
+    private JButton resetFilterGlobalSchemaBtn;
+    private JButton finishBtn;
     private static final String[] DATATYPES = {"varchar", "char", "integer", "tiny int", "big int", "small int", "double", "decimal"};
     private CustomTreeNode selectedNode;
     private DefaultTreeModel globalSchemaModel;
@@ -86,22 +88,73 @@ public class GlobalSchemaConfigurationV2 extends JFrame {
             System.out.println(ex);
         }
 
-        setContentPane(mainPanel);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        pack();
-        //add(mainPanel); //g-wizard
-        setVisible(true);
+        resetFilterLocalSchemaBtn.setVisible(false);
+        resetFilterGlobalSchemaBtn.setVisible(false);
+        //search button listeners
+        searchLocalButton.addActionListener(new ActionListener()
+        {
+            public void actionPerformed(ActionEvent e)
+            {
+                //get text written and search
+                String searchStr = localTableSearchField.getText().trim();
+                searchAndSetFilter(searchStr, localSchemaModel, true);
+            }
+        });
+
+        searchGlobalButton.addActionListener(new ActionListener()
+        {
+            public void actionPerformed(ActionEvent e)
+            {
+                //get text written and search
+                String searchStr = searchGlobalField.getText().trim();
+                searchAndSetFilter(searchStr, globalSchemaModel, false);
+            }
+        });
+
+        resetFilterLocalSchemaBtn.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                //reset filters
+                localSchemaTree.setModel(localSchemaModel);
+                localSchemaTree.repaint();
+                resetFilterLocalSchemaBtn.setVisible(false);
+            }
+        });
+
+        resetFilterGlobalSchemaBtn.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                //reset filters
+                globalSchemaTree.setModel(globalSchemaModel);
+                globalSchemaTree.repaint();
+                resetFilterGlobalSchemaBtn.setVisible(false);
+            }
+        });
+
+        finishBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                getGlobalSchemaFromTree();
+                getNextPage();
+            }
+        });
+
+        /*this.setContentPane(mainPanel);
+        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        this.pack();*/
+        add(mainPanel); //g-wizard
+        this.setVisible(true);
     }
 
-    /*public void createUIComponents(){
-        globalSchemaTree = new DndTree();
-        localSchemaTree = new DndTree();
-    }*/
+    public GlobalSchemaConfigurationV2(){
+        //generate local schema and global schema (for testing only)
+        this(GlobalSchemaConfigurationV2.generateLocalSchema(), GlobalSchemaConfigurationV2.generateGlobalSchema());
+    }
+
 
      //for g-wizard
-    /*@Override
+    @Override
     protected AbstractWizardPage getNextPage() {
-        return new DatabaseConnectionWizardV2();
+        return new CubeConfiguration(this.getGlobalSchemaFromTree());
+        //return null;
     }
 
     @Override
@@ -122,11 +175,211 @@ public class GlobalSchemaConfigurationV2 extends JFrame {
     @Override
     protected boolean isFinishAllowed() {
         return false;
+    }
+
+    public static List<DBData> generateLocalSchema(){
+        java.util.List<DBData> dbs = new ArrayList<>();
+        java.util.List<TableData> tables = new ArrayList<>();
+        DBData dbData1 = new DBData("http://192.168.11.3", DBModel.MYSQL, "lisbonDB");
+        DBData dbData2 = new DBData("http://192.168.23.2", DBModel.PostgreSQL, "parisDB");
+        DBData dbData3 = new DBData("http://192.168.23.5", DBModel.MongoDB, "inventory");
+        TableData table1 = new TableData("employees", "schema", dbData1, 1);
+        TableData table2 = new TableData("employees", "schema", dbData2, 2);
+        TableData table3 = new TableData("employees_contacts", "schema", dbData2, 3);
+        TableData table4 = new TableData("products", "schema", dbData3, 4);
+        java.util.List<ColumnData> colsForTable1 = new ArrayList<>();
+        java.util.List<ColumnData> colsForTable2 = new ArrayList<>();
+        java.util.List<ColumnData> colsForTable3 = new ArrayList<>();
+        List<ColumnData> colsForTable4 = new ArrayList<>();
+        colsForTable1.add(new ColumnData.Builder("employee_id", "integer", true).withTable(table1).build());
+        colsForTable1.add(new ColumnData.Builder("full_name", "varchar", false).withTable(table1).build());
+        colsForTable1.add(new ColumnData.Builder("phone_number", "integer", false).withTable(table1).build());
+        colsForTable1.add(new ColumnData.Builder("email", "varchar", false).withTable(table1).build());
+
+        colsForTable2.add(new ColumnData.Builder("id", "integer", true).withTable(table2).build());
+        colsForTable2.add(new ColumnData.Builder("name", "varchar", false).withTable(table2).build());
+
+        colsForTable3.add(new ColumnData.Builder("employee_id", "integer", true).withTable(table3)
+                .withForeignKey("employees_paris.id").build());
+        colsForTable3.add(new ColumnData.Builder("phone", "integer", false).withTable(table3).build());
+        colsForTable3.add(new ColumnData.Builder("email", "varchar", false).withTable(table3).build());
+
+        colsForTable4.add(new ColumnData.Builder("product_id", "integer", false).withTable(table4).build());
+        colsForTable4.add(new ColumnData.Builder("product_name", "varchar", false).withTable(table4).build());
+        colsForTable4.add(new ColumnData.Builder("price", "double", false).withTable(table4).build());
+        colsForTable4.add(new ColumnData.Builder("UnitsInStock", "integer", false).withTable(table4).build());
+        table1.setColumnsList(colsForTable1);
+        table2.setColumnsList(colsForTable2);
+        table3.setColumnsList(colsForTable3);
+        table4.setColumnsList(colsForTable4);
+        dbData1.addTable(table1);
+        dbData2.addTable(table3);
+        dbData2.addTable(table3);
+        dbData3.addTable(table4);
+        dbs.add(dbData1);
+        dbs.add(dbData2);
+        dbs.add(dbData3);
+        return dbs;
+    }
+
+    public static List<GlobalTableData> generateGlobalSchema(){
+        java.util.List<GlobalTableData> globalTableDataList = new ArrayList<>();
+        GlobalTableData g1 = new GlobalTableData("employees");
+        //GlobalTableData g2 = new GlobalTableData("inventory");
+        //TableData table4 = new TableData("products", "schema", dbData3, 4);
+        Set<ColumnData> colsA = new HashSet<>();
+        Set<ColumnData> colsB = new HashSet<>();
+        Set<ColumnData> colsC = new HashSet<>();
+        Set<ColumnData> colsD = new HashSet<>();
+        DBData dbData1 = new DBData("http://192.168.11.3", DBModel.MYSQL, "lisbonDB");
+        DBData dbData2 = new DBData("http://192.168.23.2", DBModel.PostgreSQL, "parisDB");
+        DBData dbData3 = new DBData("http://192.168.23.5", DBModel.MongoDB, "inventory");
+        TableData table1 = new TableData("employees", "schema", dbData1, 1);
+        TableData table2 = new TableData("employees", "schema", dbData2, 2);
+        TableData table3 = new TableData("employees_contacts", "schema", dbData2, 3);
+        TableData table4 = new TableData("products", "schema", dbData3, 4);
+        colsA.add(new ColumnData.Builder("employee_id", "integer", true).withTable(table1).build());
+        colsB.add(new ColumnData.Builder("full_name", "varchar", false).withTable(table1).build());
+        colsC.add(new ColumnData.Builder("phone_number", "integer", false).withTable(table1).build());
+        colsD.add(new ColumnData.Builder("email", "varchar", false).withTable(table1).build());
+        colsA.add(new ColumnData.Builder("id", "integer", true).withTable(table2).build());
+        colsB.add(new ColumnData.Builder("name", "varchar", false).withTable(table2).build());
+        colsA.add(new ColumnData.Builder("id", "integer", true).withTable(table3).build());
+        colsC.add(new ColumnData.Builder("phone", "integer", false).withTable(table3).build());
+        colsD.add(new ColumnData.Builder("email", "varchar", false).withTable(table3).build());
+
+        GlobalColumnData globalColA = new GlobalColumnData("id", "integer", true, colsA);
+        GlobalColumnData globalColB = new GlobalColumnData("name", "varchar", true, colsB);
+        GlobalColumnData globalColC = new GlobalColumnData("phone_number", "varchar", false, colsC);
+        GlobalColumnData globalColD = new GlobalColumnData("email", "varchar", false, colsD);
+
+        /*GlobalColumnData globalColMongo1 = new GlobalColumnData("product_id", "integer", true, new ColumnData.Builder("product_id", "integer", false).withTable(table4).build());
+        GlobalColumnData globalColMongo2 = new GlobalColumnData("product_name", "varchar", false, new ColumnData.Builder("product_name", "varchar", false).withTable(table4).build());
+        GlobalColumnData globalColMongo3 = new GlobalColumnData("price", "double", false, new ColumnData.Builder("price", "double", false).withTable(table4).build());
+        GlobalColumnData globalColMongo4 = new GlobalColumnData("UnitsInStock", "integer", false, new ColumnData.Builder("UnitsInStock", "integer", false).withTable(table4).build());*/
+        java.util.List<GlobalColumnData> globalCols = new ArrayList<>();
+        globalCols.add(globalColA);
+        globalCols.add(globalColB);
+        globalCols.add(globalColC);
+        globalCols.add(globalColD);
+        /*globalCols.add(globalColMongo1);
+        globalCols.add(globalColMongo2);
+        globalCols.add(globalColMongo3);
+        globalCols.add(globalColMongo4);*/
+
+        g1.setGlobalColumnData(Arrays.asList(globalColA, globalColB, globalColC, globalColD));
+        //g2.setGlobalColumnData(Arrays.asList(globalColMongo1, globalColMongo2, globalColMongo3, globalColMongo4));
+        globalTableDataList.add(g1);
+        //globalTableDataList.add(g2);
+        return globalTableDataList;
+    }
+    /*public static void main(String[] args){
+        wizards.global_schema_config.GlobalSchemaConfigurationV2 window = new GlobalSchemaConfigurationV2(GlobalSchemaConfigurationV2.generateLocalSchema(),
+                GlobalSchemaConfigurationV2.generateGlobalSchema());
     }*/
 
+    //search
+    public boolean removeRecursively(Map<String, List<CustomTreeNode>> tree, String id, Set<String> leavesToKeep) {
+        List<CustomTreeNode> children = tree.get(id);
+        if (children == null || children.isEmpty()) {
+            if (!leavesToKeep.contains(id)) {
+                tree.remove(id);
+                return true;
+            } else return false;
+        }
+        children.removeIf(n -> removeRecursively(tree, (String) n.getUserObject(), leavesToKeep));
+        if (children.isEmpty()) {
+            tree.remove(id);
+            return true;
+        } else return false;
+    }
 
-    public static void main(String[] args){
-        //wizards.global_schema_config.GlobalSchemaConfigurationV2 window = new GlobalSchemaConfigurationV2();
+    //search filter
+    public void searchAndSetFilter(String searchStr, DefaultTreeModel model, boolean isLocalSchema){
+        if (searchStr == null || searchStr.length() < 2)
+            JOptionPane.showMessageDialog(null,
+                    "Your search query must have at least 2 characters",
+                    "Inane warning",
+                    JOptionPane.WARNING_MESSAGE);
+        else{
+            JTree tree = null;
+            if (isLocalSchema)
+                tree = localSchemaTree;
+            else
+                tree = globalSchemaTree;
+            CustomTreeNode currentRoot = (CustomTreeNode)tree.getModel().getRoot();
+            Enumeration<TreePath> en = currentRoot != null ?
+                    tree.getExpandedDescendants(new TreePath(currentRoot.getPath())) : null;
+            List<TreePath> pl = en != null ? Collections.list(en) : null;
+            CustomTreeNode resultNodes = createFilteredTree((CustomTreeNode)model.getRoot(), searchStr);
+            tree.setModel(new DefaultTreeModel(resultNodes));
+                    /*else {
+                        localSchemaTree.setModel(localSchemaModel);
+                    }*/
+            if (en != null) {
+                CustomTreeNode r = (CustomTreeNode)tree.getModel().getRoot();
+                if (r != null)
+                    restoreExpandedState(r, pl, tree);
+                if (isLocalSchema)
+                    resetFilterLocalSchemaBtn.setVisible(true);
+                else
+                    resetFilterGlobalSchemaBtn.setVisible(true);
+            }
+            tree.repaint();
+        }
+    }
+
+    //adapted from: https://gist.github.com/steos/1334152/032b3af14a8f25f46c3cca959d84330574594574
+    public CustomTreeNode createFilteredTree(CustomTreeNode parent, String filter) {
+        int c = parent.getChildCount();
+        CustomTreeNode fparent = new CustomTreeNode(parent.getUserObject(), parent.getObj(), parent.getNodeType());
+        boolean matches = (parent.getUserObject().toString()).contains(filter);
+        for (int i = 0; i < c; ++i) {
+            CustomTreeNode childNode = (CustomTreeNode)parent.getChildAt(i);
+            //only search tables, columns and databases
+            if (childNode.getNodeType() == NodeType.COLUMN || childNode.getNodeType() == NodeType.TABLE || childNode.getNodeType() == NodeType.DATABASE
+                    || childNode.getNodeType() == NodeType.GLOBAL_COLUMN || childNode.getNodeType() == NodeType.GLOBAL_TABLE
+                    || childNode.getNodeType() == NodeType.COLUMN_MATCHES){
+                CustomTreeNode f = createFilteredTree(childNode, filter);
+                if (f != null) {
+                    fparent.add(f);
+                    matches = true;
+                }
+            }
+            else{
+                fparent.add(new CustomTreeNode(childNode.getUserObject(), childNode.getObj(), childNode.getNodeType()));
+            }
+        }
+        return matches ? fparent : null;
+    }
+
+
+    public void restoreExpandedState(CustomTreeNode base, List<TreePath> exps, JTree tree) {
+        if (base == null) {
+            throw new NullPointerException();
+        }
+        if (wasExpanded(base, exps)) {
+            tree.expandPath(new TreePath(base.getPath()));
+        }
+        int c = base.getChildCount();
+        for (int i = 0; i < c; ++i) {
+            CustomTreeNode n = (CustomTreeNode)base.getChildAt(i);
+            restoreExpandedState(n, exps, tree);
+        }
+    }
+
+    public boolean wasExpanded(CustomTreeNode n, List<TreePath> en) {
+        if (n == null) {
+            throw new NullPointerException();
+        }
+        for (TreePath path : en) {
+            for (Object o : path.getPath()) {
+                if (((CustomTreeNode)o).getUserObject() == n.getUserObject()) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private DefaultTreeModel setExampleData(){
@@ -218,82 +471,13 @@ public class GlobalSchemaConfigurationV2 extends JFrame {
         return globalSchemaModel;
     }
 
-    private DefaultTreeModel setExampleDataForLocalSchema(){
-        java.util.List<DBData> dbs = new ArrayList<>();
-        java.util.List<TableData> tables = new ArrayList<>();
-        DBData dbData1 = new DBData("http://192.168.11.3", DBModel.MYSQL, "lisbonDB");
-        DBData dbData2 = new DBData("http://192.168.23.2", DBModel.PostgreSQL, "parisDB");
-        DBData dbData3 = new DBData("http://192.168.23.5", DBModel.MongoDB, "inventory");
-        TableData table1 = new TableData("employees", "schema", dbData1, 1);
-        TableData table2 = new TableData("employees", "schema", dbData2, 2);
-        TableData table3 = new TableData("employees_contacts", "schema", dbData2, 3);
-        TableData table4 = new TableData("products", "schema", dbData3, 4);
-        java.util.List<ColumnData> colsForTable1 = new ArrayList<>();
-        java.util.List<ColumnData> colsForTable2 = new ArrayList<>();
-        java.util.List<ColumnData> colsForTable3 = new ArrayList<>();
-        List<ColumnData> colsForTable4 = new ArrayList<>();
-        colsForTable1.add(new ColumnData.Builder("employee_id", "integer", true).withTable(table1).build());
-        colsForTable1.add(new ColumnData.Builder("full_name", "varchar", false).withTable(table1).build());
-        colsForTable1.add(new ColumnData.Builder("phone_number", "integer", false).withTable(table1).build());
-        colsForTable1.add(new ColumnData.Builder("email", "varchar", false).withTable(table1).build());
-
-        colsForTable2.add(new ColumnData.Builder("id", "integer", true).withTable(table2).build());
-        colsForTable2.add(new ColumnData.Builder("name", "varchar", false).withTable(table2).build());
-
-        colsForTable3.add(new ColumnData.Builder("employee_id", "integer", true).withTable(table3)
-                .withForeignKey("employees_paris.id").build());
-        colsForTable3.add(new ColumnData.Builder("phone", "integer", false).withTable(table3).build());
-        colsForTable3.add(new ColumnData.Builder("email", "varchar", false).withTable(table3).build());
-
-        colsForTable4.add(new ColumnData.Builder("product_id", "integer", false).withTable(table4).build());
-        colsForTable4.add(new ColumnData.Builder("product_name", "varchar", false).withTable(table4).build());
-        colsForTable4.add(new ColumnData.Builder("price", "double", false).withTable(table4).build());
-        colsForTable4.add(new ColumnData.Builder("UnitsInStock", "integer", false).withTable(table4).build());
-        table1.setColumnsList(colsForTable1);
-        table2.setColumnsList(colsForTable2);
-        table3.setColumnsList(colsForTable3);
-        table4.setColumnsList(colsForTable4);
-        dbs.add(dbData1);
-        dbs.add(dbData2);
-        dbs.add(dbData3);
-
-        tables.add(table1);
-        tables.add(table2);
-        tables.add(table3);
-        tables.add(table4);
-        CustomTreeNode data = new CustomTreeNode("root");
-        for (DBData db : dbs){
-            CustomTreeNode dbTree = new CustomTreeNode(db.getDbName(), db, NodeType.DATABASE);
-            dbTree.add(new CustomTreeNode(db.getUrl(), NodeType.DATABASE_INFO));
-            dbTree.add(new CustomTreeNode(db.getDbModel(), NodeType.DATABASE_INFO));
-            for (TableData t : tables){
-                if (!t.getDB().equals(db))
-                    continue;
-                CustomTreeNode tableTree = new CustomTreeNode(t.getTableName(), t, NodeType.TABLE);
-                for (ColumnData col : t.getColumnsList()){
-                    CustomTreeNode colTree = new CustomTreeNode(col.getName(), col, NodeType.COLUMN);
-                    colTree.add(new CustomTreeNode(col.getDataType(), NodeType.COLUMN_INFO));
-                    if (col.isPrimaryKey())
-                        colTree.add(new CustomTreeNode("primary key", NodeType.PRIMARY_KEY));
-                    if (col.getForeignKey()!=null && !col.getForeignKey().isEmpty()){
-                        colTree.add(new CustomTreeNode("foreign key: "+col.getForeignKey(), NodeType.COLUMN_INFO));
-                    }
-                    tableTree.add(colTree);
-                }
-                dbTree.add(tableTree);
-            }
-            data.add(dbTree);
-        }
-        return new DefaultTreeModel(data);
-    }
-
     //set local schema in jtree
     public DefaultTreeModel setLocalSchemaTree(List<DBData> dbs){
         CustomTreeNode data = new CustomTreeNode("root");
         for (DBData db : dbs){
             CustomTreeNode dbTree = new CustomTreeNode(db.getDbName(), db, NodeType.DATABASE);
-            dbTree.add(new CustomTreeNode(db.getUrl(), NodeType.DATABASE_INFO));
-            dbTree.add(new CustomTreeNode(db.getDbModel(), NodeType.DATABASE_INFO));
+            dbTree.add(new CustomTreeNode(db.getUrl(), NodeType.DATABASE_URL));
+            dbTree.add(new CustomTreeNode(db.getDbModel(), db.getDbModel(), NodeType.DATABASE_MODEL));
 
             for (TableData t : db.getTableList()){
                 if (!t.getDB().equals(db))
@@ -305,7 +489,7 @@ public class GlobalSchemaConfigurationV2 extends JFrame {
                     if (col.isPrimaryKey())
                         colTree.add(new CustomTreeNode("primary key", NodeType.PRIMARY_KEY));
                     if (col.getForeignKey()!=null && !col.getForeignKey().isEmpty()){
-                        colTree.add(new CustomTreeNode("foreign key: "+col.getForeignKey(), NodeType.COLUMN_INFO));
+                        colTree.add(new CustomTreeNode("foreign key: "+col.getForeignKey(), NodeType.FOREIGN_KEY));
                     }
                     tableTree.add(colTree);
                 }
@@ -358,35 +542,25 @@ public class GlobalSchemaConfigurationV2 extends JFrame {
 
             @Override
             public void mousePressed(MouseEvent arg0) {
-                System.out.println("pressed " + arg0.getButton() + "is right mouse: "+SwingUtilities.isRightMouseButton(arg0));
-                globalSchemaTree.setComponentPopupMenu(null);
-                //if(arg0.getButton() == MouseEvent.BUTTON3){
                 if (SwingUtilities.isRightMouseButton(arg0)){
-                    System.out.println("right mouse");
                     TreePath pathForLocation = globalSchemaTree.getPathForLocation(arg0.getPoint().x, arg0.getPoint().y);
                     globalSchemaTree.setSelectionPath(pathForLocation);
-                    System.out.println("path: "+pathForLocation.toString());
                     JPopupMenu menu = null;
                     if(pathForLocation != null){
                         selectedNode = (CustomTreeNode) pathForLocation.getLastPathComponent();
-                        System.out.println("node type -> "+selectedNode.getNodeType());
                         if (selectedNode.getNodeType() == NodeType.GLOBAL_TABLE)
                             menu = getPopUpMenuForGlobalTable();
-                            //globalSchemaTree.setComponentPopupMenu(getPopUpMenuForGlobalTable());//show menu with option to create tables
                         else if (selectedNode.getNodeType() == NodeType.GLOBAL_TABLES){
-                            //globalSchemaTree.setComponentPopupMenu(getPopUpMenuForGlobalTableRoot());
                             menu = getPopUpMenuForGlobalTableRoot();
                         }
                         else if (selectedNode.getNodeType() == NodeType.GLOBAL_COLUMN)
-                            //globalSchemaTree.setComponentPopupMenu(getPopUpMenuForColumn());
                             menu = getPopUpMenuForColumn();
                         else if (selectedNode.getNodeType() == NodeType.PRIMARY_KEY)
-                            //globalSchemaTree.setComponentPopupMenu(getPopUpMenuForPrimaryKey());
                             menu = getPopUpMenuForPrimaryKey();
                         else
-                            //globalSchemaTree.setComponentPopupMenu(getPopUpMenuGeneral());
                             menu = getPopUpMenuGeneral();
-                        menu.show(arg0.getComponent(), arg0.getX(), arg0.getY());
+                        if (menu!= null)
+                            menu.show(arg0.getComponent(), arg0.getX(), arg0.getY());
                     } else{
                         //selectedNode = null;
                         globalSchemaTree.setComponentPopupMenu(null);
@@ -415,13 +589,13 @@ public class GlobalSchemaConfigurationV2 extends JFrame {
         item.addActionListener(getEditActionListener());
         menu.add(item);
 
-        JMenuItem item2 = new JMenuItem("Add Global Column");
+        /*JMenuItem item2 = new JMenuItem("Add Global Column");
         item2.addActionListener(getAddGlobalColumnActionListener());
-        menu.add(item2);
+        menu.add(item2);*/
 
-        JMenuItem item3 = new JMenuItem("Delete Table");
-        item3.addActionListener(getRemoveActionListener());
-        menu.add(item3);
+        JMenuItem item2 = new JMenuItem("Delete Table");
+        item2.addActionListener(getRemoveActionListener());
+        menu.add(item2);
 
         return menu;
     }
@@ -609,6 +783,54 @@ public class GlobalSchemaConfigurationV2 extends JFrame {
         };
     }
 
+    //get global schema
+    public List<GlobalTableData> getGlobalSchemaFromTree(){
+        List<GlobalTableData> globalTables = new ArrayList<>();
+        CustomTreeNode globalTablesRoot = (CustomTreeNode) globalSchemaModel.getRoot();
+        int nChilds = globalTablesRoot.getChildCount();
+        for (int i = 0; i < nChilds; i++){
+            //for each global table, create a new object
+            CustomTreeNode globalTableNode = (CustomTreeNode)globalTablesRoot.getChildAt(i);
+            GlobalTableData globalTable = (GlobalTableData) globalTableNode.getObj();
+            List<GlobalColumnData> cols = new ArrayList<>();
+            //get its global columns
+            for (int j = 0; j < globalTableNode.getChildCount(); j++){
+                CustomTreeNode globalColumnNode = (CustomTreeNode)globalTableNode.getChildAt(j);
+                GlobalColumnData globalCol = (GlobalColumnData) globalColumnNode.getObj();
+                globalCol.setPrimaryKey(false);//if it is primary key, will be updated
+                CustomTreeNode dataTypeNode = (CustomTreeNode)globalColumnNode.getChildAt(0);
+                globalCol.setDataType(dataTypeNode.getUserObject().toString());
+                //get primary key (if it is) info and matches list
+                for (int k = 1; k < globalColumnNode.getChildCount(); k++){
+                    CustomTreeNode node = (CustomTreeNode)globalColumnNode.getChildAt(k);
+                    if (node.getNodeType() == NodeType.PRIMARY_KEY)
+                        globalCol.setPrimaryKey(true);
+                    else if (node.getNodeType() == NodeType.MATCHES){
+                        //set matches list
+                        Set<ColumnData> matches = new HashSet<>();
+                        for (int c = 1; c < node.getChildCount(); c++){
+                            //node with <db.table>
+                            CustomTreeNode dbTableNode = (CustomTreeNode)node.getChildAt(c);
+                            for (int z = 0; z < dbTableNode.getChildCount(); z++){
+                                CustomTreeNode columnMatch = (CustomTreeNode)dbTableNode.getChildAt(z);
+                                if (columnMatch.getNodeType() == NodeType.COLUMN_MATCHES_TYPE)
+                                    continue;
+                                //column
+                                matches.add((ColumnData)columnMatch.getObj());
+                            }
+
+                        }
+                        globalCol.setLocalColumns(matches);
+                    }
+                }
+                cols.add(globalCol);
+            }
+            globalTable.setGlobalColumnData(cols);
+            globalTables.add(globalTable);
+        }
+        return globalTables;
+    }
+
     // --------- custom transfer handler to move tree nodes
     //adapted from: https://coderanch.com/t/346509/java/JTree-drag-drop-tree-Java
     class TreeTransferHandler extends TransferHandler {
@@ -719,7 +941,8 @@ public class GlobalSchemaConfigurationV2 extends JFrame {
                     System.out.println(col.getUserObject().toString());
                     CustomTreeNode matchNode = new CustomTreeNode("Matches", NodeType.MATCHES);
                     TableData table = (TableData)node.getObj();
-                    CustomTreeNode tableMatch = new CustomTreeNode(table.getDB().getDbName()+"."+table.getTableName(), table, NodeType.TABLE_MATCHES);
+                    GlobalTableData gloTab = new GlobalTableData(table.getTableName());
+                    CustomTreeNode tableMatch = new CustomTreeNode(table.getDB().getDbName()+"."+table.getTableName(), gloTab, NodeType.TABLE_MATCHES);
                     ColumnData column = (ColumnData) col.getObj();
                     CustomTreeNode colMatch = new CustomTreeNode(column.getName(), column, NodeType.COLUMN_MATCHES);
                     tableMatch.add(colMatch);

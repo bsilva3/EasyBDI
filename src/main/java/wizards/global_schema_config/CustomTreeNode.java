@@ -1,6 +1,8 @@
 package wizards.global_schema_config;
 
+import helper_classes.DBData;
 import prestoComm.Constants;
+import prestoComm.DBModel;
 
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
@@ -77,6 +79,12 @@ public class CustomTreeNode extends DefaultMutableTreeNode implements Serializab
             case DATABASE: //database
                 fileName = "database_icon.png";
                 break;
+            case DATABASE_MODEL: //database
+                fileName = getDatabaseModelFileName((DBModel)this.getObj());
+                break;
+            case DATABASE_URL: //database
+                fileName = "url_icon.png";
+                break;
             case TABLE:
             case GLOBAL_TABLE:
             case TABLE_MATCHES:{
@@ -95,6 +103,9 @@ public class CustomTreeNode extends DefaultMutableTreeNode implements Serializab
             case PRIMARY_KEY: //primary key
                 fileName = "primary_key_icon.png";
                 break;
+            case FOREIGN_KEY: //primary key
+                fileName = "foreign_key.png";
+                break;
             case MATCHES: //matches in local schema
                 fileName = "match_icon.png";
                 break;
@@ -109,4 +120,24 @@ public class CustomTreeNode extends DefaultMutableTreeNode implements Serializab
         }
         return new ImageIcon(img.getScaledInstance(20,20, 5));
     }
+
+    private String getDatabaseModelFileName(DBModel model){
+        switch (model){
+            case MYSQL:
+                return "mysql_icon.png";
+            case PostgreSQL:
+                return "postgresqlIcon.png";
+            case SQLServer:
+                return "sqlServer_icon.jpg";
+            case Redis:
+                return "redis_icon.png";
+            case Cassandra:
+                return "cassandra_icon.png";
+            case MongoDB:
+                return "mongo_icon.png";
+        }
+        return "database_icon.png";
+    }
+
+
 }
