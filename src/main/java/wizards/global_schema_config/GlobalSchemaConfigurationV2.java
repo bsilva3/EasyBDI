@@ -27,12 +27,7 @@ public class GlobalSchemaConfigurationV2 extends AbstractWizardPage{
     private JTextField searchGlobalField;
     private JButton searchGlobalButton;
     private JButton searchLocalButton;
-    private JLabel globalTableLable;
-    private JTextField globalTableName;
     private JButton addGlobalTableButton;
-    private JLabel globalTableColumn;
-    private JTextField globalColumnName;
-    private JComboBox dataTypeBox;
     private JButton addColumnToSelectedButton;
     private JPanel mainPanel;
     private JLabel globalSchemaLabel;
@@ -41,7 +36,6 @@ public class GlobalSchemaConfigurationV2 extends AbstractWizardPage{
     private JTextField localTableSearchField;
     private JButton resetFilterLocalSchemaBtn;
     private JButton resetFilterGlobalSchemaBtn;
-    private JButton finishBtn;
     private static final String[] DATATYPES = {"varchar", "char", "integer", "tiny int", "big int", "small int", "double", "decimal"};
     private CustomTreeNode selectedNode;
     private DefaultTreeModel globalSchemaModel;
@@ -49,7 +43,6 @@ public class GlobalSchemaConfigurationV2 extends AbstractWizardPage{
 
 
     public GlobalSchemaConfigurationV2(List<DBData> dbs, List<GlobalTableData> globalTables){
-        dataTypeBox.setModel(new DefaultComboBoxModel<String>(DATATYPES));
         helpLabel.setText("<html>Verify the proposed schema matching and Global Schema and make the necessary adjustments. "
                 +"<br/> You can drag and drop columns or tables from the local schema to the global schema to add new items or to create correlations. " +
                 "<br/> You can also add elements to the global schema by right clicking or by using the form on the bottom.</html>");
@@ -58,6 +51,7 @@ public class GlobalSchemaConfigurationV2 extends AbstractWizardPage{
 
         //global schema tree set up
         globalSchemaTree.setEditable(true);
+        globalSchemaTree.addMouseListener(getMouseListener());
         globalSchemaTree.addMouseListener(getMouseListener());
         //globalSchemaModel = setExampleData();
         globalSchemaModel = setGlobalSchemaTree(globalTables);
@@ -77,11 +71,7 @@ public class GlobalSchemaConfigurationV2 extends AbstractWizardPage{
 
         //set button icons
         try {
-            Image img = ImageIO.read(new File(Constants.IMAGES_DIR+"add_table_icon.png"));
-            addGlobalTableButton.setIcon(new ImageIcon(img.getScaledInstance(20, 20, 0)));
-            img = ImageIO.read(new File(Constants.IMAGES_DIR+"add_column_icon.png"));
-            addColumnToSelectedButton.setIcon(new ImageIcon(img.getScaledInstance(20, 20, 0)));
-            img = ImageIO.read(new File(Constants.IMAGES_DIR+"search_icon.png"));
+            Image img = ImageIO.read(new File(Constants.IMAGES_DIR+"search_icon.png"));
             searchGlobalButton.setIcon(new ImageIcon(img.getScaledInstance(20, 20, 0)));
             searchLocalButton.setIcon(new ImageIcon(img.getScaledInstance(20, 20, 0)));
         } catch (Exception ex) {
@@ -126,14 +116,6 @@ public class GlobalSchemaConfigurationV2 extends AbstractWizardPage{
                 globalSchemaTree.setModel(globalSchemaModel);
                 globalSchemaTree.repaint();
                 resetFilterGlobalSchemaBtn.setVisible(false);
-            }
-        });
-
-        finishBtn.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                getGlobalSchemaFromTree();
-                getNextPage();
             }
         });
 
@@ -207,7 +189,7 @@ public class GlobalSchemaConfigurationV2 extends AbstractWizardPage{
         colsForTable4.add(new ColumnData.Builder("product_id", "integer", false).withTable(table4).build());
         colsForTable4.add(new ColumnData.Builder("product_name", "varchar", false).withTable(table4).build());
         colsForTable4.add(new ColumnData.Builder("price", "double", false).withTable(table4).build());
-        colsForTable4.add(new ColumnData.Builder("UnitsInStock", "integer", false).withTable(table4).build());
+        colsForTable4.add(new ColumnData.Builder("unitsInStock", "integer", false).withTable(table4).build());
         table1.setColumnsList(colsForTable1);
         table2.setColumnsList(colsForTable2);
         table3.setColumnsList(colsForTable3);
@@ -277,22 +259,6 @@ public class GlobalSchemaConfigurationV2 extends AbstractWizardPage{
         wizards.global_schema_config.GlobalSchemaConfigurationV2 window = new GlobalSchemaConfigurationV2(GlobalSchemaConfigurationV2.generateLocalSchema(),
                 GlobalSchemaConfigurationV2.generateGlobalSchema());
     }*/
-
-    //search
-    public boolean removeRecursively(Map<String, List<CustomTreeNode>> tree, String id, Set<String> leavesToKeep) {
-        List<CustomTreeNode> children = tree.get(id);
-        if (children == null || children.isEmpty()) {
-            if (!leavesToKeep.contains(id)) {
-                tree.remove(id);
-                return true;
-            } else return false;
-        }
-        children.removeIf(n -> removeRecursively(tree, (String) n.getUserObject(), leavesToKeep));
-        if (children.isEmpty()) {
-            tree.remove(id);
-            return true;
-        } else return false;
-    }
 
     //search filter
     public void searchAndSetFilter(String searchStr, DefaultTreeModel model, boolean isLocalSchema){
@@ -813,6 +779,7 @@ public class GlobalSchemaConfigurationV2 extends AbstractWizardPage{
                             CustomTreeNode dbTableNode = (CustomTreeNode)node.getChildAt(c);
                             for (int z = 0; z < dbTableNode.getChildCount(); z++){
                                 CustomTreeNode columnMatch = (CustomTreeNode)dbTableNode.getChildAt(z);
+
                                 if (columnMatch.getNodeType() == NodeType.COLUMN_MATCHES_TYPE)
                                     continue;
                                 //column
@@ -930,29 +897,85 @@ public class GlobalSchemaConfigurationV2 extends AbstractWizardPage{
             TreePath dest = dl.getPath();
             CustomTreeNode parent =
                     (CustomTreeNode)dest.getLastPathComponent();
+
             System.out.println("droping in: "+parent.getNodeType());
 
             //determine if user can drop in this location. If possible, rearrange the node accordingly (if needed)
             if (node.getNodeType() == NodeType.TABLE && parent.getNodeType() == NodeType.GLOBAL_TABLES){
+                //Drop a table in the list of global tables and make that table become a global table with the matches to that local table
                 //users creates a global table from a local table. Add a node with correspondences and add this local table as match (matches in each column)
                 int nChilds = node.getChildCount();
+                TableData table = (TableData)node.getObj();
+                GlobalTableData gloTab = new GlobalTableData(table.getTableName());
+                CustomTreeNode newNode = new CustomTreeNode(table.getTableName(), gloTab, NodeType.GLOBAL_TABLE);
                 for (int i = 0; i < nChilds; i++){
                     CustomTreeNode col = (CustomTreeNode)node.getChildAt(i);
-                    System.out.println(col.getUserObject().toString());
                     CustomTreeNode matchNode = new CustomTreeNode("Matches", NodeType.MATCHES);
-                    TableData table = (TableData)node.getObj();
-                    GlobalTableData gloTab = new GlobalTableData(table.getTableName());
-                    CustomTreeNode tableMatch = new CustomTreeNode(table.getDB().getDbName()+"."+table.getTableName(), gloTab, NodeType.TABLE_MATCHES);
+                    CustomTreeNode tableMatch = new CustomTreeNode(table.getDB().getDbName()+"."+table.getTableName(), null, NodeType.TABLE_MATCHES);
                     ColumnData column = (ColumnData) col.getObj();
-                    CustomTreeNode colMatch = new CustomTreeNode(column.getName(), column, NodeType.COLUMN_MATCHES);
+                    GlobalColumnData globalCol = new GlobalColumnData(column.getName(), column.getDataType(), column.isPrimaryKey(), column);
+                    //new global column node
+                    CustomTreeNode globalColNode = new CustomTreeNode(column.getName(), globalCol, NodeType.GLOBAL_COLUMN);
+                    CustomTreeNode colMatch = new CustomTreeNode(globalCol.getName(), globalCol, NodeType.COLUMN_MATCHES);
                     tableMatch.add(colMatch);
                     matchNode.add(tableMatch);
-                    col.add(matchNode);
+                    globalColNode.add(matchNode);
+                    newNode.add(globalColNode);
                 }
+                node = newNode;
             }
-            else if (node.getNodeType() == NodeType.COLUMN && parent.getNodeType() == NodeType.MATCHES){
+            else if (node.getNodeType() == NodeType.COLUMN && (parent.getNodeType() == NodeType.MATCHES || parent.getNodeType() == NodeType.GLOBAL_COLUMN)){
+                //drop a column in the matches of a global column
+                ColumnData localCol = (ColumnData)node.getObj();
+                CustomTreeNode dbTableLocalNode = new CustomTreeNode(localCol.getTable().getDB().getDbName()+"."+localCol.getTable().getTableName(), null, NodeType.TABLE_MATCHES);
+                dbTableLocalNode.add(new CustomTreeNode(localCol.getName(), localCol, NodeType.COLUMN_MATCHES));
+                dbTableLocalNode.add(new CustomTreeNode("Mapping Type: "+MappingType.Simple, MappingType.Simple, NodeType.COLUMN_MATCHES_TYPE));
+
+                CustomTreeNode matchesNode = null;
+                if (parent.getNodeType() == NodeType.GLOBAL_COLUMN) {
+                    //droped on the global col. search for a matches node
+                    int nChilds = parent.getChildCount();
+                    for (int i = 0; i < nChilds; i++){
+                        CustomTreeNode nodeChild = (CustomTreeNode)parent.getChildAt(i);
+                        if (nodeChild.getUserObject().toString().equalsIgnoreCase("Matches")) {
+                            matchesNode = nodeChild;
+                            break;
+                        }
+                    }
+                    if (matchesNode == null){
+                        //create a Matches node
+                        matchesNode = new CustomTreeNode("Matches", null, NodeType.MATCHES);
+                    }
+                    matchesNode.add(dbTableLocalNode);
+                    node = matchesNode;
+                }
+                else{
+                    //dropped on matches node
+                    //simply add db.tableName node on matches
+                    node = dbTableLocalNode;
+                }
 
             }
+            else if (node.getNodeType() == NodeType.COLUMN && parent.getNodeType() == NodeType.GLOBAL_TABLE){
+                //drop a column in a global table and make it a global column with the matches
+                ColumnData localCol = (ColumnData)node.getObj();
+                GlobalColumnData globalCol = new GlobalColumnData(localCol);
+                CustomTreeNode newNode = new CustomTreeNode(globalCol.getName(), globalCol, NodeType.GLOBAL_COLUMN);
+                //add data type node
+                newNode.add(new CustomTreeNode(globalCol.getDataType(), null, NodeType.COLUMN_INFO));
+                if (globalCol.isPrimaryKey())
+                    newNode.add(new CustomTreeNode("Primary Key", null, NodeType.PRIMARY_KEY));
+                //add matches node and the local col
+                CustomTreeNode matches = new CustomTreeNode("Matches", null, NodeType.MATCHES);
+                CustomTreeNode dbTableLocalNode = new CustomTreeNode(localCol.getTable().getDB().getDbName()+"."+localCol.getTable().getTableName(), null, NodeType.TABLE_MATCHES);
+                dbTableLocalNode.add(new CustomTreeNode(localCol.getName(), localCol, NodeType.COLUMN_MATCHES));
+                dbTableLocalNode.add(new CustomTreeNode("Mapping Type: "+MappingType.Simple, MappingType.Simple, NodeType.COLUMN_MATCHES_TYPE));
+                matches.add(dbTableLocalNode);
+                newNode.add(matches);
+                node = newNode;
+            }
+            else
+                return false;
             JTree tree = (JTree)support.getComponent();
             DefaultTreeModel model = (DefaultTreeModel)tree.getModel();
             // Configure for drop mode.
@@ -962,15 +985,6 @@ public class GlobalSchemaConfigurationV2 extends AbstractWizardPage{
             }
             model.insertNodeInto(node, parent, index);
             return true;
-        }
-
-        public void canDrop(NodeType draggedNodeType, NodeType dropNodeType){
-            if (draggedNodeType == NodeType.TABLE && dropNodeType == NodeType.GLOBAL_TABLES){
-
-            }
-            else if (draggedNodeType == NodeType.COLUMN && dropNodeType == NodeType.MATCHES){
-
-            }
         }
 
         public String toString() {

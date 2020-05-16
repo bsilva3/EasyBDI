@@ -1,8 +1,8 @@
 import helper_classes.DBData;
 import prestoComm.DBModel;
-import se.gustavkarlsson.gwiz.AbstractWizardPage;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
@@ -18,17 +18,23 @@ public class DatabaseConnectionWizardV2 extends JFrame {
     private JTextField userText;
     private JPasswordField passText;
     private JButton addDatabaseButton;
-    private JButton removeDatabase;
+    private JButton removeDatabaseBtn;
     private JPanel formPanel;
+    private JLabel credentialsTxt;
+    private JButton testSelectedDBConnectionButton;
     private List<DBData> dbList;
+    private List<Boolean> dbConnectionTested;
     private DefaultListModel<String> listModel;
 
     public DatabaseConnectionWizardV2(){
         //this.setTitle("Database Configuration");
+        credentialsTxt.setFont(new Font("", Font.PLAIN, 12));
+
         databaseModelSelect.setModel(new DefaultComboBoxModel<DBModel>(DBModel.values()));
         listModel = new DefaultListModel<>();
         databaseList.setModel(listModel);
         dbList = new ArrayList<>();
+        dbConnectionTested = new ArrayList<>();
         setContentPane(mainPanel);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         pack();
@@ -41,6 +47,24 @@ public class DatabaseConnectionWizardV2 extends JFrame {
                 addDatabase(nameText.getText(), (DBModel) databaseModelSelect.getSelectedItem(), urlText.getText(), userText.getText(), passText.getPassword().toString());
             }
         });
+
+        removeDatabaseBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                removeDatabase(databaseList.getSelectedIndex());
+            }
+        });
+
+        testSelectedDBConnectionButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int index = databaseList.getSelectedIndex();
+                boolean connected = testConnection(index);
+                if (connected)
+                    dbConnectionTested.set(index, true);
+
+            }
+        });
     }
 
     private void addDatabase(String name, DBModel model, String url, String user, String pass){
@@ -49,6 +73,17 @@ public class DatabaseConnectionWizardV2 extends JFrame {
         dbList.add(db);
         listModel.addElement(s);
         databaseList.updateUI();
+    }
+
+    private void removeDatabase(int index){
+        dbList.remove(index);
+        listModel.remove(index);
+        databaseList.updateUI();
+    }
+
+    private boolean testConnection(int index){
+        dbList.get(index);
+        return false;//TODO: finish
     }
 
 

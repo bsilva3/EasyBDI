@@ -11,8 +11,8 @@ import java.util.List;
 public class CubeConfiguration extends AbstractWizardPage{
         //extends JFrame{
     private List<GlobalTableData> globalTables;
-    private int selectedDimTable;
-    private int[] selectedFactsTables;
+    private int selectedFactsTable;
+    private int[] selectedDimsTables;
     private JComboBox dimensionTableComboBox;
     private JLabel stepLabel;
     private JLabel helpLabel;
@@ -22,7 +22,7 @@ public class CubeConfiguration extends AbstractWizardPage{
 
     public CubeConfiguration (List<GlobalTableData> globalTables){
         this.globalTables = globalTables;
-
+        "gfjg".compareTo("");
         helpLabel.setText("<html>Create a star schema from the previously created Global Schema. "
                 +"<br/> Select dimensions, facts and measurements.</html>");
         stepLabel.setText("Step 3/4");
@@ -33,12 +33,12 @@ public class CubeConfiguration extends AbstractWizardPage{
             tableNames[i] = globalTables.get(i).getTableName();
         dimensionTableComboBox.setModel(new DefaultComboBoxModel(tableNames));
         dimensionTableComboBox.setSelectedIndex(0);
-        selectedDimTable = 0;
+        selectedFactsTable = 0;
         setFactsCheckBox();
 
         dimensionTableComboBox.addActionListener (new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                selectedDimTable = dimensionTableComboBox.getSelectedIndex();
+                selectedFactsTable = dimensionTableComboBox.getSelectedIndex();
                 setFactsCheckBox();
             }
         });
@@ -47,11 +47,16 @@ public class CubeConfiguration extends AbstractWizardPage{
     }
 
     public void setFactsCheckBox(){
+        factsPanel.removeAll();
         factsPanel.setLayout(new BoxLayout(factsPanel, BoxLayout.PAGE_AXIS));
         for (int i = 0; i < globalTables.size(); i++){
+            if (i == selectedFactsTable)
+                continue;
             JCheckBox checkBox = new JCheckBox(globalTables.get(i).getTableName());
             factsPanel.add(checkBox);
         }
+        factsPanel.revalidate();
+        factsPanel.repaint();
     }
 
     //for g-wizard

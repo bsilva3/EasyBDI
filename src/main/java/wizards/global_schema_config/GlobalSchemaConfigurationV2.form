@@ -119,49 +119,6 @@
           <caretWidth class="java.lang.Integer" value="1"/>
         </clientProperties>
       </component>
-      <component id="20632" class="javax.swing.JLabel" binding="globalTableLable">
-        <constraints>
-          <grid row="5" column="0" row-span="1" col-span="1" vsize-policy="4" hsize-policy="0" anchor="6" fill="0" indent="0" use-parent-layout="false"/>
-          <gridbag top="0" left="0" bottom="10" right="10" weightx="0.5" weighty="1.0"/>
-        </constraints>
-        <properties>
-          <labelFor value="32bd3"/>
-          <text value="Global Table Name"/>
-        </properties>
-      </component>
-      <component id="9d961" class="javax.swing.JTextField" binding="globalTableName">
-        <constraints>
-          <grid row="5" column="1" row-span="1" col-span="1" vsize-policy="4" hsize-policy="6" anchor="2" fill="1" indent="0" use-parent-layout="false">
-            <preferred-size width="150" height="-1"/>
-          </grid>
-          <gridbag top="0" left="10" bottom="10" right="10" weightx="1.0" weighty="1.0"/>
-        </constraints>
-        <properties>
-          <text value=""/>
-          <toolTipText value="Global Table Name"/>
-        </properties>
-      </component>
-      <component id="e3cd0" class="javax.swing.JLabel" binding="globalTableColumn">
-        <constraints>
-          <grid row="6" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="5" fill="0" indent="0" use-parent-layout="false"/>
-          <gridbag weightx="1.0" weighty="1.0"/>
-        </constraints>
-        <properties>
-          <text value="Global Column Name"/>
-        </properties>
-      </component>
-      <component id="97a8" class="javax.swing.JTextField" binding="globalColumnName">
-        <constraints>
-          <grid row="6" column="1" row-span="1" col-span="1" vsize-policy="4" hsize-policy="2" anchor="1" fill="1" indent="0" use-parent-layout="false">
-            <preferred-size width="150" height="-1"/>
-          </grid>
-          <gridbag top="0" left="10" bottom="0" right="10" weightx="1.0" weighty="1.0"/>
-        </constraints>
-        <properties>
-          <text value=""/>
-          <toolTipText value="Column Name"/>
-        </properties>
-      </component>
       <component id="dc59f" class="javax.swing.JLabel">
         <constraints>
           <grid row="2" column="4" row-span="1" col-span="5" vsize-policy="0" hsize-policy="0" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
@@ -204,40 +161,6 @@
           <text value="Global Schema Configuration"/>
         </properties>
       </component>
-      <component id="46b57" class="javax.swing.JButton" binding="addGlobalTableButton" default-binding="true">
-        <constraints>
-          <grid row="5" column="2" row-span="1" col-span="3" vsize-policy="4" hsize-policy="3" anchor="10" fill="0" indent="0" use-parent-layout="false"/>
-          <gridbag top="0" left="10" bottom="10" right="0" weightx="1.0" weighty="1.0"/>
-        </constraints>
-        <properties>
-          <alignmentX value="0.5"/>
-          <preferredSize width="78" height="25"/>
-          <text value=""/>
-          <toolTipText value="Add Global Table"/>
-        </properties>
-      </component>
-      <component id="bd2e2" class="javax.swing.JComboBox" binding="dataTypeBox">
-        <constraints>
-          <grid row="6" column="2" row-span="1" col-span="2" vsize-policy="4" hsize-policy="2" anchor="1" fill="1" indent="0" use-parent-layout="false"/>
-          <gridbag top="0" left="10" bottom="0" right="10" weightx="0.1" weighty="1.0"/>
-        </constraints>
-        <properties>
-          <alignmentX value="0.1"/>
-          <toolTipText value="DataType"/>
-        </properties>
-      </component>
-      <component id="a545a" class="javax.swing.JButton" binding="addColumnToSelectedButton" default-binding="true">
-        <constraints>
-          <grid row="6" column="4" row-span="1" col-span="2" vsize-policy="4" hsize-policy="3" anchor="9" fill="0" indent="0" use-parent-layout="false"/>
-          <gridbag weightx="1.0" weighty="1.0"/>
-        </constraints>
-        <properties>
-          <horizontalAlignment value="0"/>
-          <preferredSize width="78" height="25"/>
-          <text value=""/>
-          <toolTipText value="Add Global Column to Selected Global Table"/>
-        </properties>
-      </component>
       <component id="93780" class="javax.swing.JButton" binding="resetFilterLocalSchemaBtn">
         <constraints>
           <grid row="3" column="8" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="10" fill="0" indent="0" use-parent-layout="false"/>
@@ -270,15 +193,6 @@
         <properties>
           <preferredSize width="78" height="25"/>
           <text value="Reset Search"/>
-        </properties>
-      </component>
-      <component id="bcade" class="javax.swing.JButton" binding="finishBtn">
-        <constraints>
-          <grid row="6" column="7" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
-          <gridbag weightx="1.0" weighty="1.0"/>
-        </constraints>
-        <properties>
-          <text value="Finish"/>
         </properties>
       </component>
     </children>

@@ -146,6 +146,17 @@ public class PrestoMediator {
         }
     }
 
+    /**
+     * Given a database, add config file and check to see if presto can connect to it
+     * @param db
+     * @return
+     */
+    public boolean testDBConnection(DBData db){
+        createDBFileProperties(db);
+        showRestartPrompt();
+        return this.createConnection(); //TODO: finish
+    }
+
     //returns a string with the proper config text for the .properties file for a specific DB
     private String writeDBTypePropertiesFile(DBData dbData){
         String config = "";
