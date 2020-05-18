@@ -472,4 +472,8 @@ public class PrestoMediator {
         }
     }
 
+    public void getLocalTablesQueries(List<TableData> localTables){
+
+    }
+
 }

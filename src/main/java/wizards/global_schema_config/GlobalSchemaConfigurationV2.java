@@ -20,8 +20,7 @@ import java.lang.reflect.Array;
 import java.util.*;
 import java.util.List;
 
-public class GlobalSchemaConfigurationV2 extends AbstractWizardPage{
-    //extends JFrame {
+public class GlobalSchemaConfigurationV2 extends JPanel {
     private JTree globalSchemaTree;
     private JTree localSchemaTree;
     private JTextField searchGlobalField;
@@ -133,7 +132,7 @@ public class GlobalSchemaConfigurationV2 extends AbstractWizardPage{
 
 
      //for g-wizard
-    @Override
+    /*@Override
     protected AbstractWizardPage getNextPage() {
         return new CubeConfiguration(this.getGlobalSchemaFromTree());
         //return null;
@@ -157,7 +156,7 @@ public class GlobalSchemaConfigurationV2 extends AbstractWizardPage{
     @Override
     protected boolean isFinishAllowed() {
         return false;
-    }
+    }*/
 
     public static List<DBData> generateLocalSchema(){
         java.util.List<DBData> dbs = new ArrayList<>();
@@ -919,6 +918,7 @@ public class GlobalSchemaConfigurationV2 extends AbstractWizardPage{
                     CustomTreeNode colMatch = new CustomTreeNode(globalCol.getName(), globalCol, NodeType.COLUMN_MATCHES);
                     tableMatch.add(colMatch);
                     matchNode.add(tableMatch);
+                    globalColNode.add(new CustomTreeNode(globalCol.getDataType(), null, NodeType.COLUMN_INFO));//datatype in global column
                     globalColNode.add(matchNode);
                     newNode.add(globalColNode);
                 }
@@ -933,7 +933,7 @@ public class GlobalSchemaConfigurationV2 extends AbstractWizardPage{
 
                 CustomTreeNode matchesNode = null;
                 if (parent.getNodeType() == NodeType.GLOBAL_COLUMN) {
-                    //droped on the global col. search for a matches node
+                    //dropped on the global col. search for a matches node
                     int nChilds = parent.getChildCount();
                     for (int i = 0; i < nChilds; i++){
                         CustomTreeNode nodeChild = (CustomTreeNode)parent.getChildAt(i);

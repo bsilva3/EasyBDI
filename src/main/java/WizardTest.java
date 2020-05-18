@@ -25,7 +25,7 @@ public class WizardTest {
         JFrameWizard wizard = new JFrameWizard("Configuration Wizard");
 
         // Create the first page of the wizard
-       AbstractWizardPage demoStartPage = new GlobalSchemaConfigurationV2();
+       /*AbstractWizardPage demoStartPage = new GlobalSchemaConfigurationV2();
 
         // Create the controller for wizard
         WizardController wizardController = new WizardController(wizard);
@@ -33,6 +33,6 @@ public class WizardTest {
         // Start the wizard and show it
         wizard.setResizable(true);
         wizard.setVisible(true);
-        wizardController.startWizard(demoStartPage);
+        wizardController.startWizard(demoStartPage);*/
     }
 }

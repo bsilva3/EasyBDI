@@ -1,3 +1,5 @@
+package wizards.DBConfig;
+
 import helper_classes.DBData;
 import prestoComm.DBModel;
 

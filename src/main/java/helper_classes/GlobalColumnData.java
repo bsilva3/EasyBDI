@@ -38,6 +38,21 @@ public class GlobalColumnData implements Serializable {
         this.localColumns.add(column);
     }
 
+    public boolean isNumeric(){
+        String[] numericDatatypes = {"integer", "bigint", "smallint", "tinyint", "double", "real"};
+        for (String datatype : numericDatatypes){
+            if (this.getDataType().equalsIgnoreCase(datatype))
+                return true;
+        }
+        return false;
+    }
+
+    public boolean isForeignKey(){
+        if (this.foreignKey == null || this.foreignKey.isEmpty())
+            return true;
+        return false;
+    }
+
     public int getColumnID() {
         return columnID;
     }
