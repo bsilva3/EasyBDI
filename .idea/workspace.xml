@@ -2,19 +2,13 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="4372070e-ade1-4e3a-bab8-4e40966e7856" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/java/helper_classes/FactsTable.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/helper_classes/StarSchema.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/prestoComm/MainWizardFrame.form" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/prestoComm/MainWizardFrame.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/DatabaseConnectionWizardV2.form" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/wizards/DBConfig/DatabaseConnectionWizardV2.form" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/DatabaseConnectionWizardV2.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/wizards/DBConfig/DatabaseConnectionWizardV2.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/QueryMaker.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/QueryMaker.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/WizardTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/WizardTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/helper_classes/CubeConfiguration.form" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/helper_classes/CubeConfiguration.form" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/WizardTest.java" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/helper_classes/CubeConfiguration.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/helper_classes/CubeConfiguration.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/helper_classes/GlobalColumnData.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/helper_classes/GlobalColumnData.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/prestoComm/PrestoMediator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/prestoComm/PrestoMediator.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/prestoComm/Constants.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/prestoComm/Constants.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/prestoComm/MainWizardFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/prestoComm/MainWizardFrame.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/prestoComm/MetaDataManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/prestoComm/MetaDataManager.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/wizards/global_schema_config/GlobalSchemaConfigurationV2.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/wizards/global_schema_config/GlobalSchemaConfigurationV2.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -291,7 +285,14 @@
       <option name="project" value="LOCAL" />
       <updated>1589644384743</updated>
     </task>
-    <option name="localTasksCounter" value="21" />
+    <task id="LOCAL-00021" summary="multidimensional ui and logic advancements. Wizard Logic enhancements and bug fixes.">
+      <created>1589820045843</created>
+      <option name="number" value="00021" />
+      <option name="presentableId" value="LOCAL-00021" />
+      <option name="project" value="LOCAL" />
+      <updated>1589820045843</updated>
+    </task>
+    <option name="localTasksCounter" value="22" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -311,7 +312,8 @@
     <MESSAGE value="correction for partiotioning detection" />
     <MESSAGE value="fixes and implementation of node search" />
     <MESSAGE value="fixes of global schema and multidimensional schema interface.&#10;Implmentation of drop local table on global col to create match or drop local table on global table to create new global col." />
-    <option name="LAST_COMMIT_MESSAGE" value="fixes of global schema and multidimensional schema interface.&#10;Implmentation of drop local table on global col to create match or drop local table on global table to create new global col." />
+    <MESSAGE value="multidimensional ui and logic advancements. Wizard Logic enhancements and bug fixes." />
+    <option name="LAST_COMMIT_MESSAGE" value="multidimensional ui and logic advancements. Wizard Logic enhancements and bug fixes." />
   </component>
   <component name="WindowStateProjectService">
     <state x="552" y="178" key="#Inspections" timestamp="1587567330579">
@@ -374,10 +376,10 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="1021" y="169" key="#xdebugger.evaluate/0.0.1920.1040@0.0.1920.1040" timestamp="1589235079614" />
-    <state x="607" y="116" width="747" height="803" key="CommitChangelistDialog2" timestamp="1589644383828">
+    <state x="607" y="116" width="747" height="803" key="CommitChangelistDialog2" timestamp="1589820045113">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="607" y="116" width="747" height="803" key="CommitChangelistDialog2/0.0.1920.1040@0.0.1920.1040" timestamp="1589644383828" />
+    <state x="607" y="116" width="747" height="803" key="CommitChangelistDialog2/0.0.1920.1040@0.0.1920.1040" timestamp="1589820045113" />
     <state width="1877" height="226" key="GridCell.Tab.0.bottom" timestamp="1589734342103">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -422,14 +424,14 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="498" height="446" key="SwitcherDM/0.0.1920.1040@0.0.1920.1040" timestamp="1589375493854" />
-    <state x="555" y="255" width="800" height="526" key="Vcs.Push.Dialog.v2" timestamp="1589644386466">
+    <state x="555" y="255" width="800" height="526" key="Vcs.Push.Dialog.v2" timestamp="1589820047251">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="555" y="255" width="800" height="526" key="Vcs.Push.Dialog.v2/0.0.1920.1040@0.0.1920.1040" timestamp="1589644386466" />
-    <state x="653" y="346" key="com.intellij.ide.util.TipDialog" timestamp="1589797356498">
+    <state x="555" y="255" width="800" height="526" key="Vcs.Push.Dialog.v2/0.0.1920.1040@0.0.1920.1040" timestamp="1589820047251" />
+    <state x="653" y="346" key="com.intellij.ide.util.TipDialog" timestamp="1589906045628">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="653" y="346" key="com.intellij.ide.util.TipDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1589797356498" />
+    <state x="653" y="346" key="com.intellij.ide.util.TipDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1589906045628" />
     <state x="730" y="181" width="449" height="673" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser" timestamp="1581590826176">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -480,7 +482,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-method">
           <url>file://$PROJECT_DIR$/src/main/java/wizards/global_schema_config/GlobalSchemaConfigurationV2.java</url>
-          <line>321</line>
+          <line>317</line>
           <properties class="wizards.global_schema_config.GlobalSchemaConfigurationV2" method="restoreExpandedState">
             <option name="EMULATED" value="true" />
           </properties>
@@ -488,7 +490,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-method">
           <url>file://$PROJECT_DIR$/src/main/java/wizards/global_schema_config/GlobalSchemaConfigurationV2.java</url>
-          <line>297</line>
+          <line>293</line>
           <properties class="wizards.global_schema_config.GlobalSchemaConfigurationV2" method="createFilteredTree">
             <option name="EMULATED" value="true" />
           </properties>
@@ -496,7 +498,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-method">
           <url>file://$PROJECT_DIR$/src/main/java/prestoComm/MainWizardFrame.java</url>
-          <line>73</line>
+          <line>78</line>
           <properties class="prestoComm.MainWizardFrame" method="nextWindow">
             <option name="EMULATED" value="true" />
           </properties>
@@ -519,22 +521,22 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/wizards/global_schema_config/GlobalSchemaConfigurationV2.java</url>
-          <line>422</line>
+          <line>418</line>
           <option name="timeStamp" value="94" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/wizards/global_schema_config/GlobalSchemaConfigurationV2.java</url>
-          <line>926</line>
+          <line>922</line>
           <option name="timeStamp" value="127" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/wizards/global_schema_config/GlobalSchemaConfigurationV2.java</url>
-          <line>937</line>
+          <line>933</line>
           <option name="timeStamp" value="130" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/prestoComm/MainWizardFrame.java</url>
-          <line>104</line>
+          <line>109</line>
           <option name="timeStamp" value="131" />
         </line-breakpoint>
       </breakpoints>

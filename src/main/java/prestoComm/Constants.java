@@ -88,6 +88,8 @@ public class Constants {
     //contains cube id and global table id
     public static final String MULTIDIM_TABLE_TYPE = "multidimensional_type";
     public static final String MULTIDIM_TABLE_ID = "multidim_table_id";
+    public static final String MULTIDIM_TABLE_ISFACTS = "isFacts";
+    public static final String MULTIDIM_TABLE_CUBE_ID = "cube_id";
 
     //multidimensional column
     public static final String MULTIDIM_COLUMN = "multidimensional_column";

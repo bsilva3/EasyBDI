@@ -34,6 +34,11 @@ public class MainWizardFrame extends JFrame{
     private PrestoMediator prestoMediator;
     private MetaDataManager metaDataManager;
 
+    //data
+    private List<DBData> dbs;
+    private List<GlobalTableData> globalSchema;
+    private StarSchema starSchema;
+
     public MainWizardFrame (){
         prestoMediator = new PrestoMediator();
         metaDataManager = new MetaDataManager();
@@ -113,7 +118,11 @@ public class MainWizardFrame extends JFrame{
     }
 
     private void finnish(){
-
+        if (this.globalSchema == null)
+            return ; //TODO: handle error
+        metaDataManager.insertGlobalSchemaData(globalSchema);
+        StarSchema starSchema = cubeConfigWizzard.getMultiDimSchema();
+        metaDataManager.insertStarSchema(starSchema);
     }
 
     public void setLastWindow(){
@@ -136,7 +145,7 @@ public class MainWizardFrame extends JFrame{
 
     private void handleCubeConfig(){
         // receive global schema from global schema config window
-        List<GlobalTableData> globalSchema = globalSchemaConfigWizzard.getGlobalSchemaFromTree();
+        this.globalSchema = globalSchemaConfigWizzard.getGlobalSchemaFromTree();
         cubeConfigWizzard = new CubeConfiguration(globalSchema);
         addToMainPanel(globalSchemaConfigWizzard, cubeConfigWizzard);
     }

@@ -1,7 +1,5 @@
 package helper_classes;
 
-import se.gustavkarlsson.gwiz.AbstractWizardPage;
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -41,6 +39,7 @@ public class CubeConfiguration extends JPanel{
         selectedFactsTable = 0;
         measuresCheckBoxes = new HashMap<>();
         factsColumns = new HashMap<>();
+        dimsCheckBoxes = new HashMap<>();
         setFactsCheckBox();
         setMeasuresCheckBox();
 
@@ -55,7 +54,7 @@ public class CubeConfiguration extends JPanel{
         this.setVisible(true);
     }
 
-    public void setFactsCheckBox(){
+    private void setFactsCheckBox(){
         factsPanel.removeAll();
         factsPanel.setLayout(new BoxLayout(factsPanel, BoxLayout.PAGE_AXIS));
         dimsCheckBoxes.clear();
@@ -70,7 +69,7 @@ public class CubeConfiguration extends JPanel{
         factsPanel.repaint();
     }
 
-    public void setMeasuresCheckBox(){
+    private void setMeasuresCheckBox(){
         measurementsPanel.removeAll();
         measurementsPanel.setLayout(new BoxLayout(measurementsPanel, BoxLayout.PAGE_AXIS));
         GlobalTableData gtFacts = globalTables.get(selectedFactsTable);
@@ -89,7 +88,7 @@ public class CubeConfiguration extends JPanel{
         measurementsPanel.repaint();
     }
 
-    public List<GlobalTableData> getDimensionTables(){
+    private List<GlobalTableData> getDimensionTables(){
         List<GlobalTableData> dimsTablesList = new ArrayList<>();
         for (Map.Entry<Integer, JCheckBox> entry : dimsCheckBoxes.entrySet()) {
             Integer index = entry.getKey();
@@ -105,7 +104,7 @@ public class CubeConfiguration extends JPanel{
      * its respective CheckBox.
      * @return
      */
-    public Map<GlobalColumnData, Boolean> getFactsColumns(){
+    private Map<GlobalColumnData, Boolean> getFactsColumns(){
         Map<GlobalColumnData, Boolean> factsCols = new HashMap<>();
         List<GlobalColumnData> globalCols = globalTables.get(selectedFactsTable).getGlobalColumnData();
         //iterate all cols
@@ -121,6 +120,7 @@ public class CubeConfiguration extends JPanel{
     }
 
     public StarSchema getMultiDimSchema(){
+        //TODO ensure cube  nanme does not exist already
         List<GlobalTableData> dimTables = getDimensionTables();
         if(!this.cubeNameField.getText().isEmpty() && this.selectedFactsTable > -1 && dimTables.size() > 0){
             FactsTable factsTable = new FactsTable(globalTables.get(selectedFactsTable), getFactsColumns());
@@ -133,31 +133,4 @@ public class CubeConfiguration extends JPanel{
                 JOptionPane.WARNING_MESSAGE);
         return null;
     }
-
-    //for g-wizard
-    /*@Override
-    protected AbstractWizardPage getNextPage() {
-        //return new CubeConfiguration(this.getGlobalSchemaFromTree());
-        return null;
-    }
-
-    @Override
-    protected boolean isCancelAllowed() {
-        return true;
-    }
-
-    @Override
-    protected boolean isPreviousAllowed() {
-        return true;
-    }
-
-    @Override
-    protected boolean isNextAllowed() {
-        return true;
-    }
-
-    @Override
-    protected boolean isFinishAllowed() {
-        return false;
-    }*/
 }

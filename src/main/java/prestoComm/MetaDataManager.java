@@ -111,13 +111,14 @@ public class MetaDataManager {
 
         String sql8 = "CREATE TABLE IF NOT EXISTS "+ CUBE_TABLE +" (\n"
                 + "    "+ CUBE_ID_FIELD +" integer PRIMARY KEY,\n"
-                + "    "+ CUBE_NAME +" text,\n"
+                + "    "+ CUBE_NAME +" text UNIQUE,\n"
                 + "    "+ CUBE_TYPE_FIELD +" text ); ";
 
         String sql9 = "CREATE TABLE IF NOT EXISTS "+ MULTIDIM_TABLE +" (\n"
                 + "    "+ MULTIDIM_TABLE_ID +" integer PRIMARY KEY,\n"
                 + "    "+ MULTIDIM_TABLE_TYPE +" text ,\n"
                 + "    "+ CUBE_ID_FIELD +" integer,\n"
+                + "    "+ MULTIDIM_TABLE_ISFACTS +" boolean,\n"
                 + "    "+ GLOBAL_TABLE_DATA_ID_FIELD +" integer, \n"
                 + "    FOREIGN KEY ("+ CUBE_ID_FIELD +") REFERENCES "+CUBE_TABLE+"("+CUBE_ID_FIELD+"), "
                 + "    FOREIGN KEY ("+ GLOBAL_TABLE_DATA_ID_FIELD +") REFERENCES "+GLOBAL_COLUMN_DATA+"("+GLOBAL_COLUMN_DATA_ID_FIELD+")); ";
@@ -524,25 +525,35 @@ public class MetaDataManager {
     }
 
     public void insertGlobalSchemaData(List<GlobalTableData> globalTables){
-        Map<Integer, List<GlobalColumnData>> columnsFromTables = insertGlobalTable(globalTables); //insert the global tables
+        /*Map<Integer, List<GlobalColumnData>> columnsFromTables = insertGlobalTable(globalTables); //insert the global tables
         Map<Integer, List<Integer>> correspondences = insertGlobalColumn(columnsFromTables); //for each global table (identified by id) insert global columns
-        insertGlobalToLocalCorrespondences(correspondences);//
+        insertGlobalToLocalCorrespondences(correspondences);//*/
+        globalTables = insertGlobalTable(globalTables); //insert the global tables
+        for (int i = 0; i < globalTables.size(); i++){
+            GlobalTableData gt = insertGlobalColumn(globalTables.get(i)); //for each global table (identified by id) insert global columns
+            globalTables.set(i, gt);//update global table with the
+            insertGlobalToLocalCorrespondences(gt);//
+        }
     }
 
-    private Map<Integer, List<GlobalColumnData>> insertGlobalTable(List<GlobalTableData> globalTables){
+    /**
+     * Inserts in the sqlite database the global tables. Returns a map with the id of the inserted tables and their respective global columns
+     * @param globalTables
+     * @return
+     */
+    private List<GlobalTableData> insertGlobalTable(List<GlobalTableData> globalTables){
         String sql = "INSERT INTO "+ GLOBAL_TABLE_DATA + "("+GLOBAL_TABLE_DATA_NAME_FIELD+") VALUES(?)";
-        Map<Integer, List<GlobalColumnData>> tableColumns = new HashMap<>();
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             for (int i = 0; i < globalTables.size() ; i++){
                 GlobalTableData globalTableData = globalTables.get(i);
                 pstmt.setString(1, globalTableData.getTableName());
                 //get id of inserted global table
-                //get if of inserted global table
                 ResultSet rs = pstmt.getGeneratedKeys();
                 if(rs.next())
                 {
                     int lastInsertedId = rs.getInt(1);
-                    tableColumns.put(lastInsertedId, globalTableData.getGlobalColumnData());
+                    globalTableData.setId(lastInsertedId);
+                    globalTables.set(i, globalTableData);
                 }
             }
             pstmt.executeUpdate();
@@ -550,56 +561,57 @@ public class MetaDataManager {
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
-        return tableColumns;
+        return globalTables;
     }
 
-    private Map<Integer, List<Integer>> insertGlobalColumn(Map<Integer, List<GlobalColumnData>> tableColumns){
+    /**
+     * Inserts the global columns of global tables
+     * @param gt
+     * @return
+     */
+    private GlobalTableData insertGlobalColumn(GlobalTableData gt){
         String sql = "INSERT INTO "+ GLOBAL_COLUMN_DATA + "("+GLOBAL_TABLE_DATA_ID_FIELD+", "+GLOBAL_COLUMN_DATA_NAME_FIELD+
                 ", "+GLOBAL_COLUMN_DATA_TYPE_FIELD+", "+GLOBAL_COLUMN_DATA_PRIMARY_KEY_FIELD+") VALUES(?,?,?,?)";
-        Map<Integer, List<Integer>> columnCorrespondences = new HashMap<>(); //correspondences betwwen local and global columns
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             // Iterate through a list of previously inserted global tables and insert, for each table id, the list of its global columns
-            for (Map.Entry<Integer, List<GlobalColumnData>> entry : tableColumns.entrySet()) {
-                int globalTableID = entry.getKey();
-                List<GlobalColumnData> globalColumns = entry.getValue();
-                for (GlobalColumnData column : globalColumns){
-                    pstmt.setInt(1, globalTableID);
+                List<GlobalColumnData> globalColumns = gt.getGlobalColumnData();
+                //insert a global column
+                for (int i = 0; i < globalColumns.size(); i++){
+                    GlobalColumnData column = globalColumns.get(i);
+                    pstmt.setInt(1, gt.getId());
                     pstmt.setString(2, column.getName());
                     pstmt.setString(3, column.getDataType());
                     pstmt.setBoolean(4, column.isPrimaryKey());
                     pstmt.executeUpdate();
-                    //get if of inserted global table
+                    //get id of inserted global column
                     ResultSet rs = pstmt.getGeneratedKeys();
                     if(rs.next())
                     {
                         int lastInsertedId = rs.getInt(1);
-                        List<Integer> localColIDs = new ArrayList<>();
-                        for (ColumnData localCol : column.getLocalColumns()){
-                            localColIDs.add(localCol.getColumnID());
-                        }
-                        columnCorrespondences.put(lastInsertedId, localColIDs);
+                        column.setColumnID(lastInsertedId);
+                        globalColumns.set(i, column);
                     }
                 }
-            }
+            gt.setGlobalColumnData(globalColumns);
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
-        return columnCorrespondences;
+        return gt;
     }
 
-    private void insertGlobalToLocalCorrespondences(Map<Integer, List<Integer>> correspondences){
-        String sql = "INSERT INTO "+ CORRESPONDENCES_DATA + "("+CORRESPONDENCES_GLOBAL_COL_FIELD+", "+CORRESPONDENCES_LOCAL_COL_FIELD+") VALUES(?,?)";
+    private void insertGlobalToLocalCorrespondences(GlobalTableData globalTable){
+        String sql = "INSERT INTO "+ CORRESPONDENCES_DATA + "("+CORRESPONDENCES_GLOBAL_COL_FIELD+", "+
+                CORRESPONDENCES_LOCAL_COL_FIELD+ ", " + CORRESPONDENCES_TYPE_FIELD+") VALUES(?,?,?)";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             // Iterate through a list of previously inserted global tables and insert, for each table id, the list of its global columns
-            for (Map.Entry<Integer, List<Integer>> entry : correspondences.entrySet()) {
-                int globalColumnID = entry.getKey();
-                List<Integer> localColumnIDs = entry.getValue();
-                for (Integer columnID : localColumnIDs){
-                    pstmt.setInt(1, globalColumnID);
-                    pstmt.setInt(2, columnID);
+            List<GlobalColumnData> localCols = globalTable.getGlobalColumnData();
+            for (GlobalColumnData globalColumn : localCols){
+                for (ColumnData localColumn : globalColumn.getLocalColumns()) {
+                    pstmt.setInt(1, globalColumn.getColumnID());
+                    pstmt.setInt(2, localColumn.getColumnID());
+                    pstmt.setString(3, localColumn.getMapping().toString());
                     pstmt.executeUpdate();
                 }
-
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
@@ -607,39 +619,104 @@ public class MetaDataManager {
     }
 
     /**
-     * Insert Columns of global tables in the global columns table. Also adds the correspondences between the global and the local table columns in the
-     * correspondences table.
-     * @param columnsInTables
-     * @return
+     * Insert a star schema in the database. It is assumed that the global table objects have their database id's set up
+     * @param starSchema
      */
-    /*public List<TableData> insertGlobalColumnData(Map<Integer, List<ColumnData>> columnsInTables){
-        String sql = "INSERT INTO "+ GLOBAL_COLUMN_DATA + "("+GLOBAL_COLUMN_DATA_NAME_FIELD+", "+GLOBAL_COLUMN_DATA_TYPE_FIELD+", "+GLOBAL_COLUMN_DATA_TABLE_FIELD+", "
-                +GLOBAL_COLUMN_DATA_PRIMARY_KEY_FIELD+") VALUES(?,?,?,?)";
+    public void insertStarSchema(StarSchema starSchema){
+        int cubeId = getOrcreateCube(starSchema.getSchemaName());
+        insertFactsTable(cubeId, starSchema.getFactsTable());
+        insertDimsTables(cubeId, starSchema.getDimsTables());
+        //TODO: insert tables's columns in cube
+    }
+
+    private int insertFactsTable(int cubeID, FactsTable factsTable){
+        int factsTableID = -1;
+        String sql = "INSERT INTO "+ MULTIDIM_TABLE + "("+GLOBAL_TABLE_DATA_ID_FIELD+", "+MULTIDIM_TABLE_CUBE_ID+", "+
+                MULTIDIM_TABLE_ISFACTS+") VALUES(?,?,?)";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, factsTable.getGlobalTable().getId());
+            pstmt.setInt(2, cubeID);
+            pstmt.setBoolean(2, true);
+            pstmt.executeUpdate();
+            //get id of inserted global column
+            ResultSet rs = pstmt.getGeneratedKeys();
+            if(rs.next())
+            {
+                factsTableID = rs.getInt(1);
+            }
 
-            for (Map.Entry<Integer, List<ColumnData>> entry : columnsInTables.entrySet()) {
-                int globalTableID = entry.getKey();
-                List<ColumnData> columns = entry.getValue();
-                for (int i = 0; i < columns.size(); i++){
-                    pstmt.setString(1, columns.get(i).getName());
-                    pstmt.setString(2, columns.get(i).getDataType());
-                    pstmt.setInt(3, globalTableID);
-                    pstmt.setBoolean(4, columns.get(i).isPrimaryKey());
-                    pstmt.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return factsTableID;
+    }
 
-                    ResultSet rs = pstmt.getGeneratedKeys();
-                    if(rs.next()) {
-                        int lastInsertedId = rs.getInt(1);
-
-                    }
+    private int insertDimsTables(int cubeID, List<GlobalTableData> dimsTables){
+        int dimsTableID = -1;
+        String sql = "INSERT INTO "+ MULTIDIM_TABLE + "("+GLOBAL_TABLE_DATA_ID_FIELD+", "+MULTIDIM_TABLE_CUBE_ID+", "+
+                MULTIDIM_TABLE_ISFACTS+") VALUES(?,?,?)";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            for (GlobalTableData gt : dimsTables){
+                pstmt.setInt(1, gt.getId());
+                pstmt.setInt(2, cubeID);
+                pstmt.setBoolean(2, false);
+                pstmt.executeUpdate();
+                //get id of inserted global column
+                ResultSet rs = pstmt.getGeneratedKeys();
+                if(rs.next())
+                {
+                    dimsTableID = rs.getInt(1);
                 }
             }
 
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
-        return columnsInTables;
-    }*/
+        return dimsTableID;
+    }
+
+    private int getOrcreateCube(String cubeName){
+        int cubeId = getCubeID(cubeName);
+        if (cubeId != -1){
+            return cubeId;
+        }
+        //cube with that name does not exist,  create it
+        String sql = "INSERT INTO "+ CUBE_TABLE + "("+CUBE_NAME+") VALUES(?)";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, cubeName);
+            pstmt.executeUpdate();
+            //get id of inserted cube
+            ResultSet rs = pstmt.getGeneratedKeys();
+            if(rs.next())
+            {
+                cubeId = rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return cubeId;
+    }
+
+    /**
+     * given a Multidimensional cube id, get its id. returns -1 if does not exist
+     * @param cubeName
+     * @return
+     */
+    private int getCubeID(String cubeName){
+        String sql = "SELECT * FROM "+ CUBE_TABLE + " WHERE "+CUBE_NAME+"= '"+cubeName+"'";
+        int cubeId = -1;
+        try {
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql);
+            // loop through the result set
+            if (rs.next()) {
+                cubeId = rs.getInt(CUBE_NAME);
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return cubeId;
+    }
 
     /**
      * Insert Columns of global tables in the global columns table. Also adds the correspondences between the global and the local table columns in the

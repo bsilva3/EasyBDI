@@ -3,7 +3,6 @@ package wizards.global_schema_config;
 import helper_classes.*;
 import prestoComm.Constants;
 import prestoComm.DBModel;
-import se.gustavkarlsson.gwiz.AbstractWizardPage;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -13,10 +12,7 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.*;
-import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.Array;
 import java.util.*;
 import java.util.List;
 
