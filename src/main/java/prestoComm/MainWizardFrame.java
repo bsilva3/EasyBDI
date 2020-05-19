@@ -30,7 +30,7 @@ public class MainWizardFrame extends JFrame{
 
     private boolean isLast;
     private int currentStepNumber;
-    private String[] steps = {GLOBAL_SCHEMA_CONFIG, MULTI_DIM_CONFIG}; //add DB_CONN...
+    private String[] steps = {DB_CONN_CONFIG, GLOBAL_SCHEMA_CONFIG, MULTI_DIM_CONFIG}; //add DB_CONN...
     private PrestoMediator prestoMediator;
     private MetaDataManager metaDataManager;
 
@@ -94,6 +94,8 @@ public class MainWizardFrame extends JFrame{
             previousButton.setEnabled(false);
         nextBtn.setText("Next");
         switch (steps[currentStepNumber]){
+            case(DB_CONN_CONFIG):
+                addToMainPanel(globalSchemaConfigWizzard, dbConnWizzard);//return to DB Connection config wizard interface
             case(GLOBAL_SCHEMA_CONFIG):
                 addToMainPanel(cubeConfigWizzard, globalSchemaConfigWizzard);//return to to global schema wizard interface
                 break;
@@ -137,8 +139,15 @@ public class MainWizardFrame extends JFrame{
 
     }
 
+    private void handleDBConnConfig(){
+        dbConnWizzard = new DatabaseConnectionWizardV2(prestoMediator);
+        addToMainPanel(null, dbConnWizzard);
+    }
+
     private void handleGlobalSchemaConfig(){
-        //TODO: receive data from DBConfig window
+        //receive db data from DBConfig window
+        List<DBData> dbs = dbConnWizzard.getDbList();
+        buildLocalSchema(dbs);
         globalSchemaConfigWizzard = new GlobalSchemaConfigurationV2();
         addToMainPanel(null, globalSchemaConfigWizzard);
     }
@@ -207,13 +216,10 @@ public class MainWizardFrame extends JFrame{
         dbs = metaDataManager.insertDBData(dbs);
         //get information about tables
         for (DBData db : dbs) {
-            List<TableData> dbTables = prestoMediator.getTablesInDatabase(db);
+            //List<TableData> dbTables = prestoMediator.getTablesInDatabase(db);
+            List<TableData> dbTables = db.getTableList();
             dbTables = metaDataManager.insertTableData(dbTables); //tables updated with their id
             //get information about columns (for each table check information about their columns)
-            for (int i = 0; i < dbTables.size(); i++){
-                TableData tableUpdatedWithColumns = prestoMediator.getColumnsInTable(dbTables.get(i));
-                dbTables.set(i, tableUpdatedWithColumns);
-            }
             dbTables = metaDataManager.insertColumnData(dbTables);//columns in tables updates with their id
             db.setTableList(dbTables);
         }

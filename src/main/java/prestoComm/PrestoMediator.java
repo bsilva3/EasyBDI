@@ -32,18 +32,18 @@ public class PrestoMediator {
         PrestoMediator connector = new PrestoMediator();
         connector.createConnection();
         //connector.getTableData("select * from mongodb.products.products");
-        //connector.makeQuery("describe mongodb.products.products");
+        System.out.println(connector.makeQuery("show schemas from postgresql_localhost_5432_employees_vertical"));
         /*try {
             connector.getOneColumnResultQuery("show tables from mysql_test.sales_schema", true);
         } catch (SQLException e) {
             e.printStackTrace();
         }*/
-        if (connector.showRestartPrompt() == true){
+        /*if (connector.showRestartPrompt() == true){
             System.out.println("Presto restarted succesfully");
         }
         else{
             System.out.println("Presto failed to restart");
-        }
+        }*/
         //connector.getDBData("mongodb");
         //connector.makeQuery("describe prestodb.public.catalog_page");
     }
@@ -57,8 +57,9 @@ public class PrestoMediator {
     }
 
 
-    public void makeQuery(String query){
+    public String makeQuery(String query){
         Statement stmt = null;
+        String queryStateMessage = "";
         try {
             //Register JDBC driver
             Class.forName(JDBC_DRIVER);
@@ -75,6 +76,7 @@ public class PrestoMediator {
                     }
                     System.out.println("");
                 }
+                queryStateMessage = SUCCESS_STR;
             }
             else{
                 //only one column
@@ -88,6 +90,7 @@ public class PrestoMediator {
                 while(it.hasNext()){
                     System.out.println(it.next());
                 }
+                queryStateMessage = SUCCESS_STR;
             }
             //Clean-up environment
             res.close();
@@ -95,15 +98,19 @@ public class PrestoMediator {
         } catch (SQLException se) {
             //Handle errors for JDBC
             se.printStackTrace();
+            queryStateMessage = se.getCause().getLocalizedMessage();
         } catch (Exception e) {
             //Handle errors for Class.forName
             e.printStackTrace();
+            queryStateMessage = e.getCause().getLocalizedMessage();
         } finally {
             //finally block used to close resources
             try {
                 if (stmt != null) stmt.close();
             } catch (SQLException sqlException) {
                 sqlException.printStackTrace();
+            } finally {
+                return queryStateMessage;
             }
         }
     }
@@ -151,10 +158,18 @@ public class PrestoMediator {
      * @param db
      * @return
      */
-    public boolean testDBConnection(DBData db){
+    public String testDBConnection(DBData db){
         createDBFileProperties(db);
         showRestartPrompt();
-        return this.createConnection(); //TODO: finish
+        String state = this.makeQuery("show schemas from"+db.getCatalogName());
+        if (!state.equals(SUCCESS_STR))
+            removeDBFile(db.getFullFilePath()); //remove config file that points to DB with incorrect permitions or data
+        return state;
+    }
+
+    private boolean removeDBFile(String configFile){
+        File f = new File(configFile);
+        return f.delete();
     }
 
     //returns a string with the proper config text for the .properties file for a specific DB

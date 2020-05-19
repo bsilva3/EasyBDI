@@ -1,7 +1,9 @@
 package wizards.DBConfig;
 
 import helper_classes.DBData;
+import org.omg.PortableInterceptor.SUCCESSFUL;
 import prestoComm.DBModel;
+import prestoComm.PrestoMediator;
 
 import javax.swing.*;
 import java.awt.*;
@@ -10,7 +12,9 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DatabaseConnectionWizardV2 extends JFrame {
+import static prestoComm.Constants.SUCCESS_STR;
+
+public class DatabaseConnectionWizardV2 extends JPanel {
     //extends AbstractWizardPage
     private JPanel mainPanel;
     private JList databaseList;
@@ -27,8 +31,9 @@ public class DatabaseConnectionWizardV2 extends JFrame {
     private List<DBData> dbList;
     private List<Boolean> dbConnectionTested;
     private DefaultListModel<String> listModel;
+    private PrestoMediator prestoMediator;
 
-    public DatabaseConnectionWizardV2(){
+    public DatabaseConnectionWizardV2(PrestoMediator prestoMediator){
         //this.setTitle("Database Configuration");
         credentialsTxt.setFont(new Font("", Font.PLAIN, 12));
 
@@ -37,10 +42,11 @@ public class DatabaseConnectionWizardV2 extends JFrame {
         databaseList.setModel(listModel);
         dbList = new ArrayList<>();
         dbConnectionTested = new ArrayList<>();
-        setContentPane(mainPanel);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        pack();
-        //add(mainPanel); //g-wizard
+        this.prestoMediator = prestoMediator;
+        //setContentPane(mainPanel);
+        //setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        //pack();
+        add(mainPanel); //g-wizard
         setVisible(true);
 
         addDatabaseButton.addActionListener(new ActionListener() {
@@ -64,6 +70,8 @@ public class DatabaseConnectionWizardV2 extends JFrame {
                 boolean connected = testConnection(index);
                 if (connected)
                     dbConnectionTested.set(index, true);
+                else
+                    dbConnectionTested.set(index, false);
 
             }
         });
@@ -74,18 +82,39 @@ public class DatabaseConnectionWizardV2 extends JFrame {
         String s = name+", "+model+", "+url;
         dbList.add(db);
         listModel.addElement(s);
+        dbConnectionTested.add(null);
         databaseList.updateUI();
     }
 
     private void removeDatabase(int index){
         dbList.remove(index);
         listModel.remove(index);
+        dbConnectionTested.remove(index);
         databaseList.updateUI();
     }
 
     private boolean testConnection(int index){
-        dbList.get(index);
-        return false;//TODO: finish
+        String result = prestoMediator.testDBConnection(dbList.get(index));
+        if (result.equals(SUCCESS_STR)){
+            //connection success
+            JOptionPane.showMessageDialog(null,
+                    "Connection to database was succesfull!",
+                    "Connection Test Success",
+                    JOptionPane.INFORMATION_MESSAGE);
+            return true;
+        }
+        else{
+            //connection error
+            JOptionPane.showMessageDialog(null,
+                    "Could not connect to database. Error: \n"+result,
+                    "Connection Test Failed",
+                    JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+    }
+
+    public List<DBData> getDbList(){
+        return dbList;
     }
 
 
@@ -117,7 +146,7 @@ public class DatabaseConnectionWizardV2 extends JFrame {
 
 
     public static void main(String[] args){
-        DatabaseConnectionWizardV2 window = new DatabaseConnectionWizardV2();
+        DatabaseConnectionWizardV2 window = new DatabaseConnectionWizardV2(new PrestoMediator());
     }
 
 }

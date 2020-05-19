@@ -125,6 +125,11 @@ public class Constants {
     public static final String METADATA_VIEW_PRIMARY_COLUMN = "COLUMN_NAME";
 
 
+    //messages and errors
+
+    public static final String SUCCESS_STR = "Success";
+
+
 
     //SCHEMA exclusions that are database characteristic and have no interest in a business analytics context
     public static final String[] PSQL_SCHEMA_EXCL = new String[] {"schema_info", "pg_catalog"};
