@@ -36,7 +36,7 @@
           <component id="3e336" class="javax.swing.JButton" binding="nextBtn">
             <constraints>
               <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
-              <gridbag weightx="1.0" weighty="1.0"/>
+              <gridbag top="0" left="0" bottom="0" right="10" weightx="1.0" weighty="1.0"/>
             </constraints>
             <properties>
               <text value="Next"/>

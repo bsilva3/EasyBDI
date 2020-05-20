@@ -9,6 +9,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.List;
 
 public class MainWizardFrame extends JFrame{
@@ -33,6 +34,7 @@ public class MainWizardFrame extends JFrame{
     private String[] steps = {DB_CONN_CONFIG, GLOBAL_SCHEMA_CONFIG, MULTI_DIM_CONFIG}; //add DB_CONN...
     private PrestoMediator prestoMediator;
     private MetaDataManager metaDataManager;
+    private SchemaMatcher schemaMatcher;
 
     //data
     private List<DBData> dbs;
@@ -42,6 +44,7 @@ public class MainWizardFrame extends JFrame{
     public MainWizardFrame (){
         prestoMediator = new PrestoMediator();
         metaDataManager = new MetaDataManager();
+        schemaMatcher = new SchemaMatcher();
         currentStepNumber = 0;
         if (steps.length == 1)
             setIsLastWindow(true);
@@ -65,7 +68,7 @@ public class MainWizardFrame extends JFrame{
                 previousWindow();
             }
         });
-        this.setPreferredSize(new Dimension(900, 800));
+        this.setPreferredSize(new Dimension(950, 800));
         setContentPane(mainPanel);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         pack();
@@ -110,6 +113,9 @@ public class MainWizardFrame extends JFrame{
         if (currentStepNumber == 0)
             previousButton.setEnabled(false);
         switch (steps[currentStepNumber]){
+            case(DB_CONN_CONFIG):
+                handleDBConnConfig();//transition to database config wizard interface
+                break;
             case(GLOBAL_SCHEMA_CONFIG):
                 handleGlobalSchemaConfig();//transition to global schema wizard interface
                 break;
@@ -147,9 +153,17 @@ public class MainWizardFrame extends JFrame{
     private void handleGlobalSchemaConfig(){
         //receive db data from DBConfig window
         List<DBData> dbs = dbConnWizzard.getDbList();
-        buildLocalSchema(dbs);
-        globalSchemaConfigWizzard = new GlobalSchemaConfigurationV2();
-        addToMainPanel(null, globalSchemaConfigWizzard);
+        if (dbs == null || dbs.size() == 0){
+            --currentStepNumber;
+            return;
+        }
+        dbs.addAll(generateLocalSchema());
+        dbs = buildLocalSchema(dbs);
+        /*globalSchemaConfigWizzard = new GlobalSchemaConfigurationV2();
+        addToMainPanel(null, globalSchemaConfigWizzard);*/
+        List<GlobalTableData> globalSchema = schemaMatcher.schemaIntegration(dbs);
+        globalSchemaConfigWizzard = new GlobalSchemaConfigurationV2(dbs, globalSchema);
+        addToMainPanel(dbConnWizzard, globalSchemaConfigWizzard);
     }
 
     private void handleCubeConfig(){
@@ -170,8 +184,8 @@ public class MainWizardFrame extends JFrame{
         gbc.gridy = 0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.fill = GridBagConstraints.VERTICAL;
-        gbc.gridwidth = 2;
-        gbc.gridheight = 2;
+        gbc.gridwidth = 3;
+        gbc.gridheight = 3;
         gbc.insets = new Insets(0, 0, 20, 0);
         if (previousWizardPanel != null)
             mainPanel.remove(previousWizardPanel);
@@ -193,17 +207,6 @@ public class MainWizardFrame extends JFrame{
             System.exit(0);
         }
     }
-
-    /**using presto, retrieve information about tables in each db, and columns in each table
-     * and store in sqlite.
-     * It is assumed that DB connection info for presto has already been set up.
-     * Will fetch DB Data and store it on SQLITE
-     **/
-    /*public void buildLocalSchemas(){
-        //get databases registered
-        prestoMediator.
-        prestoMediator.getTablesInDatabase();
-    }*/
 
     /**using presto, retrieve information about tables in each db, and columns in each table
      * and store in sqlite.
@@ -232,7 +235,7 @@ public class MainWizardFrame extends JFrame{
         SchemaMatcher schemaMatcher = new SchemaMatcher();
         //Generate the global schema from the local schemas
         List<GlobalTableData> globalTables = schemaMatcher.schemaIntegration(dbs);
-        GlobalSchemaConfigurationV2 schemaConfigurationV2 = new GlobalSchemaConfigurationV2(dbs, globalTables);
+        //GlobalSchemaConfigurationV2 schemaConfigurationV2 = new GlobalSchemaConfigurationV2(dbs, globalTables);
         //insert the global tables, global columns in the database and correspondences between local and global columns
         //metaDataManager.insertGlobalSchemaData(globalTables);
     }
@@ -262,5 +265,54 @@ public class MainWizardFrame extends JFrame{
     }
     public void dropTables(){
         metaDataManager.deleteTables();
+    }
+
+    /**
+     * test purposes only
+     * @return
+     */
+    public static List<DBData> generateLocalSchema(){
+        java.util.List<DBData> dbs = new ArrayList<>();
+        java.util.List<TableData> tables = new ArrayList<>();
+        DBData dbData1 = new DBData("http://192.168.11.3", DBModel.MYSQL, "lisbonDB");
+        DBData dbData2 = new DBData("http://192.168.23.2", DBModel.PostgreSQL, "parisDB");
+        DBData dbData3 = new DBData("http://192.168.23.5", DBModel.MongoDB, "inventory");
+        TableData table1 = new TableData("employees", "schema", dbData1, 1);
+        TableData table2 = new TableData("employees", "schema", dbData2, 2);
+        TableData table3 = new TableData("employees_contacts", "schema", dbData2, 3);
+        TableData table4 = new TableData("products", "schema", dbData3, 4);
+        java.util.List<ColumnData> colsForTable1 = new ArrayList<>();
+        java.util.List<ColumnData> colsForTable2 = new ArrayList<>();
+        java.util.List<ColumnData> colsForTable3 = new ArrayList<>();
+        List<ColumnData> colsForTable4 = new ArrayList<>();
+        colsForTable1.add(new ColumnData.Builder("employee_id", "integer", true).withTable(table1).build());
+        colsForTable1.add(new ColumnData.Builder("full_name", "varchar", false).withTable(table1).build());
+        colsForTable1.add(new ColumnData.Builder("phone_number", "integer", false).withTable(table1).build());
+        colsForTable1.add(new ColumnData.Builder("email", "varchar", false).withTable(table1).build());
+
+        colsForTable2.add(new ColumnData.Builder("id", "integer", true).withTable(table2).build());
+        colsForTable2.add(new ColumnData.Builder("name", "varchar", false).withTable(table2).build());
+
+        colsForTable3.add(new ColumnData.Builder("employee_id", "integer", true).withTable(table3)
+                .withForeignKey("employees_paris.id").build());
+        colsForTable3.add(new ColumnData.Builder("phone", "integer", false).withTable(table3).build());
+        colsForTable3.add(new ColumnData.Builder("email", "varchar", false).withTable(table3).build());
+
+        colsForTable4.add(new ColumnData.Builder("product_id", "integer", false).withTable(table4).build());
+        colsForTable4.add(new ColumnData.Builder("product_name", "varchar", false).withTable(table4).build());
+        colsForTable4.add(new ColumnData.Builder("price", "double", false).withTable(table4).build());
+        colsForTable4.add(new ColumnData.Builder("unitsInStock", "integer", false).withTable(table4).build());
+        table1.setColumnsList(colsForTable1);
+        table2.setColumnsList(colsForTable2);
+        table3.setColumnsList(colsForTable3);
+        table4.setColumnsList(colsForTable4);
+        dbData1.addTable(table1);
+        dbData2.addTable(table3);
+        dbData2.addTable(table3);
+        dbData3.addTable(table4);
+        dbs.add(dbData1);
+        dbs.add(dbData2);
+        dbs.add(dbData3);
+        return dbs;
     }
 }

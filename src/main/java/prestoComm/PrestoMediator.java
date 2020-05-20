@@ -25,7 +25,7 @@ public class PrestoMediator {
 
     public PrestoMediator(){
         prestoConnector = new DBConnector(url, JDBC_DRIVER, user, pass);
-
+        this.createConnection();
     }
 
     public static void main (String[] args){
@@ -161,7 +161,7 @@ public class PrestoMediator {
     public String testDBConnection(DBData db){
         createDBFileProperties(db);
         showRestartPrompt();
-        String state = this.makeQuery("show schemas from"+db.getCatalogName());
+        String state = this.makeQuery("show schemas from "+db.getCatalogName());
         if (!state.equals(SUCCESS_STR))
             removeDBFile(db.getFullFilePath()); //remove config file that points to DB with incorrect permitions or data
         return state;

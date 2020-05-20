@@ -1,6 +1,7 @@
 package wizards.DBConfig;
 
 import helper_classes.DBData;
+import helper_classes.TableData;
 import org.omg.PortableInterceptor.SUCCESSFUL;
 import prestoComm.DBModel;
 import prestoComm.PrestoMediator;
@@ -17,7 +18,6 @@ import static prestoComm.Constants.SUCCESS_STR;
 public class DatabaseConnectionWizardV2 extends JPanel {
     //extends AbstractWizardPage
     private JPanel mainPanel;
-    private JList databaseList;
     private JTextField nameText;
     private JTextField urlText;
     private JComboBox databaseModelSelect;
@@ -28,9 +28,12 @@ public class DatabaseConnectionWizardV2 extends JPanel {
     private JPanel formPanel;
     private JLabel credentialsTxt;
     private JButton testSelectedDBConnectionButton;
+    private JList databaseList;
+    private JList connectionTestList;
     private List<DBData> dbList;
     private List<Boolean> dbConnectionTested;
     private DefaultListModel<String> listModel;
+    private DefaultListModel<String> connListModel;
     private PrestoMediator prestoMediator;
 
     public DatabaseConnectionWizardV2(PrestoMediator prestoMediator){
@@ -38,10 +41,12 @@ public class DatabaseConnectionWizardV2 extends JPanel {
         credentialsTxt.setFont(new Font("", Font.PLAIN, 12));
 
         databaseModelSelect.setModel(new DefaultComboBoxModel<DBModel>(DBModel.values()));
-        listModel = new DefaultListModel<>();
-        databaseList.setModel(listModel);
         dbList = new ArrayList<>();
         dbConnectionTested = new ArrayList<>();
+        listModel = new DefaultListModel<>();
+        databaseList.setModel(listModel);
+        connListModel = new DefaultListModel<>();
+        connectionTestList.setModel(connListModel);
         this.prestoMediator = prestoMediator;
         //setContentPane(mainPanel);
         //setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -52,7 +57,7 @@ public class DatabaseConnectionWizardV2 extends JPanel {
         addDatabaseButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                addDatabase(nameText.getText(), (DBModel) databaseModelSelect.getSelectedItem(), urlText.getText(), userText.getText(), passText.getPassword().toString());
+                addDatabase(nameText.getText(), (DBModel) databaseModelSelect.getSelectedItem(), urlText.getText(), userText.getText(), String.valueOf(passText.getPassword()));
             }
         });
 
@@ -78,19 +83,23 @@ public class DatabaseConnectionWizardV2 extends JPanel {
     }
 
     private void addDatabase(String name, DBModel model, String url, String user, String pass){
-        DBData db = new DBData(name, model, url, user, pass);
-        String s = name+", "+model+", "+url;
+        DBData db = new DBData(url, model, name, user, pass);
+        String s = name+" in "+url+" ("+model+")";
         dbList.add(db);
         listModel.addElement(s);
         dbConnectionTested.add(null);
+        connListModel.addElement(" ---- ");
         databaseList.updateUI();
+        connectionTestList.updateUI();
     }
 
     private void removeDatabase(int index){
         dbList.remove(index);
         listModel.remove(index);
+        connListModel.remove(index);
         dbConnectionTested.remove(index);
         databaseList.updateUI();
+        connectionTestList.updateUI();
     }
 
     private boolean testConnection(int index){
@@ -101,6 +110,7 @@ public class DatabaseConnectionWizardV2 extends JPanel {
                     "Connection to database was succesfull!",
                     "Connection Test Success",
                     JOptionPane.INFORMATION_MESSAGE);
+            connListModel.set(index, "Success");
             return true;
         }
         else{
@@ -109,12 +119,42 @@ public class DatabaseConnectionWizardV2 extends JPanel {
                     "Could not connect to database. Error: \n"+result,
                     "Connection Test Failed",
                     JOptionPane.ERROR_MESSAGE);
+            connListModel.set(index, "Error: "+ result);
             return false;
         }
     }
 
     public List<DBData> getDbList(){
+        dbList.add(new DBData("localhost:5432", DBModel.PostgreSQL, "employees_horizontal", "postgres", "brunosilva"));//for test
+        if (dbConnectionTested.contains(false) || dbConnectionTested.contains(null)){
+            JOptionPane.showMessageDialog(null,
+                    "There are databases that could not be connected or databases in which a connection test was not made.\n"
+                    +"Please, make sure the url, database name and other credentials to access the database are correct, then test its connection.\n"
+                    +"You can only move on when all databases in the list have been successfully connected.",
+                    "Invalid Database connections",
+                    JOptionPane.ERROR_MESSAGE);
+            return null;
+        }
+        if (dbList.size() == 0){
+            JOptionPane.showConfirmDialog(this, "Please, add databases and test their connection before moving on.",
+                    "Insuficient validated databases", JOptionPane.WARNING_MESSAGE);
+            return dbList;
+        }
+        for (int i = 0; i < dbList.size(); i++){
+            DBData db = getTablesInDBFromPresto(dbList.get(i));
+            dbList.set(i, db);
+        }
         return dbList;
+    }
+
+    public DBData getTablesInDBFromPresto(DBData db){
+        List<TableData> tables = prestoMediator.getTablesInDatabase(db);
+        for (int i = 0; i < tables.size(); i++){
+            TableData table = prestoMediator.getColumnsInTable(tables.get(i));
+            tables.set(i, table); //update the table in this index with its columns
+        }
+        db.setTableList(tables);
+        return db;
     }
 
 

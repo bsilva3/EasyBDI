@@ -241,7 +241,7 @@ public class SchemaMatcher {
      * @param tables
      * @return List of table matches and list of table
      */
-    public List<Match> labelSchemaMatchingTables(List<TableData> tables){
+    private List<Match> labelSchemaMatchingTables(List<TableData> tables){
         List<Match> tableMatches = new ArrayList<>();
         for (int i = 0; i < tables.size(); i++){
             //avoid inverse permutations ( (table1, table2) and (table2, table1) should not happen)
@@ -260,7 +260,7 @@ public class SchemaMatcher {
         return tableMatches;
     }
 
-    public List<GlobalTableData> groupMatchedTables(List<Match> matches){
+    private List<GlobalTableData> groupMatchedTables(List<Match> matches){
         List<GlobalTableData> groupedTables = new ArrayList<>();
         if (matches.size() == 0){
             return groupedTables;
@@ -340,7 +340,7 @@ public class SchemaMatcher {
         return globalTables;
     }
 
-    public GlobalTableData getColumnsForGlobalTableV2(GlobalTableData globalTableData, Map<DatatypePair, String> convertibleDataTypes){
+    private GlobalTableData getColumnsForGlobalTableV2(GlobalTableData globalTableData, Map<DatatypePair, String> convertibleDataTypes){
         List<TableData> localTables = globalTableData.getLocalTables();
         List<ColumnData> initialCols = localTables.get(0).getColumnsList(); //the result of the merging of tables. Starts from the first table
         Map<ColumnData, Set<ColumnData>> correspondences = new HashMap<>(); //for each merged column, contains a list of tables and columns in those tables that make the merge column
@@ -428,7 +428,7 @@ public class SchemaMatcher {
     }
 
 
-    public double getNameSimilarityLevenshtein(String name1, String name2){
+    private double getNameSimilarityLevenshtein(String name1, String name2){
         LevenshteinDistance distance = new LevenshteinDistance();
         double dist = distance.apply(name1.toLowerCase(), name2.toLowerCase());
         //convert the number of substituitions to a percentage
