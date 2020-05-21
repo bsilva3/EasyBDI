@@ -118,7 +118,7 @@ public enum DBModel {
         }
         @Override
         public String[] getTableExclusions() {
-            return new String[] {};
+            return new String[] {"views", "tables", "table_privileges", "schemata", "columns", "roles", "enabled_roles", "vies", "applicable_roles", "startup_log"};
         }
     };
 

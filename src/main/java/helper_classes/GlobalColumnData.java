@@ -49,8 +49,8 @@ public class GlobalColumnData implements Serializable {
 
     public boolean isForeignKey(){
         if (this.foreignKey == null || this.foreignKey.isEmpty())
-            return true;
-        return false;
+            return false;
+        return true;
     }
 
     public int getColumnID() {

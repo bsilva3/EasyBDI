@@ -236,7 +236,7 @@ public class PrestoMediator {
         List<ColumnData> columnsInTable = new ArrayList<>();
         try {
             //for each schema, get tables
-            List<Map> tableColumns = getColumnsResultQuery("show columns from " +  table.getDB().getCatalogName()+"."+table.getSchemaName()+"."+table.getTableName(), false);
+            List<Map> tableColumns = getColumnsResultQuery("show columns from " +  table.getDB().getCatalogName()+"."+table.getSchemaName()+".\""+table.getTableName()+"\"", false);
 
             //for each column, store its info.
             for (Map tableColumn : tableColumns){
@@ -265,7 +265,7 @@ public class PrestoMediator {
     private Set<String> removeIrrelevantTables(Set<String> tables, DBModel dbModel){
         List<String> tableList = new ArrayList<>();
         tableList.addAll(tables);
-        tableList.removeAll(Arrays.asList(dbModel.getSchemaExclusions()));
+        tableList.removeAll(Arrays.asList(dbModel.getTableExclusions()));
         return new HashSet<>(tableList);
     }
 

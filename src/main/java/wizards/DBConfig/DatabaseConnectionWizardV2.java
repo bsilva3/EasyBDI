@@ -30,6 +30,9 @@ public class DatabaseConnectionWizardV2 extends JPanel {
     private JButton testSelectedDBConnectionButton;
     private JList databaseList;
     private JList connectionTestList;
+    private JLabel helpLabel;
+    private JLabel stepLabel;
+    private JLabel noteLabel;
     private List<DBData> dbList;
     private List<Boolean> dbConnectionTested;
     private DefaultListModel<String> listModel;
@@ -37,8 +40,16 @@ public class DatabaseConnectionWizardV2 extends JPanel {
     private PrestoMediator prestoMediator;
 
     public DatabaseConnectionWizardV2(PrestoMediator prestoMediator){
-        //this.setTitle("Database Configuration");
-        credentialsTxt.setFont(new Font("", Font.PLAIN, 12));
+        helpLabel.setText("<html>Please, enter database url, database model and the name of the database you want to connect."
+                +"<br/> Do not specify a database in the url (x.x.x./dbname). Always specify the database in the 'database name' field."
+                +"<br/> You must test if it is possible to connect to the database you inserted. To do this, select a database in the list and click 'test connection' button."
+                +"<br/> You can't continue the configuration process while there are databases with failed connections or no connection attempts.</html>");
+        stepLabel.setText("Step 1/4");
+        stepLabel.setFont(new Font("", Font.PLAIN, 18));
+        noteLabel.setText("<html>Note: databases such as MySQL and MongoDB only need a server to be specified, therefore a database name is not necessary and will not be used." +
+                "<br/>However it is still required to insert a database name in order to identify each database/server, therefore you must type a database name.</html>");
+        noteLabel.setFont(new Font("", Font.PLAIN, 11));
+        credentialsTxt.setFont(new Font("", Font.PLAIN, 11));
 
         databaseModelSelect.setModel(new DefaultComboBoxModel<DBModel>(DBModel.values()));
         dbList = new ArrayList<>();
@@ -126,6 +137,9 @@ public class DatabaseConnectionWizardV2 extends JPanel {
 
     public List<DBData> getDbList(){
         dbList.add(new DBData("localhost:5432", DBModel.PostgreSQL, "employees_horizontal", "postgres", "brunosilva"));//for test
+        dbList.add(new DBData("localhost:5432", DBModel.PostgreSQL, "employees_vertical", "postgres", "brunosilva"));//for test
+        dbList.add(new DBData("http://localhost:27017", DBModel.MongoDB,"inventory"));
+        dbList.add(new DBData("http://localhost:3306", DBModel.MYSQL,"employeesMYSQL", "bruno", "brunosilva"));
         if (dbConnectionTested.contains(false) || dbConnectionTested.contains(null)){
             JOptionPane.showMessageDialog(null,
                     "There are databases that could not be connected or databases in which a connection test was not made.\n"
@@ -141,7 +155,12 @@ public class DatabaseConnectionWizardV2 extends JPanel {
             return dbList;
         }
         for (int i = 0; i < dbList.size(); i++){
+            prestoMediator.createDBFileProperties(dbList.get(i));
+        }
+        prestoMediator.showRestartPrompt();
+        for (int i = 0; i < dbList.size(); i++){
             DBData db = getTablesInDBFromPresto(dbList.get(i));
+            //TODO: what to do if presto cant get tables.. fix
             dbList.set(i, db);
         }
         return dbList;

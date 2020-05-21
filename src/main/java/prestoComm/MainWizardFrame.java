@@ -71,6 +71,7 @@ public class MainWizardFrame extends JFrame{
         this.setPreferredSize(new Dimension(950, 800));
         setContentPane(mainPanel);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        this.setTitle("Data source configuration wizard");
         pack();
         this.setVisible(true);
     }
@@ -157,7 +158,7 @@ public class MainWizardFrame extends JFrame{
             --currentStepNumber;
             return;
         }
-        dbs.addAll(generateLocalSchema());
+        //dbs.addAll(generateLocalSchema());
         dbs = buildLocalSchema(dbs);
         /*globalSchemaConfigWizzard = new GlobalSchemaConfigurationV2();
         addToMainPanel(null, globalSchemaConfigWizzard);*/
@@ -294,7 +295,7 @@ public class MainWizardFrame extends JFrame{
         colsForTable2.add(new ColumnData.Builder("name", "varchar", false).withTable(table2).build());
 
         colsForTable3.add(new ColumnData.Builder("employee_id", "integer", true).withTable(table3)
-                .withForeignKey("employees_paris.id").build());
+                .withForeignKey("catalog.employees_paris.id").build());
         colsForTable3.add(new ColumnData.Builder("phone", "integer", false).withTable(table3).build());
         colsForTable3.add(new ColumnData.Builder("email", "varchar", false).withTable(table3).build());
 

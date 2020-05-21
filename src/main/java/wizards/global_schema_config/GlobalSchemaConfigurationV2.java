@@ -955,6 +955,15 @@ public class GlobalSchemaConfigurationV2 extends JPanel {
             else if (node.getNodeType() == NodeType.COLUMN && parent.getNodeType() == NodeType.GLOBAL_TABLE){
                 //drop a column in a global table and make it a global column with the matches
                 ColumnData localCol = (ColumnData)node.getObj();
+                if (localCol.hasForeignKey()){
+                    localCol.getForeignKeyColumn();
+                    //TODO: if referenced column does not belong to match in any global tables, then do not allow
+                    if (true){
+                        JOptionPane.showConfirmDialog(null, "The column you tried to drag contains a foreign key that \nreferences a column not matched" +
+                                " in any global column. This operation is not possible.", "Cannot add column", JOptionPane.ERROR_MESSAGE);
+                        return false;
+                    }
+                }
                 GlobalColumnData globalCol = new GlobalColumnData(localCol);
                 CustomTreeNode newNode = new CustomTreeNode(globalCol.getName(), globalCol, NodeType.GLOBAL_COLUMN);
                 //add data type node
@@ -981,6 +990,30 @@ public class GlobalSchemaConfigurationV2 extends JPanel {
             }
             model.insertNodeInto(node, parent, index);
             return true;
+        }
+
+        private boolean referencedColumnExists(ColumnData col){
+            CustomTreeNode root = (CustomTreeNode) globalSchemaModel.getRoot();
+            int nChilds = root.getChildCount();
+            for (int i = 0; i < nChilds; i++){
+                //iterate global tables
+                root.getChildAt(i);
+            }
+            return false;
+        }
+
+        private void searchMatchNodeForeignKey(CustomTreeNode node, ColumnData col){
+            String name = node.getUserObject().toString();
+
+            if(node.isLeaf())
+            {
+                return;
+            }
+
+            for(int i = 0 ; i < node.getChildCount() ; i++)
+            {
+                searchMatchNodeForeignKey((CustomTreeNode)node.getChildAt(i), col);
+            }
         }
 
         public String toString() {

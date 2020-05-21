@@ -2,14 +2,17 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="4372070e-ade1-4e3a-bab8-4e40966e7856" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/src/main/java/prestoComm/QueryUI.form" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/prestoComm/QueryUI.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/metadata/metadataBD" beforeDir="false" afterPath="$PROJECT_DIR$/metadata/metadataBD" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/prestoComm/MainWizardFrame.form" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/prestoComm/MainWizardFrame.form" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/helper_classes/GlobalColumnData.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/helper_classes/GlobalColumnData.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/prestoComm/DBModel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/prestoComm/DBModel.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/prestoComm/MainWizardFrame.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/prestoComm/MainWizardFrame.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/prestoComm/PrestoMediator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/prestoComm/PrestoMediator.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/prestoComm/SchemaMatcher.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/prestoComm/SchemaMatcher.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/wizards/DBConfig/DatabaseConnectionWizardV2.form" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/wizards/DBConfig/DatabaseConnectionWizardV2.form" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/wizards/DBConfig/DatabaseConnectionWizardV2.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/wizards/DBConfig/DatabaseConnectionWizardV2.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/wizards/global_schema_config/GlobalSchemaConfigurationV2.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/wizards/global_schema_config/GlobalSchemaConfigurationV2.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -77,13 +80,6 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="DatabaseConnectionWizardV2" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="DatabaseConnectionWizardV2" />
-      <module name="prestoConnector" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
     <configuration name="MainWizardFrame" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="prestoComm.MainWizardFrame" />
       <module name="prestoConnector" />
@@ -110,6 +106,19 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <configuration name="SchemaMatcher" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="prestoComm.SchemaMatcher" />
+      <module name="prestoConnector" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="prestoComm.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="WizardTest" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="WizardTest" />
       <module name="prestoConnector" />
@@ -118,19 +127,19 @@
       </method>
     </configuration>
     <list>
-      <item itemvalue="Application.DatabaseConnectionWizardV2" />
       <item itemvalue="Application.WizardTest" />
       <item itemvalue="Application.MainWizardFrame" />
       <item itemvalue="Application.DatabaseConnectionWizardV2 (1)" />
       <item itemvalue="Application.PrestoMediator" />
+      <item itemvalue="Application.SchemaMatcher" />
     </list>
     <recent_temporary>
       <list>
         <item itemvalue="Application.MainWizardFrame" />
+        <item itemvalue="Application.SchemaMatcher" />
         <item itemvalue="Application.PrestoMediator" />
         <item itemvalue="Application.DatabaseConnectionWizardV2 (1)" />
         <item itemvalue="Application.WizardTest" />
-        <item itemvalue="Application.DatabaseConnectionWizardV2" />
       </list>
     </recent_temporary>
   </component>
@@ -299,7 +308,14 @@
       <option name="project" value="LOCAL" />
       <updated>1589923086955</updated>
     </task>
-    <option name="localTasksCounter" value="23" />
+    <task id="LOCAL-00023" summary="wizard logic integration">
+      <created>1590009727986</created>
+      <option name="number" value="00023" />
+      <option name="presentableId" value="LOCAL-00023" />
+      <option name="project" value="LOCAL" />
+      <updated>1590009727986</updated>
+    </task>
+    <option name="localTasksCounter" value="24" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -321,7 +337,8 @@
     <MESSAGE value="fixes of global schema and multidimensional schema interface.&#10;Implmentation of drop local table on global col to create match or drop local table on global table to create new global col." />
     <MESSAGE value="multidimensional ui and logic advancements. Wizard Logic enhancements and bug fixes." />
     <MESSAGE value="connection test ui and logic enhanced" />
-    <option name="LAST_COMMIT_MESSAGE" value="connection test ui and logic enhanced" />
+    <MESSAGE value="wizard logic integration" />
+    <option name="LAST_COMMIT_MESSAGE" value="wizard logic integration" />
   </component>
   <component name="WindowStateProjectService">
     <state x="552" y="178" key="#Inspections" timestamp="1587567330579">
@@ -384,42 +401,42 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="1021" y="169" key="#xdebugger.evaluate/0.0.1920.1040@0.0.1920.1040" timestamp="1589235079614" />
-    <state x="607" y="116" width="747" height="803" key="CommitChangelistDialog2" timestamp="1589923086859">
+    <state x="607" y="116" width="747" height="803" key="CommitChangelistDialog2" timestamp="1590009727798">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="607" y="116" width="747" height="803" key="CommitChangelistDialog2/0.0.1920.1040@0.0.1920.1040" timestamp="1589923086859" />
-    <state width="1874" height="264" key="GridCell.Tab.0.bottom" timestamp="1590009266665">
+    <state x="607" y="116" width="747" height="803" key="CommitChangelistDialog2/0.0.1920.1040@0.0.1920.1040" timestamp="1590009727798" />
+    <state width="1874" height="228" key="GridCell.Tab.0.bottom" timestamp="1590073473416">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1874" height="264" key="GridCell.Tab.0.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1590009266665" />
-    <state width="1874" height="264" key="GridCell.Tab.0.center" timestamp="1590009266664">
+    <state width="1874" height="228" key="GridCell.Tab.0.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1590073473416" />
+    <state width="1874" height="228" key="GridCell.Tab.0.center" timestamp="1590073473416">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1874" height="264" key="GridCell.Tab.0.center/0.0.1920.1040@0.0.1920.1040" timestamp="1590009266664" />
-    <state width="1874" height="264" key="GridCell.Tab.0.left" timestamp="1590009266664">
+    <state width="1874" height="228" key="GridCell.Tab.0.center/0.0.1920.1040@0.0.1920.1040" timestamp="1590073473416" />
+    <state width="1874" height="228" key="GridCell.Tab.0.left" timestamp="1590073473416">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1874" height="264" key="GridCell.Tab.0.left/0.0.1920.1040@0.0.1920.1040" timestamp="1590009266664" />
-    <state width="1874" height="264" key="GridCell.Tab.0.right" timestamp="1590009266664">
+    <state width="1874" height="228" key="GridCell.Tab.0.left/0.0.1920.1040@0.0.1920.1040" timestamp="1590073473416" />
+    <state width="1874" height="228" key="GridCell.Tab.0.right" timestamp="1590073473416">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1874" height="264" key="GridCell.Tab.0.right/0.0.1920.1040@0.0.1920.1040" timestamp="1590009266664" />
-    <state width="1874" height="264" key="GridCell.Tab.1.bottom" timestamp="1590009268165">
+    <state width="1874" height="228" key="GridCell.Tab.0.right/0.0.1920.1040@0.0.1920.1040" timestamp="1590073473416" />
+    <state width="1874" height="264" key="GridCell.Tab.1.bottom" timestamp="1590066884306">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1874" height="264" key="GridCell.Tab.1.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1590009268165" />
-    <state width="1874" height="264" key="GridCell.Tab.1.center" timestamp="1590009268165">
+    <state width="1874" height="264" key="GridCell.Tab.1.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1590066884306" />
+    <state width="1874" height="264" key="GridCell.Tab.1.center" timestamp="1590066884306">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1874" height="264" key="GridCell.Tab.1.center/0.0.1920.1040@0.0.1920.1040" timestamp="1590009268164" />
-    <state width="1874" height="264" key="GridCell.Tab.1.left" timestamp="1590009268164">
+    <state width="1874" height="264" key="GridCell.Tab.1.center/0.0.1920.1040@0.0.1920.1040" timestamp="1590066884306" />
+    <state width="1874" height="264" key="GridCell.Tab.1.left" timestamp="1590066884306">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1874" height="264" key="GridCell.Tab.1.left/0.0.1920.1040@0.0.1920.1040" timestamp="1590009268164" />
-    <state width="1874" height="264" key="GridCell.Tab.1.right" timestamp="1590009268165">
+    <state width="1874" height="264" key="GridCell.Tab.1.left/0.0.1920.1040@0.0.1920.1040" timestamp="1590066884306" />
+    <state width="1874" height="264" key="GridCell.Tab.1.right" timestamp="1590066884306">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1874" height="264" key="GridCell.Tab.1.right/0.0.1920.1040@0.0.1920.1040" timestamp="1590009268165" />
+    <state width="1874" height="264" key="GridCell.Tab.1.right/0.0.1920.1040@0.0.1920.1040" timestamp="1590066884306" />
     <state x="184" y="86" key="MergeDialog" timestamp="1587740750964">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -432,10 +449,10 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="498" height="446" key="SwitcherDM/0.0.1920.1040@0.0.1920.1040" timestamp="1589375493854" />
-    <state x="555" y="255" width="800" height="526" key="Vcs.Push.Dialog.v2" timestamp="1589923088598">
+    <state x="555" y="255" width="800" height="526" key="Vcs.Push.Dialog.v2" timestamp="1590009729267">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="555" y="255" width="800" height="526" key="Vcs.Push.Dialog.v2/0.0.1920.1040@0.0.1920.1040" timestamp="1589923088598" />
+    <state x="555" y="255" width="800" height="526" key="Vcs.Push.Dialog.v2/0.0.1920.1040@0.0.1920.1040" timestamp="1590009729267" />
     <state x="653" y="346" key="com.intellij.ide.util.TipDialog" timestamp="1589906045628">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -525,6 +542,26 @@
           <url>file://$PROJECT_DIR$/src/main/java/prestoComm/PrestoMediator.java</url>
           <line>97</line>
           <option name="timeStamp" value="134" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/helper_classes/ColumnData.java</url>
+          <line>180</line>
+          <option name="timeStamp" value="136" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/prestoComm/SchemaMatcher.java</url>
+          <line>37</line>
+          <option name="timeStamp" value="137" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/prestoComm/PrestoMediator.java</url>
+          <line>140</line>
+          <option name="timeStamp" value="139" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/wizards/DBConfig/DatabaseConnectionWizardV2.java</url>
+          <line>159</line>
+          <option name="timeStamp" value="140" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
