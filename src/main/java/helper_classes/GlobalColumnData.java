@@ -1,10 +1,7 @@
 package helper_classes;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class GlobalColumnData implements Serializable {
     private int columnID;
@@ -36,6 +33,12 @@ public class GlobalColumnData implements Serializable {
         this.foreignKey = column.getForeignKey();
         this.localColumns = new HashSet<>();
         this.localColumns.add(column);
+    }
+
+    public MappingType getMappingType(){
+        Iterator iter = localColumns.iterator();
+        ColumnData localCol = (ColumnData) iter.next();
+        return localCol.getMapping();
     }
 
     public boolean isNumeric(){

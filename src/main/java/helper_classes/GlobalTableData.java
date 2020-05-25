@@ -38,6 +38,15 @@ public class GlobalTableData implements Serializable {
         return localTables;
     }
 
+    public Set<TableData> getLocalTablesFromCols() {
+        Set<TableData> tables = new HashSet<>();
+        for (GlobalColumnData gc : this.globalColumnData){
+            for (ColumnData c : gc.getLocalColumns())
+                tables.add(c.getTable());
+        }
+        return tables;
+    }
+
     public Set<Integer> getLocalTablesIDs() {
         Set<Integer> tablesIDS = new HashSet<>();
         for (GlobalColumnData gc : this.globalColumnData){
@@ -49,8 +58,17 @@ public class GlobalTableData implements Serializable {
     }
 
 
-    public List<GlobalColumnData> getGlobalColumnData() {
+    public List<GlobalColumnData> getGlobalColumnDataList() {
         return globalColumnData;
+    }
+
+    public GlobalColumnData getGlobalColumnData(String colName) {
+        for (GlobalColumnData globalColumn: globalColumnData){
+            if (globalColumn.getName().equals(colName)){
+                return globalColumn;
+            }
+        }
+        return null;
     }
 
     public void setGlobalColumnData(List<GlobalColumnData> globalColumnData) {
@@ -87,6 +105,10 @@ public class GlobalTableData implements Serializable {
             this.globalColumnData = new ArrayList<>();
             this.globalColumnData.add(col);
         }
+    }
+
+    public int getNCols (){
+        return this.globalColumnData.size();
     }
 
     @Override

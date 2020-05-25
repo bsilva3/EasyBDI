@@ -96,6 +96,10 @@ public class TableData implements Serializable {
         return false;
     }
 
+    public int getNCols (){
+        return this.columnsList.size();
+    }
+
     @Override
     public String toString() {
         return "TableData{" +

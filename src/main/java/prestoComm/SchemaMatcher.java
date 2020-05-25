@@ -1,22 +1,10 @@
 package prestoComm;
 
-import de.uni_mannheim.informatik.dws.winter.matching.MatchingEngine;
-import de.uni_mannheim.informatik.dws.winter.matching.aggregators.VotingAggregator;
-import de.uni_mannheim.informatik.dws.winter.matching.blockers.generators.BlockingKeyGenerator;
-import de.uni_mannheim.informatik.dws.winter.model.*;
-import de.uni_mannheim.informatik.dws.winter.model.Correspondence;
-import de.uni_mannheim.informatik.dws.winter.model.defaultmodel.Attribute;
-import de.uni_mannheim.informatik.dws.winter.model.defaultmodel.CSVRecordReader;
-import de.uni_mannheim.informatik.dws.winter.model.defaultmodel.Record;
-import de.uni_mannheim.informatik.dws.winter.model.defaultmodel.comparators.LabelComparatorLevenshtein;
-import de.uni_mannheim.informatik.dws.winter.processing.DataIterator;
-import de.uni_mannheim.informatik.dws.winter.processing.Processable;
 import helper_classes.*;
 import org.apache.commons.text.similarity.LevenshteinDistance;
 import wizards.global_schema_config.GlobalSchemaConfigurationV2;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
@@ -54,7 +42,7 @@ public class SchemaMatcher {
                 System.out.println(t.getTableName());
             }
             System.out.println("- columns -");
-            for (GlobalColumnData gc :globalTableData.getGlobalColumnData()){
+            for (GlobalColumnData gc :globalTableData.getGlobalColumnDataList()){
                 System.out.print(gc.getName()+": "+gc.getDataType() +" -> ");
                 for (ColumnData c : gc.getLocalColumns()){
                     System.out.print(c.getName() +": "+c.getDataType()+", mapping type: "+c.getMapping() +"("+c.getTable().getTableName()+"), ");
@@ -199,9 +187,9 @@ public class SchemaMatcher {
         for (int i = 0; i < globalTables.size(); i++){
             GlobalTableData globalTableData = globalTables.get(i);
             //get ids of all local tables that have at least 1 column mapping to this
-            List<TableData> tableData = metaDataManager.getLocalTablesByID(globalTableData.getLocalTablesIDs());
+            //List<TableData> tableData = metaDataManager.getLocalTablesByID(globalTableData.getLocalTablesIDs());
             //define mapping type
-            defineDistributionType(globalTableData, tableData);
+            //defineDistributionType(globalTableData, tableData);
             //add global table again with mappings
             globalTables.set(i, globalTableData);
         }
@@ -522,199 +510,5 @@ public class SchemaMatcher {
             e.printStackTrace();
         }
         return convertipleDataTypes;
-    }
-
-    //used for testing with the Winte.r library ------------------------
-
-    private void labelTypeSchemaMatchColumns(){
-        DataSet<Record, Attribute> data1 = new HashedDataSet<>();
-        DataSet<Record, Attribute> data2 = new HashedDataSet<>();
-
-        Attribute attribute = new Attribute();
-        try {
-            new CSVRecordReader(0).loadFromCSV(new File("/home/bruno/Desktop/datasetTest.csv"), data1);
-            new CSVRecordReader(0).loadFromCSV(new File("/home/bruno/Desktop/datasetTest2.csv"), data2);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        System.out.println(data1.getRandomRecord());
-        //RECORD -> a row with data
-        //ATRIBUTE: Uma coluna
-        for(Attribute data : data1.getSchema().get()) {
-            System.out.println(data.getName() +", prov: "+data.getProvenance() + ", identifier: "+data.getIdentifier());
-        }
-
-
-        // Initialize Matching Engine
-        MatchingEngine engine = new MatchingEngine<>();
-        Processable<Correspondence<Attribute, Attribute>> correspondences = null;
-        // run the matching
-        try {
-            correspondences = engine.runLabelBasedSchemaMatching(data1.getSchema(), data2.getSchema(), new LabelComparatorLevenshtein(), 0.5);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        // print results
-        for(Correspondence<Attribute, Attribute> cor : correspondences.get()) {
-            System.out.println(String.format("'%s' <-> '%s' (%.4f)",
-                    cor.getFirstRecord().getName(),
-                    cor.getSecondRecord().getName(),
-                    cor.getSimilarityScore()));
-        }
-    }
-
-    private void instanceMatch(){
-        DataSet<Record, Attribute> data1 = new HashedDataSet<>();
-        DataSet<Record, Attribute> data2 = new HashedDataSet<>();
-        Attribute attribute = new Attribute();
-        try {
-            new CSVRecordReader(-1).loadFromCSV(new File("/home/bruno/Desktop/datasetTest.csv"), data1);
-            new CSVRecordReader(-1).loadFromCSV(new File("/home/bruno/Desktop/datasetTest2.csv"), data2);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        // define a blocker that uses the attribute values to generate pairs
-        BlockingKeyGenerator<Record, Attribute, MatchableValue> blockingKeyGenerator = new BlockingKeyGenerator<Record, Attribute, MatchableValue>() {
-            @Override
-            public void generateBlockingKeys(Record record, Processable<Correspondence<Attribute, Matchable>> processable, DataIterator<Pair<String, MatchableValue>> dataIterator) {
-
-            }
-        };
-        // define a blocker that uses the attribute values to generate pairs
-        /*InstanceBasedSchemaBlocker<Record, Attribute> blocker = new InstanceBasedSchemaBlocker<>(
-                new AttributeValueGenerator(data1.getSchema()),
-                new AttributeValueGenerator(data2.getSchema()));*/
-
-        // to calculate the similarity score, aggregate the pairs by counting
-        // and normalise with the number of record in the smaller dataset
-        // (= the maximum number of records that can match)
-        VotingAggregator<Attribute, MatchableValue> aggregator
-                = new VotingAggregator<>(
-                false,
-                Math.min(data1.size(), data2.size()),
-                0.0);
-
-        // Initialize Matching Engine
-        MatchingEngine<Record, Attribute> engine = new MatchingEngine<>();
-        // run the matching
-        Processable<Correspondence<Attribute, MatchableValue>> correspondences
-                = engine.runInstanceBasedSchemaMatching(data1, data2, null, aggregator);
-
-        // print results
-        for(Correspondence<Attribute, MatchableValue> cor : correspondences.get()) {
-            System.out.println(String.format("'%s' <-> '%s' (%.4f)",
-                    cor.getFirstRecord().getName(),
-                    cor.getSecondRecord().getName(),
-                    cor.getSimilarityScore()));
-        }
-    }
-
-    /**
-     * Define if between the type of mapping between the global and local table(s). Local tables can be only one (0), be vertically partioned (1),
-     * be horizontally partitioned (2) or...
-     * @param globalTable
-     * @return
-     */
-    private GlobalTableData defineDistributionType(GlobalTableData globalTable, List<TableData> completeLocalTables){
-        //test if its a simple mapping 1 - 1 and only 1 local table
-        MappingType mappingType = MappingType.Simple;
-        if (isSimpleMapping(globalTable, completeLocalTables)){
-            mappingType = MappingType.Simple;
-        }
-        else if (isHorizontalMapping(globalTable, completeLocalTables)){
-            mappingType = MappingType.Horizontal;
-        }
-        else if (isVerticalMapping(globalTable, completeLocalTables)){
-            mappingType = MappingType.Vertical;
-        }
-        for (GlobalColumnData gc : globalTable.getGlobalColumnData()){
-            Set<ColumnData> localCols = gc.getLocalColumns();
-            Set<ColumnData> updatedLocalCols = new HashSet<>();
-            //for each local table corresponding to this global column, set the mapping, simple mapping in this case
-            for (ColumnData c : localCols){
-                c.setMapping(mappingType);
-                updatedLocalCols.add(c);
-            }
-            gc.setLocalColumns(updatedLocalCols);
-        }
-        return globalTable;
-    }
-
-    /**
-     * GIven  a global table, and the local tables that have correspondences, check to see if there is a simple mapping between them.
-     * A simple mapping means that the local table is constituted by one unique local table, whose attributes (columns) are the same in the local and global tables
-     * @param globalTable
-     * @param completeLocalTables
-     * @return
-     */
-    private boolean isSimpleMapping(GlobalTableData globalTable, List<TableData> completeLocalTables) {
-        if (completeLocalTables.size() == 1) {
-            boolean allTableSimilar = true;
-            for (GlobalColumnData gc : globalTable.getGlobalColumnData()) {
-                Set<ColumnData> localCols = gc.getLocalColumns();
-                //check to see if all local tables have the same datatype and name. If they have, each local table have a simple mapping to the global table (1 - 1, no replication)
-                for (ColumnData c : localCols) {
-                    if (!(c.getName().equals(gc.getName()) && c.getDataTypeNoLimit().equals(gc.getDataType()))) {
-                        allTableSimilar = false;
-                    }
-                }
-            }
-            return allTableSimilar;
-        }
-        return false;
-    }
-
-    /**
-     * GIven  a global table, and the local tables that have correspondences, check to see if there is a vertical partioning mapping between them.
-     * A vertical mapping means that the local table is constituted by tables that contain primary keys that reference one table's primary key
-     * (columns of one table was distributed to multiple tables)
-     * NOTE: considering that there is only one table that does not have a foreign key and primary key
-     * @param globalTable
-     * @param completeLocalTables
-     * @return
-     */
-    private boolean isVerticalMapping(GlobalTableData globalTable, List<TableData> completeLocalTables) {
-        if (completeLocalTables.size() > 1) {
-            Map<TableData, List<TableData>> tablesVerticallyPartioned = new HashMap<>();
-            ColumnData referencedColumn = null;
-            List<ColumnData> fullLocalCols = globalTable.getFullListColumnsCorrespondences();
-            for (TableData  localTable : completeLocalTables) {
-                for (ColumnData localColumn : localTable.getColumnsList()){
-                    //check for columns that are both primary and foreign keys
-                    if (localColumn.isPrimaryKey() && localColumn.hasForeignKey()){
-                        if (referencedColumn == null)
-                            referencedColumn = localColumn.getForeignKeyColumn();
-                            //this column references the same column as foreign key, check if all its columns exist in the list of references tables
-                            if (!fullLocalCols.contains(referencedColumn)){
-                                return false;
-                            }
-                            return true;
-                    }
-                }
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Given  a global table, and the local tables that have correspondences with the global table, check to see if there is a horizontal partioning
-     * mapping between them. This means that the global table is constituted by several equal local tables,
-     * whose attributes (columns) are the same in all local and global tables.
-     * @param globalTable
-     * @param completeLocalTables
-     * @return
-     */
-    private boolean isHorizontalMapping(GlobalTableData globalTable, List<TableData> completeLocalTables) {
-        if (completeLocalTables.size() > 1) {
-            for (TableData localTable : completeLocalTables) {
-                for (GlobalColumnData gc : globalTable.getGlobalColumnData()){
-                    //if all column in all local tables are the same as the cols in global table, then there is vertical partiotioning
-                    if (!localTable.columnExists(gc.getName(), gc.getDataType(), gc.isPrimaryKey()))
-                        return false;
-                }
-            }
-            return true;
-        }
-        return false;
     }
 }

@@ -44,6 +44,7 @@ public class MainWizardFrame extends JFrame{
     public MainWizardFrame (){
         prestoMediator = new PrestoMediator();
         metaDataManager = new MetaDataManager();
+        metaDataManager.createTablesAndFillDBModelData();//create tables if they dont exist already
         schemaMatcher = new SchemaMatcher();
         currentStepNumber = 0;
         if (steps.length == 1)
@@ -152,13 +153,14 @@ public class MainWizardFrame extends JFrame{
     }
 
     private void handleGlobalSchemaConfig(){
+        List<DBData> dbs = new ArrayList<>();
         //receive db data from DBConfig window
-        List<DBData> dbs = dbConnWizzard.getDbList();
+        /*List<DBData> dbs = dbConnWizzard.getDbList();
         if (dbs == null || dbs.size() == 0){
             --currentStepNumber;
             return;
-        }
-        //dbs.addAll(generateLocalSchema());
+        }*/
+        dbs.addAll(generateLocalSchema());
         dbs = buildLocalSchema(dbs);
         /*globalSchemaConfigWizzard = new GlobalSchemaConfigurationV2();
         addToMainPanel(null, globalSchemaConfigWizzard);*/
@@ -228,6 +230,7 @@ public class MainWizardFrame extends JFrame{
             db.setTableList(dbTables);
         }
 
+        // check all elements to see if they have ids. if their id is 0, they were already inserted.
         return dbs;
     }
 
@@ -279,7 +282,7 @@ public class MainWizardFrame extends JFrame{
         DBData dbData2 = new DBData("http://192.168.23.2", DBModel.PostgreSQL, "parisDB");
         DBData dbData3 = new DBData("http://192.168.23.5", DBModel.MongoDB, "inventory");
         TableData table1 = new TableData("employees", "schema", dbData1, 1);
-        TableData table2 = new TableData("employees", "schema", dbData2, 2);
+        TableData table2 = new TableData("employees_paris", "schema", dbData2, 2);
         TableData table3 = new TableData("employees_contacts", "schema", dbData2, 3);
         TableData table4 = new TableData("products", "schema", dbData3, 4);
         java.util.List<ColumnData> colsForTable1 = new ArrayList<>();
@@ -295,7 +298,7 @@ public class MainWizardFrame extends JFrame{
         colsForTable2.add(new ColumnData.Builder("name", "varchar", false).withTable(table2).build());
 
         colsForTable3.add(new ColumnData.Builder("employee_id", "integer", true).withTable(table3)
-                .withForeignKey("catalog.employees_paris.id").build());
+                .withForeignKey("catalog.schema.employees_paris.id").build());
         colsForTable3.add(new ColumnData.Builder("phone", "integer", false).withTable(table3).build());
         colsForTable3.add(new ColumnData.Builder("email", "varchar", false).withTable(table3).build());
 
@@ -308,7 +311,7 @@ public class MainWizardFrame extends JFrame{
         table3.setColumnsList(colsForTable3);
         table4.setColumnsList(colsForTable4);
         dbData1.addTable(table1);
-        dbData2.addTable(table3);
+        dbData2.addTable(table2);
         dbData2.addTable(table3);
         dbData3.addTable(table4);
         dbs.add(dbData1);

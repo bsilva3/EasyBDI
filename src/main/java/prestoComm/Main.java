@@ -17,26 +17,26 @@ public class Main {
         ManagerFacade manager = new ManagerFacade();
         //register databases
         List<DBData> dbDataList = new ArrayList<>();
-        manager.dropTables();
+        //manager.dropTables();
 
-        manager.createDatabaseAndConnectToPresto();
+        /*manager.createDatabaseAndConnectToPresto();
         System.out.println("DB types registered:");
-        manager.printQuery("SELECT * FROM "+ DB_TYPE_DATA);
+        manager.printQuery("SELECT * FROM "+ DB_TYPE_DATA);*/
         //insert manually DBs
         //dbDataList.add(new DBData("http://localhost:27017", DBModel.MongoDB,""));
         //dbDataList.add(new DBData("http://localhost:3306", DBModel.MYSQL,"", "bruno", "brunosilva"));
         //dbDataList.add(new DBData("http://deti-lei-2.ua.pt:5432/", DBModel.PostgreSQL,"presto2", "bruno", "brunosilva"));
         //dbDataList.add(new DBData("http://deti-lei-2.ua.pt:5432/", DBModel.PostgreSQL,"presto", "bruno", "brunosilva"));
-        dbDataList.add(new DBData("http://localhost:5432/", DBModel.PostgreSQL,"employees_vertical", "postgres", "brunosilva"));
-        dbDataList.add(new DBData("http://localhost:5432/", DBModel.PostgreSQL,"employees_horizontal", "postgres", "brunosilva"));
-        /*dbDataList.add(new DBData("http://localhost:3306/", DBModel.MYSQL,"employees_horizontal", "bruno", "brunosilva"));
-        dbDataList.add(new DBData("http://localhost:3306/", DBModel.MYSQL, METADATA_VIEW_SCHEMA_NAME, "bruno", "brunosilva"));*/
-        boolean success = manager.generatePrestoDBConfigFiles(dbDataList);
+        //dbDataList.add(new DBData("http://localhost:5432/", DBModel.PostgreSQL,"employees_vertical", "postgres", "brunosilva"));
+        //dbDataList.add(new DBData("http://localhost:5432/", DBModel.PostgreSQL,"employees_horizontal", "postgres", "brunosilva"));
+        //dbDataList.add(new DBData("http://localhost:3306/", DBModel.MYSQL,"employees_horizontal", "bruno", "brunosilva"));
+        //dbDataList.add(new DBData("http://localhost:3306/", DBModel.MYSQL, METADATA_VIEW_SCHEMA_NAME, "bruno", "brunosilva"));
+        /*boolean success = manager.generatePrestoDBConfigFiles(dbDataList);
         if (!success){
             System.exit(1);
         }
         //manager.prestoMediator.makeQuery("SHOW CATALOGS");
-        dbDataList = manager.buildLocalSchema(dbDataList);
+        dbDataList = manager.buildLocalSchema(dbDataList);*/
 
         System.out.println("databases registered:");
         manager.printQuery("SELECT * FROM "+ DB_DATA);
@@ -47,11 +47,11 @@ public class Main {
         System.out.println("Columns registered:");
         manager.printQuery("SELECT * FROM "+ COLUMN_DATA);
 
-        manager.buildGlobalSchemaFromLocalSchema(dbDataList);
+       /* manager.buildGlobalSchemaFromLocalSchema(dbDataList);
 
         System.out.println("--------------- Global Schema ------------------");
         System.out.println("global tables registered:");
-        manager.printQuery("SELECT * FROM "+ GLOBAL_TABLE_DATA);
+        manager.printQuery("SELECT * FROM "+ GLOBAL_TABLE_DATA);*/
 
 
     }

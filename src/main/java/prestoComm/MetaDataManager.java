@@ -1,8 +1,6 @@
 package prestoComm;
 
-import de.uni_mannheim.informatik.dws.winter.webtables.Table;
 import helper_classes.*;
-import io.prestosql.jdbc.$internal.client.Column;
 
 import java.io.File;
 import java.sql.*;
@@ -97,7 +95,7 @@ public class MetaDataManager {
                 + "    "+ GLOBAL_COLUMN_DATA_TYPE_FIELD +" text NOT NULL,\n"
                 + "    "+ GLOBAL_COLUMN_DATA_TABLE_FIELD +" integer NOT NULL,\n"
                 + "    "+ GLOBAL_COLUMN_DATA_PRIMARY_KEY_FIELD +" boolean, \n"
-                +  "    UNIQUE("+ GLOBAL_COLUMN_DATA_NAME_FIELD+") ON CONFLICT IGNORE, \n"
+                +  "   UNIQUE("+ GLOBAL_COLUMN_DATA_NAME_FIELD +", " +GLOBAL_COLUMN_DATA_TABLE_FIELD+") ON CONFLICT IGNORE, \n"
                 + "    FOREIGN KEY ("+ GLOBAL_COLUMN_DATA_TABLE_FIELD +") REFERENCES "+GLOBAL_TABLE_DATA+"("+GLOBAL_TABLE_DATA_ID_FIELD+"));";
 
         String sql7 = "CREATE TABLE IF NOT EXISTS "+ CORRESPONDENCES_DATA +" (\n"
@@ -194,8 +192,10 @@ public class MetaDataManager {
                 if(rs.next())
                 {
                     int last_inserted_id = rs.getInt(1);
-                    //System.out.println("KEY: "+last_inserted_id);
                     DBData db = dbData.get(i);
+                    if (last_inserted_id == 0) //if db was inserted previously, id will be zero
+                        last_inserted_id = getDBID(db.getDbName(), db.getUrl());
+                    //System.out.println("KEY: "+last_inserted_id);
                     db.setId(last_inserted_id);
                     dbData.set(i, db);//update the id of the db list in memory
                 }
@@ -230,6 +230,8 @@ public class MetaDataManager {
                     int lastInsertedId = rs.getInt(1);
                     //System.out.println("KEY: "+lastInsertedId);
                     TableData tb = tables.get(i);
+                    if (lastInsertedId == 0) //if db was inserted previously, id will be zero
+                        lastInsertedId = getTableID(tables.get(i).getTableName(), tables.get(i).getSchemaName(), tables.get(i).getDB());
                     tb.setId(lastInsertedId);
                     tables.set(i, tb);//update the id of the db list in memory
                 }
@@ -270,6 +272,8 @@ public class MetaDataManager {
                         int lastInsertedId = rs.getInt(1);
                         //System.out.println("KEY: "+lastInsertedId);
                         ColumnData cd = columns.get(i);
+                        if (lastInsertedId == 0) //if db was inserted previously, id will be zero
+                            lastInsertedId = getColumnID(columns.get(i).getName(), columnsInTables.get(j).getId());
                         cd.setColumnID(lastInsertedId);
                         columns.set(i, cd);//update the id of the db list in memory
                     }
@@ -391,7 +395,7 @@ public class MetaDataManager {
         return id;
     }
 
-    private int getDBID(String dbName, String server){
+    public int getDBID(String dbName, String server){
         String query = "SELECT id FROM " + DB_DATA + " WHERE "+ DB_DATA_NAME_FIELD +" = '"+ dbName +"' AND " + DB_DATA_SERVER_FIELD +" = '" + server + "'";
         Statement stmt  = null;
         int id = -1;
@@ -414,6 +418,22 @@ public class MetaDataManager {
         }
         String query = "SELECT id FROM " + TABLE_DATA + " WHERE "+ TABLE_DATA_NAME_FIELD +" = '"+ tableName +"' AND " + TABLE_DATA_SCHEMA_NAME_FIELD +" = '" + schemaName + "'"
                 + " AND "+ TABLE_DATA_DB_ID_FIELD +" = "+dbID+"'";
+        Statement stmt  = null;
+        int id = -1;
+        try {
+            stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(query);
+            if(rs.next()) {
+                id = rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
+        return id;
+    }
+
+    private int getColumnID(String columnName, int tableID){
+        String query = "SELECT id FROM " + COLUMN_DATA + " WHERE "+ COLUMN_DATA_NAME_FIELD +" = '"+ columnName +"' AND " + COLUMN_DATA_TABLE_FIELD +" = " + tableID + "";
         Statement stmt  = null;
         int id = -1;
         try {
@@ -574,7 +594,7 @@ public class MetaDataManager {
                 ", "+GLOBAL_COLUMN_DATA_TYPE_FIELD+", "+GLOBAL_COLUMN_DATA_PRIMARY_KEY_FIELD+") VALUES(?,?,?,?)";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             // Iterate through a list of previously inserted global tables and insert, for each table id, the list of its global columns
-                List<GlobalColumnData> globalColumns = gt.getGlobalColumnData();
+                List<GlobalColumnData> globalColumns = gt.getGlobalColumnDataList();
                 //insert a global column
                 for (int i = 0; i < globalColumns.size(); i++){
                     GlobalColumnData column = globalColumns.get(i);
@@ -604,7 +624,7 @@ public class MetaDataManager {
                 CORRESPONDENCES_LOCAL_COL_FIELD+ ", " + CORRESPONDENCES_TYPE_FIELD+") VALUES(?,?,?)";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             // Iterate through a list of previously inserted global tables and insert, for each table id, the list of its global columns
-            List<GlobalColumnData> localCols = globalTable.getGlobalColumnData();
+            List<GlobalColumnData> localCols = globalTable.getGlobalColumnDataList();
             for (GlobalColumnData globalColumn : localCols){
                 for (ColumnData localColumn : globalColumn.getLocalColumns()) {
                     pstmt.setInt(1, globalColumn.getColumnID());
@@ -811,11 +831,15 @@ public class MetaDataManager {
     public ColumnData getColumn(DBData db, String schemaName, String tableName, String columnName){
         ColumnData col = null;
         TableData t = getTable(db, schemaName, tableName);
+        if (t == null)
+            return null;
         try {
             Statement stmt = conn.createStatement();
-            ResultSet rs = stmt.executeQuery("SELECT "+ COLUMN_DATA_TYPE_FIELD+", " + COLUMN_DATA_IS_PRIMARY_KEY_FIELD
+            String sql = "SELECT "+ COLUMN_DATA_TYPE_FIELD+", " + COLUMN_DATA_IS_PRIMARY_KEY_FIELD
                     +", "+ COLUMN_DATA_FOREIGN_KEY_FIELD +", "+ ID_FIELD +" FROM " + COLUMN_DATA + " where "+COLUMN_DATA_TABLE_FIELD+"="+t.getId()
-                    +" and "+COLUMN_DATA_NAME_FIELD + " = '"+columnName+"';");
+                    +" and "+COLUMN_DATA_NAME_FIELD + " = '"+columnName+"';";
+            System.out.println(sql);
+            ResultSet rs = stmt.executeQuery(sql);
             // loop through the result set
             if (rs.next()) {
                 col = new ColumnData.Builder(columnName, rs.getString(COLUMN_DATA_TYPE_FIELD), rs.getBoolean(COLUMN_DATA_IS_PRIMARY_KEY_FIELD))
@@ -834,7 +858,7 @@ public class MetaDataManager {
             ResultSet rs = stmt.executeQuery("SELECT "+ ID_FIELD+" FROM " + TABLE_DATA + " where "+TABLE_DATA_DB_ID_FIELD+"="+db.getId()+" and "
                     +TABLE_DATA_NAME_FIELD +" ='" + tableName +"' and "+TABLE_DATA_SCHEMA_NAME_FIELD+" = '"+schemaName+"';");
             // loop through the result set
-            if (rs.next()) {
+            while (rs.next()) {
                 t = new TableData(tableName, schemaName,db, rs.getInt(ID_FIELD));
             }
         } catch (SQLException e) {

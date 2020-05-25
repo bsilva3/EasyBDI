@@ -73,7 +73,7 @@ public class CubeConfiguration extends JPanel{
         measurementsPanel.removeAll();
         measurementsPanel.setLayout(new BoxLayout(measurementsPanel, BoxLayout.PAGE_AXIS));
         GlobalTableData gtFacts = globalTables.get(selectedFactsTable);
-        List<GlobalColumnData> globalCols = gtFacts.getGlobalColumnData();
+        List<GlobalColumnData> globalCols = gtFacts.getGlobalColumnDataList();
         measuresCheckBoxes.clear();
         for (int i = 0; i < globalCols.size(); i++){
             GlobalColumnData globalCol = globalCols.get(i);
@@ -106,7 +106,7 @@ public class CubeConfiguration extends JPanel{
      */
     private Map<GlobalColumnData, Boolean> getFactsColumns(){
         Map<GlobalColumnData, Boolean> factsCols = new HashMap<>();
-        List<GlobalColumnData> globalCols = globalTables.get(selectedFactsTable).getGlobalColumnData();
+        List<GlobalColumnData> globalCols = globalTables.get(selectedFactsTable).getGlobalColumnDataList();
         //iterate all cols
         for (int i = 0; i < globalCols.size(); i++){
             GlobalColumnData globalCol = globalCols.get(i);
