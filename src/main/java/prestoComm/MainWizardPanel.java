@@ -1,7 +1,6 @@
 package prestoComm;
 
 import helper_classes.*;
-import weka.core.converters.DatabaseConnection;
 import wizards.DBConfig.DatabaseConnectionWizardV2;
 import wizards.global_schema_config.GlobalSchemaConfigurationV2;
 
@@ -12,12 +11,13 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainWizardFrame extends JFrame{
+public class MainWizardPanel extends JPanel{
     private JPanel mainPanel;
     private JButton previousButton;
     private JButton cancelButton;
     private JButton nextBtn;
     private JPanel lowerPanel;
+    private JPanel contentPanel;
     //wizards;
     private DatabaseConnectionWizardV2 dbConnWizzard;
     private GlobalSchemaConfigurationV2 globalSchemaConfigWizzard;
@@ -40,12 +40,17 @@ public class MainWizardFrame extends JFrame{
     private List<DBData> dbs;
     private List<GlobalTableData> globalSchema;
     private StarSchema starSchema;
+    private MainMenu mainMenu;
 
-    public MainWizardFrame (){
+    private String projectName;
+
+    public MainWizardPanel(MainMenu mainMenu, String projectName){
+        this.mainMenu = mainMenu;
+        this.projectName = projectName;
         prestoMediator = new PrestoMediator();
-        metaDataManager = new MetaDataManager();
+        metaDataManager = new MetaDataManager(projectName);
         metaDataManager.createTablesAndFillDBModelData();//create tables if they dont exist already
-        schemaMatcher = new SchemaMatcher();
+        schemaMatcher = new SchemaMatcher(projectName);
         currentStepNumber = 0;
         if (steps.length == 1)
             setIsLastWindow(true);
@@ -69,24 +74,50 @@ public class MainWizardFrame extends JFrame{
                 previousWindow();
             }
         });
-        this.setPreferredSize(new Dimension(950, 800));
+        cancelButton.addActionListener(new ActionListener()
+        {
+            public void actionPerformed(ActionEvent e)
+            {
+                int dialogResult = JOptionPane.showConfirmDialog (null, "Would You Like to Save all configurations currently made to this project?","Warning",JOptionPane.YES_NO_OPTION);
+                if(dialogResult == JOptionPane.YES_OPTION){
+
+                }
+                else{
+                    metaDataManager.removeDB(projectName); //remove database file (dont save progress
+                }
+                mainMenu.returnToMainMenu();
+            }
+        });
+        /*this.setPreferredSize(new Dimension(950, 800));
         setContentPane(mainPanel);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setTitle("Data source configuration wizard");
-        pack();
+        pack();*/
+        this.add(mainPanel);
         this.setVisible(true);
     }
 
     public static void main(String[] args){
-        MainWizardFrame m = new MainWizardFrame();
+        MainWizardPanel m = new MainWizardPanel(new MainMenu(), "My Project");
+        JFrame frame = new JFrame();
+        frame.setPreferredSize(new Dimension(950, 800));
+        frame.setContentPane(m);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setTitle("Data source configuration wizard");
+        frame.pack();
+        frame.setVisible(true);
     }
 
     private void nextWindow(){
         previousButton.setEnabled(true);
-        if (currentStepNumber == (steps.length - 1))
+        if (currentStepNumber == (steps.length - 1)) {
             finnish();
+        }
         else {
             ++currentStepNumber;
+            if (currentStepNumber == (steps.length - 1)) {
+                nextBtn.setText("Finnish");
+            }
             setWizardPanel();
         }
     }
@@ -162,10 +193,12 @@ public class MainWizardFrame extends JFrame{
         }*/
         dbs.addAll(generateLocalSchema());
         dbs = buildLocalSchema(dbs);
+        //print local schema
+        metaDataManager.printLocalSchema();
         /*globalSchemaConfigWizzard = new GlobalSchemaConfigurationV2();
         addToMainPanel(null, globalSchemaConfigWizzard);*/
         List<GlobalTableData> globalSchema = schemaMatcher.schemaIntegration(dbs);
-        globalSchemaConfigWizzard = new GlobalSchemaConfigurationV2(dbs, globalSchema);
+        globalSchemaConfigWizzard = new GlobalSchemaConfigurationV2(projectName, dbs, globalSchema);
         addToMainPanel(dbConnWizzard, globalSchemaConfigWizzard);
     }
 
@@ -191,10 +224,10 @@ public class MainWizardFrame extends JFrame{
         gbc.gridheight = 3;
         gbc.insets = new Insets(0, 0, 20, 0);
         if (previousWizardPanel != null)
-            mainPanel.remove(previousWizardPanel);
-        mainPanel.add(newWizardPanel, gbc);
-        mainPanel.revalidate();
-        mainPanel.updateUI();
+            contentPanel.remove(previousWizardPanel);
+        contentPanel.add(newWizardPanel, gbc);
+        contentPanel.revalidate();
+        contentPanel.updateUI();
     }
 
     public void createDatabaseAndConnectToPresto(){
@@ -236,7 +269,7 @@ public class MainWizardFrame extends JFrame{
 
     public void buildGlobalSchemaFromLocalSchema(List<DBData> dbs){
         //tables in SQLITE for global schema already created
-        SchemaMatcher schemaMatcher = new SchemaMatcher();
+        SchemaMatcher schemaMatcher = new SchemaMatcher(this.projectName);
         //Generate the global schema from the local schemas
         List<GlobalTableData> globalTables = schemaMatcher.schemaIntegration(dbs);
         //GlobalSchemaConfigurationV2 schemaConfigurationV2 = new GlobalSchemaConfigurationV2(dbs, globalTables);
@@ -319,4 +352,5 @@ public class MainWizardFrame extends JFrame{
         dbs.add(dbData3);
         return dbs;
     }
+
 }

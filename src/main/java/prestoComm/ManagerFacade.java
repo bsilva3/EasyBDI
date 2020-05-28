@@ -17,7 +17,7 @@ public class ManagerFacade {
 
     public ManagerFacade(){
         prestoMediator = new PrestoMediator();
-        metaDataManager = new MetaDataManager();
+        metaDataManager = new MetaDataManager("my project");
     }
 
     public void createDatabaseAndConnectToPresto(){
@@ -70,7 +70,7 @@ public class ManagerFacade {
         return dbs;
     }
 
-    public void buildGlobalSchemaFromLocalSchema(List<DBData> dbs){
+   /*public void buildGlobalSchemaFromLocalSchema(List<DBData> dbs){
         //tables in SQLITE for global schema already created
         SchemaMatcher schemaMatcher = new SchemaMatcher();
         //Generate the global schema from the local schemas
@@ -78,7 +78,7 @@ public class ManagerFacade {
         GlobalSchemaConfigurationV2 schemaConfigurationV2 = new GlobalSchemaConfigurationV2(dbs, globalTables);
         //insert the global tables, global columns in the database and correspondences between local and global columns
         //metaDataManager.insertGlobalSchemaData(globalTables);
-    }
+    }*/
 
     public void buildStarSchema(GlobalTableData factTable, List<GlobalTableData> dimTables, List<GlobalColumnData> measures){
 

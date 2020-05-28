@@ -8,7 +8,7 @@ import java.awt.*;
 
 // taken from: https://stackoverflow.com/questions/14096725/jtree-set-custom-open-closed-icons-for-individual-groups
 
-class CustomeTreeCellRenderer extends DefaultTreeCellRenderer {
+public class CustomeTreeCellRenderer extends DefaultTreeCellRenderer {
 
     public CustomeTreeCellRenderer() {
     }

@@ -10,17 +10,22 @@ import static prestoComm.Constants.*;
 
 public class MetaDataManager {
 
-    private final String URL = "jdbc:sqlite:" + SQLITE_DB_FOLDER + File.separator + SQLITE_DB;
+    private static final String DB_FILE_DIR = SQLITE_DB_FOLDER + File.separator;
+    private static final String URL = "jdbc:sqlite:" + DB_FILE_DIR;
+    private String DB_FILE_URL = URL;//will have the database name to connect to
     private Connection conn;
+    private String databaseName;
 
-    public MetaDataManager(){
+    public MetaDataManager(String databaseName){
+        this.databaseName = databaseName;
+        DB_FILE_URL = DB_FILE_URL + databaseName;
         this.conn = connect();
     }
 
     public Connection connect() {
         Connection conn = null;
         try {
-            conn = DriverManager.getConnection(URL);
+            conn = DriverManager.getConnection(DB_FILE_URL);
             if (conn != null) {
                 DatabaseMetaData meta = null;
                 System.out.println("Connected to SQLITE DB");
@@ -29,6 +34,61 @@ public class MetaDataManager {
             System.out.println(e.getMessage());
         }
         return conn;
+    }
+
+    public static File[] listAllDBFiles(){
+        File folder = new File(DB_FILE_DIR);
+        File[] listOfFiles = folder.listFiles();
+
+        for (int i = 0; i < listOfFiles.length; i++) {
+            if (listOfFiles[i].isFile()) {
+                System.out.println("File " + listOfFiles[i].getName());
+            } else if (listOfFiles[i].isDirectory()) {
+                System.out.println("Directory " + listOfFiles[i].getName());
+            }
+        }
+        return listOfFiles;
+    }
+
+    public static String[] listAllDBNames(){
+        File[] listOfFiles = listAllDBFiles();
+        String[] dbNames = new String[listOfFiles.length];
+        for (int i = 0; i < listOfFiles.length; i++) {
+            if (listOfFiles[i].isFile()) {
+                String fileName = listOfFiles[i].getName().split("\\.")[0];
+                dbNames[i] = fileName;
+            }
+        }
+        return dbNames;
+    }
+
+    /**
+     * Check if db file exists
+     * @param dbName
+     * @return
+     */
+    public static boolean dbExists(String dbName){
+        File[] listOfFiles = listAllDBFiles();
+        for (int i = 0; i < listOfFiles.length; i++) {
+            if (listOfFiles[i].isFile()) {
+                String fileName = listOfFiles[i].getName().split("\\.")[0];
+                if (fileName.equals(dbName))
+                    return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean removeDB(String dbName){
+        File[] listOfFiles = listAllDBFiles();
+        for (int i = 0; i < listOfFiles.length; i++) {
+            if (listOfFiles[i].isFile()) {
+                String fileName = listOfFiles[i].getName().split("\\.")[0];
+                if (fileName.equals(dbName))
+                    return listOfFiles[i].delete();
+            }
+        }
+        return false;
     }
 
     public void createTablesAndFillDBModelData(){
@@ -153,6 +213,17 @@ public class MetaDataManager {
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
+    }
+
+    public void printLocalSchema(){
+        System.out.println("databases registered:");
+        makeQueryAndPrint("SELECT * FROM "+ DB_DATA);
+
+        System.out.println("Tables registered:");
+        makeQueryAndPrint("SELECT * FROM "+ TABLE_DATA);
+
+        System.out.println("Columns registered:");
+        makeQueryAndPrint("SELECT * FROM "+ COLUMN_DATA);
     }
 
     private void fillDBDataTable(){
@@ -326,6 +397,46 @@ public class MetaDataManager {
         }
     }
 
+    public boolean isLocalSchemaCreated(){
+        if (getDatabaseCount() > 0)
+            return true;
+        return false;
+    }
+
+    public boolean isGlobalSchemaCreated(){
+        if (getGlobalTablesCount() > 0)
+            return true;
+        return false;
+    }
+
+    public int getDatabaseCount(){
+        int nDBs = 0;
+        try{
+            Statement stmt  = conn.createStatement();
+            ResultSet res    = stmt.executeQuery("SELECT COUNT(*) FROM " + DB_DATA +";");
+            while (res.next()){
+                nDBs = res.getInt(1);
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return nDBs;
+    }
+
+    public int getGlobalTablesCount(){
+        int nDBs = 0;
+        try{
+            Statement stmt  = conn.createStatement();
+            ResultSet res    = stmt.executeQuery("SELECT COUNT(*) FROM " + GLOBAL_TABLE_DATA +";");
+            while (res.next()){
+                nDBs = res.getInt(1);
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return nDBs;
+    }
+
     public List<DBData> getDatabases(){
         List<DBData> dbs = new ArrayList<>();
         try{
@@ -417,7 +528,7 @@ public class MetaDataManager {
             dbID = getDBID(db.getDbName(), db.getUrl());
         }
         String query = "SELECT id FROM " + TABLE_DATA + " WHERE "+ TABLE_DATA_NAME_FIELD +" = '"+ tableName +"' AND " + TABLE_DATA_SCHEMA_NAME_FIELD +" = '" + schemaName + "'"
-                + " AND "+ TABLE_DATA_DB_ID_FIELD +" = "+dbID+"'";
+                + " AND "+ TABLE_DATA_DB_ID_FIELD +" = "+dbID+"";
         Statement stmt  = null;
         int id = -1;
         try {
@@ -838,7 +949,6 @@ public class MetaDataManager {
             String sql = "SELECT "+ COLUMN_DATA_TYPE_FIELD+", " + COLUMN_DATA_IS_PRIMARY_KEY_FIELD
                     +", "+ COLUMN_DATA_FOREIGN_KEY_FIELD +", "+ ID_FIELD +" FROM " + COLUMN_DATA + " where "+COLUMN_DATA_TABLE_FIELD+"="+t.getId()
                     +" and "+COLUMN_DATA_NAME_FIELD + " = '"+columnName+"';";
-            System.out.println(sql);
             ResultSet rs = stmt.executeQuery(sql);
             // loop through the result set
             if (rs.next()) {

@@ -21,7 +21,7 @@ public class SchemaMatcher {
 
     public static void main(String[] args){
 
-        SchemaMatcher schemaMatcher = new SchemaMatcher();
+        SchemaMatcher schemaMatcher = new SchemaMatcher("my project");
         List<DBData> dbs = schemaMatcher.generateLocalSchema();
         List<TableData> tables = new ArrayList<>();
 
@@ -31,7 +31,7 @@ public class SchemaMatcher {
         List<GlobalTableData> globalTables = schemaMatcher.schemaIntegration(dbs);
         schemaMatcher.printGlobalTables(globalTables);
 
-        GlobalSchemaConfigurationV2 schemaConfigurationV2 = new GlobalSchemaConfigurationV2(schemaMatcher.generateLocalSchema(), globalTables);
+        GlobalSchemaConfigurationV2 schemaConfigurationV2 = new GlobalSchemaConfigurationV2("my project", schemaMatcher.generateLocalSchema(), globalTables);
     }
 
     public void printGlobalTables(List<GlobalTableData> globalTables){
@@ -52,8 +52,8 @@ public class SchemaMatcher {
         }
     }
 
-    public SchemaMatcher(){
-        metaDataManager = new MetaDataManager();
+    public SchemaMatcher(String projectName){
+        metaDataManager = new MetaDataManager(projectName);
     }
 
     public List<DBData> generateLocalSchema(){
