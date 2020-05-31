@@ -12,6 +12,18 @@ public enum MappingType {
     public int getNumber() {
         return number;
     }
+
+    public static MappingType getMapping(int n) {
+        switch (n){
+            case 0:
+                return MappingType.Simple;
+            case 1:
+                return MappingType.Vertical;
+            case 2:
+                return MappingType.Horizontal;
+        }
+        return null;
+    }
 }
 
 

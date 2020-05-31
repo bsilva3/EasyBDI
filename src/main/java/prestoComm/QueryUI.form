@@ -11,7 +11,7 @@
     <children>
       <component id="f68b9" class="javax.swing.JTree" binding="schemaTree">
         <constraints>
-          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="6" anchor="0" fill="3" indent="0" use-parent-layout="false">
+          <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="6" anchor="0" fill="3" indent="0" use-parent-layout="false">
             <preferred-size width="150" height="50"/>
           </grid>
           <gridbag weightx="2.0" weighty="1.0"/>
@@ -22,7 +22,7 @@
       </component>
       <grid id="30951" layout-manager="GridBagLayout">
         <constraints>
-          <grid row="0" column="1" row-span="3" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+          <grid row="1" column="1" row-span="3" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
           <gridbag weightx="1.0" weighty="1.0"/>
         </constraints>
         <properties/>
@@ -95,11 +95,20 @@
             </constraints>
             <properties/>
           </component>
+          <component id="ca426" class="javax.swing.JButton" binding="executeQueryButton" default-binding="true">
+            <constraints>
+              <grid row="4" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+              <gridbag weightx="1.0" weighty="1.0"/>
+            </constraints>
+            <properties>
+              <text value="Execute Query"/>
+            </properties>
+          </component>
         </children>
       </grid>
       <component id="21da8" class="javax.swing.JTable" binding="queryResultsTable">
         <constraints>
-          <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="6" anchor="0" fill="3" indent="0" use-parent-layout="false">
+          <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="6" anchor="0" fill="3" indent="0" use-parent-layout="false">
             <preferred-size width="150" height="50"/>
           </grid>
           <gridbag top="10" left="0" bottom="0" right="0" weightx="2.0" weighty="1.0"/>
@@ -108,12 +117,28 @@
       </component>
       <component id="b2a1d" class="javax.swing.JLabel">
         <constraints>
-          <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="2" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="2" fill="0" indent="0" use-parent-layout="false"/>
           <gridbag weightx="1.0" weighty="0.1"/>
         </constraints>
         <properties>
           <text value="Results"/>
         </properties>
+      </component>
+      <component id="e1cb6" class="javax.swing.JLabel">
+        <constraints>
+          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="1.0" weighty="0.4"/>
+        </constraints>
+        <properties>
+          <text value="Cube Selection:"/>
+        </properties>
+      </component>
+      <component id="baae9" class="javax.swing.JComboBox" binding="cubeSelectionComboBox">
+        <constraints>
+          <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="1.0" weighty="0.4"/>
+        </constraints>
+        <properties/>
       </component>
     </children>
   </grid>

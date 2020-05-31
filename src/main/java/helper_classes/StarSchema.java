@@ -4,12 +4,20 @@ import java.util.List;
 
 public class StarSchema {
 
+    private int cubeID;
     private String schemaName;
     private FactsTable factsTable;
     private List<GlobalTableData> dimsTables;
 
     public StarSchema(String schemaName, FactsTable factsTable, List<GlobalTableData> dimsTables) {
         this.schemaName = schemaName;
+        this.factsTable = factsTable;
+        this.dimsTables = dimsTables;
+    }
+
+    public StarSchema(String schemaName, int cubeID, FactsTable factsTable, List<GlobalTableData> dimsTables) {
+        this.schemaName = schemaName;
+        this.cubeID = cubeID;
         this.factsTable = factsTable;
         this.dimsTables = dimsTables;
     }
@@ -36,5 +44,13 @@ public class StarSchema {
 
     public void setDimsTables(List<GlobalTableData> dimsTables) {
         this.dimsTables = dimsTables;
+    }
+
+    public int getCubeID() {
+        return this.cubeID;
+    }
+
+    public void setCubeID(int cubeID) {
+        this.cubeID = cubeID;
     }
 }

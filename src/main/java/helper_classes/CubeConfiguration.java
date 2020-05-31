@@ -120,7 +120,7 @@ public class CubeConfiguration extends JPanel{
     }
 
     public StarSchema getMultiDimSchema(){
-        //TODO ensure cube  nanme does not exist already
+        //TODO ensure cube  name does not exist already
         List<GlobalTableData> dimTables = getDimensionTables();
         if(!this.cubeNameField.getText().isEmpty() && this.selectedFactsTable > -1 && dimTables.size() > 0){
             FactsTable factsTable = new FactsTable(globalTables.get(selectedFactsTable), getFactsColumns());

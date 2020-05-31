@@ -3,10 +3,20 @@ package helper_classes;
 import java.util.Map;
 
 public class FactsTable {
+
+    private int id;
+    private int cubeID
     private GlobalTableData globalTable;
     private Map<GlobalColumnData, Boolean> columns;
 
     public FactsTable(GlobalTableData globalTable, Map<GlobalColumnData, Boolean> columns) {
+        this.globalTable = globalTable;
+        this.columns = columns;
+    }
+
+    public FactsTable(int id, int cubeID, GlobalTableData globalTable, Map<GlobalColumnData, Boolean> columns) {
+        this.id = id;
+        this.cubeID = cubeID;
         this.globalTable = globalTable;
         this.columns = columns;
     }

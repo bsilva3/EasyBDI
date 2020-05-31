@@ -13,7 +13,7 @@ public class Main {
 
     public static void main(String[] args){
 
-        MetaDataManager m = new MetaDataManager("my project");
+        MetaDataManager m = new MetaDataManager("test1");
         ManagerFacade manager = new ManagerFacade();
         //register databases
         List<DBData> dbDataList = new ArrayList<>();
@@ -39,19 +39,23 @@ public class Main {
         dbDataList = manager.buildLocalSchema(dbDataList);*/
 
         System.out.println("databases registered:");
-        manager.printQuery("SELECT * FROM "+ DB_DATA);
+        m.makeQueryAndPrint("SELECT * FROM "+ DB_DATA);
 
         System.out.println("Tables registered:");
-        manager.printQuery("SELECT * FROM "+ TABLE_DATA);
+        m.makeQueryAndPrint("SELECT * FROM "+ TABLE_DATA);
 
         System.out.println("Columns registered:");
-        manager.printQuery("SELECT * FROM "+ COLUMN_DATA);
+        m.makeQueryAndPrint("SELECT * FROM "+ COLUMN_DATA);
 
-       /* manager.buildGlobalSchemaFromLocalSchema(dbDataList);
+        //manager.buildGlobalSchemaFromLocalSchema(dbDataList);
 
         System.out.println("--------------- Global Schema ------------------");
         System.out.println("global tables registered:");
-        manager.printQuery("SELECT * FROM "+ GLOBAL_TABLE_DATA);*/
+        m.makeQueryAndPrint("SELECT * FROM "+ GLOBAL_TABLE_DATA);
+
+        System.out.println("--------------- Cubes ------------------");
+        System.out.println("Cubes created:");
+        m.makeQueryAndPrint("SELECT * FROM "+ CUBE_TABLE);
 
 
     }

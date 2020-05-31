@@ -35,8 +35,7 @@ public class MainMenu extends JFrame{
         }
 
         //fill combobox with projects
-        String[] dbNames = MetaDataManager.listAllDBNames();
-        projectsComboBox.setModel(new DefaultComboBoxModel(dbNames));
+        refreshProjectsInComboBox();
         setListeners();
 
         this.setPreferredSize(new Dimension(950, 800));
@@ -116,6 +115,12 @@ public class MainMenu extends JFrame{
 
     public void returnToMainMenu(){
         placePanelInFrame(mainPanel);
+        refreshProjectsInComboBox();
+    }
+
+    private void refreshProjectsInComboBox(){
+        String[] dbNames = MetaDataManager.listAllDBNames();
+        projectsComboBox.setModel(new DefaultComboBoxModel(dbNames));
     }
 
 

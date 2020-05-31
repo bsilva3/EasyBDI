@@ -162,7 +162,7 @@ public class MetaDataManager {
                 + "    "+ CORRESPONDENCES_GLOBAL_COL_FIELD +" integer,\n"
                 + "    "+ CORRESPONDENCES_LOCAL_COL_FIELD +" integer ,\n"
                 + "    "+ CORRESPONDENCES_CONVERSION_FIELD +" text,\n"
-                + "    "+ CORRESPONDENCES_TYPE_FIELD +" text, \n"
+                + "    "+ CORRESPONDENCES_TYPE_FIELD +" integer, \n"
                 + "    PRIMARY KEY("+ CORRESPONDENCES_GLOBAL_COL_FIELD+", "+CORRESPONDENCES_LOCAL_COL_FIELD+") ON CONFLICT IGNORE, \n"
                 + "    FOREIGN KEY ("+ CORRESPONDENCES_GLOBAL_COL_FIELD +") REFERENCES "+GLOBAL_COLUMN_DATA+"("+GLOBAL_COLUMN_DATA_ID_FIELD+"), "
                 + "    FOREIGN KEY ("+ CORRESPONDENCES_LOCAL_COL_FIELD +") REFERENCES "+COLUMN_DATA+"("+ID_FIELD+")); ";
@@ -679,6 +679,7 @@ public class MetaDataManager {
                 GlobalTableData globalTableData = globalTables.get(i);
                 pstmt.setString(1, globalTableData.getTableName());
                 //get id of inserted global table
+                pstmt.executeUpdate();
                 ResultSet rs = pstmt.getGeneratedKeys();
                 if(rs.next())
                 {
@@ -687,7 +688,6 @@ public class MetaDataManager {
                     globalTables.set(i, globalTableData);
                 }
             }
-            pstmt.executeUpdate();
 
         } catch (SQLException e) {
             System.out.println(e.getMessage());
@@ -740,7 +740,7 @@ public class MetaDataManager {
                 for (ColumnData localColumn : globalColumn.getLocalColumns()) {
                     pstmt.setInt(1, globalColumn.getColumnID());
                     pstmt.setInt(2, localColumn.getColumnID());
-                    pstmt.setString(3, localColumn.getMapping().toString());
+                    pstmt.setInt(3, localColumn.getMapping().getNumber());
                     pstmt.executeUpdate();
                 }
             }
@@ -767,7 +767,7 @@ public class MetaDataManager {
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, factsTable.getGlobalTable().getId());
             pstmt.setInt(2, cubeID);
-            pstmt.setBoolean(2, true);
+            pstmt.setBoolean(3, true);
             pstmt.executeUpdate();
             //get id of inserted global column
             ResultSet rs = pstmt.getGeneratedKeys();
@@ -790,7 +790,7 @@ public class MetaDataManager {
             for (GlobalTableData gt : dimsTables){
                 pstmt.setInt(1, gt.getId());
                 pstmt.setInt(2, cubeID);
-                pstmt.setBoolean(2, false);
+                pstmt.setBoolean(3, false);
                 pstmt.executeUpdate();
                 //get id of inserted global column
                 ResultSet rs = pstmt.getGeneratedKeys();
@@ -848,6 +848,126 @@ public class MetaDataManager {
         }
         return cubeId;
     }
+
+    public StarSchema getStarSchema(String cubeName){
+        int cubeID = getCubeID(cubeName);
+        if (cubeID == -1)
+            return null;
+        FactsTable facts = null;
+        List<GlobalTableData> dimsTables = new ArrayList<>();
+        String sql = "SELECT "+MULTIDIM_TABLE_ID+", " +MULTIDIM_TABLE_ISFACTS +", "+ MULTIDIM_TABLE_TYPE +
+                ", " + GLOBAL_TABLE_DATA_ID_FIELD+" FROM "+ MULTIDIM_TABLE + " WHERE "+MULTIDIM_TABLE_CUBE_ID+"= "+cubeID+"";
+        try {
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql);
+            // loop through the result set
+            while (rs.next()) {
+                int multiDimTableID = rs.getInt(0);
+                boolean isFacts = rs.getBoolean(1);
+                int globalTableID = rs.getInt(3);
+                GlobalTableData globalTable = getGlobalTableFromID(globalTableID);
+                if (isFacts){
+                    Map<GlobalColumnData, Boolean> measures = getColumnsFromMultiDimTable(cubeID, multiDimTableID);
+                    facts = new FactsTable(multiDimTableID, cubeID, globalTable, measures);
+                }
+                else{
+                    dimsTables.add(globalTable);
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return new StarSchema(cubeName, cubeID, facts, dimsTables);
+    }
+
+    public GlobalTableData getGlobalTableFromID(int globalTableID){
+        GlobalTableData globalTableData = null;
+        String sql = "SELECT "+GLOBAL_TABLE_DATA_NAME_FIELD +" FROM "+ GLOBAL_TABLE_DATA + " WHERE "+GLOBAL_TABLE_DATA_ID_FIELD+" = "+globalTableID;
+        try {
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql);
+            // loop through the result set
+            while (rs.next()) {
+                String tableName = rs.getString(GLOBAL_TABLE_DATA_NAME_FIELD);
+                globalTableData = new GlobalTableData(tableName);
+                globalTableData.setId(globalTableID);
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        if (globalTableData != null){
+            //get its columns and correspondences
+            globalTableData.setGlobalColumnData(getGlobalColumnsInGlobalTable(globalTableData));
+        }
+        return globalTableData;
+    }
+
+    private List<GlobalColumnData> getGlobalColumnsInGlobalTable(int globalTableID){
+        List<GlobalColumnData> globalCols = new ArrayList<>();
+        String sql = "SELECT * FROM "+ GLOBAL_COLUMN_DATA + " WHERE "+GLOBAL_COLUMN_DATA_TABLE_FIELD+" = "+globalTableID;
+        try {
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql);
+            // loop through the result set
+            while (rs.next()) {
+                int globalColID = rs.getInt(GLOBAL_COLUMN_DATA_ID_FIELD);
+                Set<ColumnData> globalColsCorrs = getCorrespondencesFromGlobalColumn(globalColID);
+                GlobalColumnData globalCol = new GlobalColumnData(rs.)
+                String tableName = rs.getString(GLOBAL_TABLE_DATA_NAME_FIELD);
+                globalTableData = new GlobalTableData(tableName);
+                globalTableData.setId(globalTableID);
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return globalCols;
+    }
+
+    /**
+     * Query the correspondences table and get all local column id's that pair with the given global column id.
+     * @param globalColID
+     * @return
+     */
+    private Set<ColumnData> getCorrespondencesFromGlobalColumn(int globalColID){
+        Set<ColumnData> corrs = new HashSet<>();
+
+        String sql = "SELECT * FROM "+ CORRESPONDENCES_DATA + " WHERE "+CORRESPONDENCES_GLOBAL_COL_FIELD+" = "+globalColID;
+        try {
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql);
+            // loop through the result set
+            while (rs.next()) {
+                int localColID = rs.getInt(CORRESPONDENCES_LOCAL_COL_FIELD);
+                MappingType mapping = MappingType.getMapping(rs.getInt(CORRESPONDENCES_TYPE_FIELD));
+                corrs.add(new ColumnData());
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+
+        return corrs;
+
+    }
+
+    public Map<GlobalColumnData, Boolean> getColumnsFromMultiDimTable (int cubeID, int multiDimTableID){
+        Map<GlobalColumnData, Boolean> measures = new HashMap<>();
+        String sql = "SELECT "+MULTIDIM_COLUMN_MEASURE +" FROM "+ MULTIDIM_COLUMN + " WHERE "+CUBE_ID_FIELD+" = "+cubeID+
+                " AND "+ MULTIDIM_TABLE_ID +" = "+multiDimTableID;
+        try {
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql);
+            // loop through the result set
+            while (rs.next()) {
+                boolean isMeasure = rs.getBoolean(0);
+                GlobalColumnData globalColumn = getGlobalColumnFromID()
+                measures.put()
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return ;
+    }
+
 
     /**
      * Insert Columns of global tables in the global columns table. Also adds the correspondences between the global and the local table columns in the

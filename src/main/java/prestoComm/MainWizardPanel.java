@@ -164,6 +164,7 @@ public class MainWizardPanel extends JPanel{
         metaDataManager.insertGlobalSchemaData(globalSchema);
         StarSchema starSchema = cubeConfigWizzard.getMultiDimSchema();
         metaDataManager.insertStarSchema(starSchema);
+        this.mainMenu.returnToMainMenu();
     }
 
     public void setLastWindow(){

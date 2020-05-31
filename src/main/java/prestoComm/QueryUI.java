@@ -31,7 +31,11 @@ public class QueryUI extends JPanel{
     private JComboBox aggregationOpComboBox;
     private JList columnsList;
     private JPanel mainPanel;
+    private JComboBox cubeSelectionComboBox;
+    private JButton executeQueryButton;
     private String project;
+
+    private StarSchema starSchema;
 
     private DefaultTreeModel schemaTreeModel;
     private DefaultListModel fliterListModel;
@@ -41,14 +45,16 @@ public class QueryUI extends JPanel{
     private MetaDataManager metaDataManager;
     private PrestoMediator prestoMediator;
     private String projectName;
-
+    private final String[] aggregations = { "count", "sum", "average", "min", "max"};
+    private final String[] numberOperations = { "=", ">", "=>", "<", "<="};
+    private final String[] stringOperations = { "=", "like"};
+    //TODO: checkbox disntinct?
 
     public QueryUI(String projectName){
         this.projectName = projectName;
         this.metaDataManager = new MetaDataManager(projectName);
         this.prestoMediator = new PrestoMediator();
 
-        String[] aggregations = { "sum", "average"};
         aggregationOpComboBox.setModel(new DefaultComboBoxModel(aggregations));
 
         schemaTreeModel = setGlobalSchemaTree(generateGlobalSchema());
@@ -69,6 +75,8 @@ public class QueryUI extends JPanel{
 
         add(mainPanel);
         this.setVisible(true);
+
+        metaDataManager.getStarSchema();
     }
 
     public static void main(String[] args){
@@ -236,14 +244,18 @@ public class QueryUI extends JPanel{
             int index = dl.getIndex();
             if (index == -1)
                 index = 0;
-            boolean insert = dl.isInsert();
-
             // Get the string that is being dropped.
             Transferable t = info.getTransferable();
             CustomTreeNode data;
             try {
                 data = (CustomTreeNode) t.getTransferData(nodesFlavor);
             } catch (Exception e) {
+                return false;
+            }
+
+            if (data.getNodeType() != NodeType.GLOBAL_COLUMN){
+                JOptionPane.showMessageDialog(null, "You can only drag and drop columns.",
+                        "Operation Failed", JOptionPane.ERROR_MESSAGE);
                 return false;
             }
 
@@ -268,17 +280,40 @@ public class QueryUI extends JPanel{
                     }
                 }
             }*/
+            GlobalColumnData column = (GlobalColumnData) data.getObj();
             String lisElem = data.getUserObject().toString();
             if (list.equals(filterList)){
-                String filterValue = (String)JOptionPane.showInputDialog(
+                //user drops in the filter list
+                //filter operations depende on data type (<, >, <= only for numeric OR date)
+                String[] filterOps;
+                if (column.isNumeric()) //TODO: also accept date time datatypes
+                    filterOps = numberOperations;
+                else
+                    filterOps = stringOperations;
+                JComboBox filter = new JComboBox(filterOps);
+                JTextField value = new JTextField();
+                final JComponent[] inputs = new JComponent[] {
+                        new JLabel("Select Filter Operation"),
+                        filter,
+                        new JLabel("Filter value selection"),
+                        value,
+                };
+                int result = JOptionPane.showConfirmDialog(
                         null,
-                        "Insert the value",
-                        "Filter value selection",
-                        JOptionPane.PLAIN_MESSAGE,
-                        null,
-                        null,
-                        "");
-                lisElem+= " = " + filterValue;
+                         inputs,
+                        "Filter operation and value selection",
+                        JOptionPane.PLAIN_MESSAGE);
+                String filterValue = "";
+                if (result == JOptionPane.OK_OPTION) {
+                    filterValue = value.getText();
+                    lisElem+= " = " + filterValue;
+                }
+                else{
+                    JOptionPane.showMessageDialog(null, "Please select a filter operation and insert a filter value with same data type",
+                            "Operation Failed", JOptionPane.ERROR_MESSAGE);
+                    return false;
+                }
+
             }
             else if (list.equals(aggregationList)){
                 lisElem+= " ("+ aggregationOpComboBox.getSelectedItem().toString() +")";
