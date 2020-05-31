@@ -95,6 +95,7 @@ public class Constants {
     public static final String MULTIDIM_COLUMN = "multidimensional_column";
     //contains multidim id and global column id
     public static final String MULTIDIM_COLUMN_TYPE = "multidimensional_type";
+    public static final String MULTIDIM_COL_GLOBAL_COLUMN_ID = "glob_col_id";
     public static final String MULTIDIM_COLUMN_MEASURE = "isMeasure";
 
     public static final String GLOBAL_TABLE_DATA_MULTI_TYPE_FIELD = "multidimensional_type";

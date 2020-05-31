@@ -158,6 +158,7 @@ public class MetaDataManager {
                 +  "   UNIQUE("+ GLOBAL_COLUMN_DATA_NAME_FIELD +", " +GLOBAL_COLUMN_DATA_TABLE_FIELD+") ON CONFLICT IGNORE, \n"
                 + "    FOREIGN KEY ("+ GLOBAL_COLUMN_DATA_TABLE_FIELD +") REFERENCES "+GLOBAL_TABLE_DATA+"("+GLOBAL_TABLE_DATA_ID_FIELD+"));";
 
+        //TODO: Check unique constraint in the below tables:
         String sql7 = "CREATE TABLE IF NOT EXISTS "+ CORRESPONDENCES_DATA +" (\n"
                 + "    "+ CORRESPONDENCES_GLOBAL_COL_FIELD +" integer,\n"
                 + "    "+ CORRESPONDENCES_LOCAL_COL_FIELD +" integer ,\n"
@@ -184,9 +185,11 @@ public class MetaDataManager {
         String sql10 = "CREATE TABLE IF NOT EXISTS "+ MULTIDIM_COLUMN +" (\n"
                 + "    "+ CUBE_ID_FIELD +" integer ,\n"
                 + "    "+ MULTIDIM_TABLE_ID +" integer ,\n"
+                + "    "+ MULTIDIM_COL_GLOBAL_COLUMN_ID +" integer ,\n"
                 + "    "+ MULTIDIM_COLUMN_MEASURE +" boolean ,\n"
                 + "    FOREIGN KEY ("+ CUBE_ID_FIELD +") REFERENCES "+CUBE_TABLE+"("+CUBE_ID_FIELD+"), "
-                + "    FOREIGN KEY ("+ MULTIDIM_TABLE_ID +") REFERENCES "+MULTIDIM_TABLE+"("+MULTIDIM_TABLE_ID+")); ";
+                + "    FOREIGN KEY ("+ MULTIDIM_TABLE_ID +") REFERENCES "+MULTIDIM_TABLE+"("+MULTIDIM_TABLE_ID+"), "
+                + "    FOREIGN KEY ("+ MULTIDIM_COL_GLOBAL_COLUMN_ID +") REFERENCES "+GLOBAL_COLUMN_DATA+"("+GLOBAL_COLUMN_DATA_ID_FIELD+")); ";
 
         executeStatements(new String[] {sql1, sql2, sql3, sql4, sql5, sql6, sql7, sql8, sql9, sql10});
     }
@@ -806,6 +809,54 @@ public class MetaDataManager {
         return dimsTableID;
     }
 
+    private int insertMultiDimColumn(int cubeID, FactsTable facts){
+        int dimsTableID = -1;
+        String sql = "INSERT INTO "+ MULTIDIM_COLUMN + "(" + CUBE_ID_FIELD+", "+GLOBAL_TABLE_DATA_ID_FIELD+", "+MULTIDIM_COLUMN_MEASURE+", "+
+                MULTIDIM_TABLE_ISFACTS+") VALUES(?,?,?)";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            for (GlobalTableData gt : dimsTables){
+                pstmt.setInt(1, gt.getId());
+                pstmt.setInt(2, cubeID);
+                pstmt.setBoolean(3, false);
+                pstmt.executeUpdate();
+                //get id of inserted global column
+                ResultSet rs = pstmt.getGeneratedKeys();
+                if(rs.next())
+                {
+                    dimsTableID = rs.getInt(1);
+                }
+            }
+
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return dimsTableID;
+    }
+
+    private int insertMultiDimColumn(int cubeID, List<GlobalTableData> dimsTables){
+        int dimsTableID = -1;
+        String sql = "INSERT INTO "+ MULTIDIM_TABLE + "("+GLOBAL_TABLE_DATA_ID_FIELD+", "+MULTIDIM_TABLE_CUBE_ID+", "+
+                MULTIDIM_TABLE_ISFACTS+") VALUES(?,?,?)";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            for (GlobalTableData gt : dimsTables){
+                pstmt.setInt(1, gt.getId());
+                pstmt.setInt(2, cubeID);
+                pstmt.setBoolean(3, false);
+                pstmt.executeUpdate();
+                //get id of inserted global column
+                ResultSet rs = pstmt.getGeneratedKeys();
+                if(rs.next())
+                {
+                    dimsTableID = rs.getInt(1);
+                }
+            }
+
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return dimsTableID;
+    }
+
     private int getOrcreateCube(String cubeName){
         int cubeId = getCubeID(cubeName);
         if (cubeId != -1){
@@ -867,7 +918,7 @@ public class MetaDataManager {
                 int globalTableID = rs.getInt(3);
                 GlobalTableData globalTable = getGlobalTableFromID(globalTableID);
                 if (isFacts){
-                    Map<GlobalColumnData, Boolean> measures = getColumnsFromMultiDimTable(cubeID, multiDimTableID);
+                    Map<GlobalColumnData, Boolean> measures = getMeasuresFromMultiDimCol(cubeID, multiDimTableID, globalTable.getGlobalColumnDataList());
                     facts = new FactsTable(multiDimTableID, cubeID, globalTable, measures);
                 }
                 else{
@@ -897,7 +948,7 @@ public class MetaDataManager {
         }
         if (globalTableData != null){
             //get its columns and correspondences
-            globalTableData.setGlobalColumnData(getGlobalColumnsInGlobalTable(globalTableData));
+            globalTableData.setGlobalColumnData(getGlobalColumnsInGlobalTable(globalTableData.getId()));
         }
         return globalTableData;
     }
@@ -912,10 +963,10 @@ public class MetaDataManager {
             while (rs.next()) {
                 int globalColID = rs.getInt(GLOBAL_COLUMN_DATA_ID_FIELD);
                 Set<ColumnData> globalColsCorrs = getCorrespondencesFromGlobalColumn(globalColID);
-                GlobalColumnData globalCol = new GlobalColumnData(rs.)
-                String tableName = rs.getString(GLOBAL_TABLE_DATA_NAME_FIELD);
-                globalTableData = new GlobalTableData(tableName);
-                globalTableData.setId(globalTableID);
+                GlobalColumnData globalCol = new GlobalColumnData(rs.getString(GLOBAL_COLUMN_DATA_NAME_FIELD), rs.getString(GLOBAL_COLUMN_DATA_TYPE_FIELD),
+                        rs.getBoolean(GLOBAL_COLUMN_DATA_PRIMARY_KEY_FIELD), globalColsCorrs);
+                globalCol.setColumnID(rs.getInt(GLOBAL_COLUMN_DATA_ID_FIELD));
+                globalCols.add(globalCol);
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
@@ -923,8 +974,27 @@ public class MetaDataManager {
         return globalCols;
     }
 
+    private GlobalColumnData getGlobalColumnByID(int globalColID){
+        GlobalColumnData globalCol = null;
+        String sql = "SELECT * FROM "+ GLOBAL_COLUMN_DATA + " WHERE "+GLOBAL_COLUMN_DATA_ID_FIELD+" = "+globalColID;
+        try {
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql);
+            // loop through the result set
+            while (rs.next()) {
+                Set<ColumnData> globalColsCorrs = getCorrespondencesFromGlobalColumn(globalColID);
+                globalCol = new GlobalColumnData(rs.getString(GLOBAL_COLUMN_DATA_NAME_FIELD), rs.getString(GLOBAL_COLUMN_DATA_TYPE_FIELD),
+                        rs.getBoolean(GLOBAL_COLUMN_DATA_PRIMARY_KEY_FIELD), globalColsCorrs);
+                globalCol.setColumnID(rs.getInt(GLOBAL_COLUMN_DATA_ID_FIELD));
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return globalCol;
+    }
+
     /**
-     * Query the correspondences table and get all local column id's that pair with the given global column id.
+     * Query the correspondences table and get all local columns that pair with the given global column id.
      * @param globalColID
      * @return
      */
@@ -938,8 +1008,9 @@ public class MetaDataManager {
             // loop through the result set
             while (rs.next()) {
                 int localColID = rs.getInt(CORRESPONDENCES_LOCAL_COL_FIELD);
+                //get local column
                 MappingType mapping = MappingType.getMapping(rs.getInt(CORRESPONDENCES_TYPE_FIELD));
-                corrs.add(new ColumnData());
+                corrs.add(getLocalColumnByID(localColID, mapping));
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
@@ -949,23 +1020,31 @@ public class MetaDataManager {
 
     }
 
-    public Map<GlobalColumnData, Boolean> getColumnsFromMultiDimTable (int cubeID, int multiDimTableID){
+    /**
+     * Used mainly by facts table to get know if global columns are or not measures
+     * @param cubeID
+     * @param multiDimTableID
+     * @return
+     */
+    public Map<GlobalColumnData, Boolean> getMeasuresFromMultiDimCol (int cubeID, int multiDimTableID, List<GlobalColumnData> globalCols){
         Map<GlobalColumnData, Boolean> measures = new HashMap<>();
-        String sql = "SELECT "+MULTIDIM_COLUMN_MEASURE +" FROM "+ MULTIDIM_COLUMN + " WHERE "+CUBE_ID_FIELD+" = "+cubeID+
-                " AND "+ MULTIDIM_TABLE_ID +" = "+multiDimTableID;
-        try {
-            Statement stmt = conn.createStatement();
-            ResultSet rs = stmt.executeQuery(sql);
-            // loop through the result set
-            while (rs.next()) {
-                boolean isMeasure = rs.getBoolean(0);
-                GlobalColumnData globalColumn = getGlobalColumnFromID()
-                measures.put()
+
+        for (GlobalColumnData globalCol : globalCols) {
+            String sql = "SELECT " + MULTIDIM_COLUMN_MEASURE + " FROM " + MULTIDIM_COLUMN + " WHERE " + CUBE_ID_FIELD + " = " + cubeID +
+                    " AND " + MULTIDIM_TABLE_ID + " = " + multiDimTableID + " AND " + MULTIDIM_COL_GLOBAL_COLUMN_ID + " = " + globalCol.getColumnID();
+            try {
+                Statement stmt = conn.createStatement();
+                ResultSet rs = stmt.executeQuery(sql);
+                // loop through the result set
+                while (rs.next()) {
+                    boolean isMeasure = rs.getBoolean(MULTIDIM_COLUMN_MEASURE);
+                    measures.put(globalCol, isMeasure);
+                }
+            } catch (SQLException e) {
+                System.out.println(e.getMessage());
             }
-        } catch (SQLException e) {
-            System.out.println(e.getMessage());
         }
-        return ;
+        return measures;
     }
 
 
@@ -1049,6 +1128,25 @@ public class MetaDataManager {
             System.out.println(e.getMessage());
         }
         return cols;
+    }
+
+    public ColumnData getLocalColumnByID(int localID, MappingType mapping){
+        ColumnData col = null;
+        try {
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery("SELECT "+ COLUMN_DATA_NAME_FIELD+ ", " + COLUMN_DATA_TYPE_FIELD+", " + COLUMN_DATA_IS_PRIMARY_KEY_FIELD
+                    +", "+ COLUMN_DATA_FOREIGN_KEY_FIELD +", "+ COLUMN_DATA_TABLE_FIELD +" FROM " + COLUMN_DATA + " where "+ID_FIELD+"="+localID+";");
+            // loop through the result set
+            while (rs.next()) {
+                int tableID = rs.getInt(COLUMN_DATA_TABLE_FIELD);
+                TableData table = getTableByID(tableID);
+                col = new ColumnData.Builder(rs.getString(COLUMN_DATA_NAME_FIELD), rs.getString(COLUMN_DATA_TYPE_FIELD), rs.getBoolean(COLUMN_DATA_IS_PRIMARY_KEY_FIELD))
+                        .withForeignKey(rs.getString(COLUMN_DATA_FOREIGN_KEY_FIELD)).withID(rs.getInt(ID_FIELD)).withTable(table).withMappingType(mapping).build();
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return col;
     }
 
     /**
