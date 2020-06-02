@@ -5,7 +5,7 @@ import java.util.Map;
 public class FactsTable {
 
     private int id;
-    private int cubeID
+    private int cubeID;
     private GlobalTableData globalTable;
     private Map<GlobalColumnData, Boolean> columns;
 
@@ -44,5 +44,13 @@ public class FactsTable {
 
     public void setColumns(Map<GlobalColumnData, Boolean> columns) {
         this.columns = columns;
+    }
+
+    public int getId() {
+        return this.id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 }

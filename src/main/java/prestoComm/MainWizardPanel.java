@@ -1,6 +1,7 @@
 package prestoComm;
 
 import helper_classes.*;
+import wizards.CubeConfiguration;
 import wizards.DBConfig.DatabaseConnectionWizardV2;
 import wizards.global_schema_config.GlobalSchemaConfigurationV2;
 

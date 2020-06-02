@@ -96,6 +96,10 @@ public class TableData implements Serializable {
         return false;
     }
 
+    public String getCompletePrestoTableName(){
+        return db.getCatalogName()+"."+schemaName+"."+tableName;
+    }
+
     public int getNCols (){
         return this.columnsList.size();
     }

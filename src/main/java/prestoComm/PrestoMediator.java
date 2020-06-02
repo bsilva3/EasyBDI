@@ -487,7 +487,23 @@ public class PrestoMediator {
         }
     }
 
-    public ResultSet getLocalTablesQueries(List<TableData> localTables){
+    public ResultSet getLocalTablesQueries(String query){
+        try {
+            stmt = conn.createStatement();
+            ResultSet res = stmt.executeQuery(query);
+            /*ResultSetMetaData rsmd = res.getMetaData();
+
+            while (res.next()) {
+                Map <String, String> row = new HashMap<>();//store a row from the records. Stores each column in the form (column name -> column value)
+                for (int i = 1; i < rsmd.getColumnCount(); i++){
+                    String name = rsmd.getColumnName(i);
+                    row.put(name,res.getString(name));
+                }
+            }*/
+            return res;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         return null;
     }
 

@@ -47,6 +47,27 @@ public class GlobalTableData implements Serializable {
         return tables;
     }
 
+    public MappingType getMappingTypeOfMatches(){//same for all matches, therefore, check only a column
+        return globalColumnData.get(0).getLocalColumns().iterator().next().getMapping();
+    }
+
+    /**
+     * Get all local tables that match with this global table, but return only local columns in the local table that match with the
+     * specified global cols
+     * @param cols
+     * @return
+     */
+    public Set<TableData> getLocalTablesFromColsSelectedCols(List<GlobalColumnData> cols) {
+        Set<TableData> tables = new HashSet<>();
+        for (GlobalColumnData gc : this.globalColumnData){
+            if (cols.contains(gc)) {
+                for (ColumnData c : gc.getLocalColumns())
+                    tables.add(c.getTable());
+            }
+        }
+        return tables;
+    }
+
     public Set<Integer> getLocalTablesIDs() {
         Set<Integer> tablesIDS = new HashSet<>();
         for (GlobalColumnData gc : this.globalColumnData){

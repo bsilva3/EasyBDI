@@ -9,7 +9,7 @@ import java.util.List;
 
 import static prestoComm.Constants.*;
 
-public class Main {
+public class MainTest {
 
     public static void main(String[] args){
 

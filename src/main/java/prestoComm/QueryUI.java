@@ -1,6 +1,7 @@
 package prestoComm;
 
 import helper_classes.*;
+import jdk.nashorn.internal.objects.Global;
 import wizards.global_schema_config.CustomTreeNode;
 import wizards.global_schema_config.CustomeTreeCellRenderer;
 import wizards.global_schema_config.GlobalSchemaConfigurationV2;
@@ -18,7 +19,9 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.dnd.*;
+import java.awt.event.*;
 import java.io.IOException;
+import java.sql.Array;
 import java.sql.ResultSet;
 import java.util.*;
 import java.util.List;
@@ -33,9 +36,11 @@ public class QueryUI extends JPanel{
     private JPanel mainPanel;
     private JComboBox cubeSelectionComboBox;
     private JButton executeQueryButton;
+    private JButton backButton;
     private String project;
 
     private StarSchema starSchema;
+    private GlobalTableQuery globalTableQueries;//used to store all queries for each global table, and their columns
 
     private DefaultTreeModel schemaTreeModel;
     private DefaultListModel fliterListModel;
@@ -50,18 +55,31 @@ public class QueryUI extends JPanel{
     private final String[] stringOperations = { "=", "like"};
     //TODO: checkbox disntinct?
 
-    public QueryUI(String projectName){
+    private MainMenu mainMenu;
+
+    public QueryUI(String projectName, MainMenu mainMenu){
+        this.mainMenu = mainMenu;
         this.projectName = projectName;
         this.metaDataManager = new MetaDataManager(projectName);
         this.prestoMediator = new PrestoMediator();
+        this.globalTableQueries = new GlobalTableQuery();
+
+        List<String> starSchemas =  metaDataManager.getStarSchemaNames();
+        if (starSchemas.isEmpty()){
+            JOptionPane.showMessageDialog(null, "There are no star schemas in this project.", "No Star schemas found", JOptionPane.ERROR_MESSAGE);
+            mainMenu.returnToMainMenu();
+        }
+        cubeSelectionComboBox.setModel(new DefaultComboBoxModel(starSchemas.toArray(new String[starSchemas.size()])));
 
         aggregationOpComboBox.setModel(new DefaultComboBoxModel(aggregations));
 
-        schemaTreeModel = setGlobalSchemaTree(generateGlobalSchema());
+        this.starSchema = metaDataManager.getStarSchema(cubeSelectionComboBox.getSelectedItem().toString());
+        schemaTreeModel = setStarSchemaTree();
         schemaTree.setModel(schemaTreeModel);
         schemaTree.setCellRenderer(new CustomeTreeCellRenderer());
         schemaTree.setTransferHandler(new TreeTransferHandler());
         schemaTree.setDragEnabled(true);
+        schemaTree.setRootVisible(false);
 
         fliterListModel = new DefaultListModel();
         aggreListModel = new DefaultListModel();
@@ -73,14 +91,49 @@ public class QueryUI extends JPanel{
         aggregationList.setTransferHandler(new TreeTransferHandler());
         columnsList.setTransferHandler(new TreeTransferHandler());
 
+        backButton.addActionListener(new ActionListener()
+        {
+            public void actionPerformed(ActionEvent e)
+            {
+                //open wizard and edit current project
+                mainMenu.returnToMainMenu();
+            }
+        });
+
+        executeQueryButton.addActionListener(new ActionListener()
+        {
+            public void actionPerformed(ActionEvent e)
+            {
+                //open wizard and edit current project
+                executeQuery();
+            }
+        });
+
+
+        cubeSelectionComboBox.addActionListener (new ActionListener () {
+            public void actionPerformed(ActionEvent e) {
+                starSchema = metaDataManager.getStarSchema(cubeSelectionComboBox.getSelectedItem().toString());
+                schemaTreeModel = setStarSchemaTree();
+                schemaTree.setModel(schemaTreeModel);
+                schemaTree.revalidate();
+                schemaTree.updateUI();
+            }
+        });
+
+        //pop up menus for each list
+        //COLUMNS JLIST
+        JPopupMenu menu = new JPopupMenu();
+        JMenuItem item1 = new JMenuItem("Delete");
+        //item1.addActionListener(getRemoveActionListener());
+        menu.add(item1);
+        columnsList.setComponentPopupMenu(menu);
+
         add(mainPanel);
         this.setVisible(true);
-
-        metaDataManager.getStarSchema();
     }
 
     public static void main(String[] args){
-        QueryUI m = new QueryUI("My Project");
+        QueryUI m = new QueryUI("My Project", null);
         JFrame frame = new JFrame();
         frame.setPreferredSize(new Dimension(950, 800));
         frame.setContentPane(m);
@@ -142,10 +195,24 @@ public class QueryUI extends JPanel{
         return globalTableDataList;
     }
 
-    public DefaultTreeModel setGlobalSchemaTree(List<GlobalTableData> globalTables){
-        CustomTreeNode data = new CustomTreeNode("Global Tables", NodeType.GLOBAL_TABLES);
-        //tables
-        for (GlobalTableData gt:globalTables) {
+    public DefaultTreeModel setStarSchemaTree(){
+        if (this.starSchema == null)
+            return null;
+        FactsTable facts = starSchema.getFactsTable();
+        CustomTreeNode root = new CustomTreeNode("root", NodeType.GLOBAL_TABLES);
+        CustomTreeNode factsNode = new CustomTreeNode("Measures of "+facts.getGlobalTable().getTableName(), NodeType.GLOBAL_TABLES);
+        //set columns that are measures ONLY
+        Map<GlobalColumnData, Boolean> cols = facts.getColumns();
+        for (Map.Entry<GlobalColumnData, Boolean> col : cols.entrySet()){
+            if (col.getValue() == true){
+                //is measure, add
+                GlobalColumnData measure = col.getKey();
+                factsNode.add(new CustomTreeNode(measure.getName(), measure, NodeType.GLOBAL_COLUMN));
+            }
+        }
+        //dimension tables
+        CustomTreeNode dimensionsNode = new CustomTreeNode("Dimensions", NodeType.GLOBAL_TABLES);
+        for (GlobalTableData gt : starSchema.getDimsTables() ) {
             CustomTreeNode tables = new CustomTreeNode(gt.getTableName(), gt, NodeType.GLOBAL_TABLE);
             //global cols
             for (GlobalColumnData col : gt.getGlobalColumnDataList()) {
@@ -153,32 +220,48 @@ public class QueryUI extends JPanel{
                 column.add(new CustomTreeNode(col.getDataType(), NodeType.COLUMN_INFO));
                 if (col.isPrimaryKey())
                     column.add(new CustomTreeNode("primary key", NodeType.PRIMARY_KEY));
-                //corrs
-                CustomTreeNode corrs = new CustomTreeNode("Matches", NodeType.MATCHES);
-                for (TableData t : col.getLocalTables()) {
-                    CustomTreeNode localTableTree = new CustomTreeNode(t.getDB().getDbName()+"."+t.getTableName(), t, NodeType.TABLE_MATCHES);
-                    boolean hasMatches = false;
-                    for (ColumnData localCol : col.getLocalColumns()) {
-                        if (localCol.getTable().equals(t) && col.getLocalColumns().contains(localCol)) {
-                            localTableTree.add(new CustomTreeNode(localCol.getName(), localCol, NodeType.COLUMN_MATCHES));
-                            localTableTree.add(new CustomTreeNode("Mapping Type: "+localCol.getMapping(), null, NodeType.COLUMN_MATCHES_TYPE));
-                            hasMatches = true;
-                        }
-                    }
-                    if (hasMatches)
-                        corrs.add(localTableTree);
-                }
-                column.add(corrs);
                 tables.add(column);
             }
-            data.add(tables);
+            dimensionsNode.add(tables);
         }
-        return new DefaultTreeModel(data);
+        root.add(factsNode);
+        root.add(dimensionsNode);
+        return new DefaultTreeModel(root);
     }
 
-    public void globalToLocalQueries(GlobalTableData globalTableData){
-        //List<TableData> localTables = metaDataManager.getLocalTablesOfGlobalTable(globalTableData);
-        //ResultSet results = prestoMediator.getLocalTablesQueries(localTables);
+    private MouseListener getMouseListener() {
+        return new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent arg0) {
+                if (SwingUtilities.isRightMouseButton(arg0)){
+                    JPopupMenu menu = new JPopupMenu();
+                    JMenuItem item = new JMenuItem("Say hello");
+                    item.addActionListener(new ActionListener() {
+                        public void actionPerformed(ActionEvent e) {
+                            JOptionPane.showMessageDialog(null, "Hello "
+                                    + columnsList.getSelectedValue());
+                        }
+                    });
+                    menu.add(item);
+                    menu.show(null, 5, columnsList.getCellBounds(
+                            columnsList.getSelectedIndex() + 1,
+                            columnsList.getSelectedIndex() + 1).y);
+                }
+                super.mousePressed(arg0);
+            }
+        };
+    }
+
+
+
+    public void executeQuery(){
+        String localQuery = globalTableQueries.getLocalTableQuery();
+        System.out.println(localQuery);
+        if (localQuery.contains("Error")){
+            JOptionPane.showMessageDialog(null, "Could not execute query:\n"+localQuery, "Query Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        ResultSet results = prestoMediator.getLocalTablesQueries(localQuery);
     }
 
     class TreeTransferHandler extends TransferHandler {
@@ -313,13 +396,42 @@ public class QueryUI extends JPanel{
                             "Operation Failed", JOptionPane.ERROR_MESSAGE);
                     return false;
                 }
-
+                listModel.add(index++, lisElem);
+            }
+            else if (list.equals(columnsList)){
+                CustomTreeNode parentNode = (CustomTreeNode) data.getParent();//global table
+                addColumnsToColumnsList(listModel, (GlobalColumnData)data.getObj(), (GlobalTableData) parentNode.getObj()) ;
             }
             else if (list.equals(aggregationList)){
                 lisElem+= " ("+ aggregationOpComboBox.getSelectedItem().toString() +")";
+                listModel.add(index++, lisElem);
             }
-            listModel.add(index++, lisElem);
             return true;
+        }
+
+        private void addColumnsToColumnsList(DefaultListModel listModel, GlobalColumnData globalCol, GlobalTableData globalTable){
+            String[] s = null;
+            //check if table name of this column exists. If true then inserted here
+            if (columnListModel.contains(globalTable.getTableName())){
+                int index = columnListModel.indexOf(globalTable.getTableName());
+                index++;
+                //iterate the columns of this tables. insert a new one
+                for (int i = index; i < columnListModel.getSize(); i++) {
+                    if (!String.valueOf(columnListModel.getElementAt(i)).contains("    ")){
+                        listModel.add(i, "    "+globalCol.getName());//add column
+                        globalTableQueries.addSelectColumn(globalTable, globalCol);
+                        return;
+                    }
+                }
+                //maybe this table is the last one, insert at last position
+                listModel.addElement("    "+globalCol.getName());//add column
+                return;
+            }
+            else{
+                listModel.addElement(globalTable.getTableName()); //add table name
+                listModel.addElement("    "+globalCol.getName());//add column
+                globalTableQueries.addSelectColumn(globalTable, globalCol);
+            }
         }
 
         public String toString() {

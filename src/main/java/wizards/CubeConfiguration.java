@@ -1,4 +1,9 @@
-package helper_classes;
+package wizards;
+
+import helper_classes.FactsTable;
+import helper_classes.GlobalColumnData;
+import helper_classes.GlobalTableData;
+import helper_classes.StarSchema;
 
 import javax.swing.*;
 import java.awt.*;

@@ -80,9 +80,14 @@ public class MainMenu extends JFrame{
         {
             public void actionPerformed(ActionEvent e)
             {
-                //open query window
+                //open query window with selected project in combo box
+                openQueryUI();
             }
         });
+    }
+
+    private void openQueryUI(){
+        placePanelInFrame(new QueryUI(projectsComboBox.getSelectedItem().toString(), this));
     }
 
     private void createNewProjectWizard(){

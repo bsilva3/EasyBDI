@@ -82,6 +82,7 @@ public class ColumnData implements Serializable {
             col.table = this.table;
             col.tableID = this.tableID;
             col.foreignKey = this.foreignKey;
+            col.mapping = this.mapping;
             return col;
         }
 
@@ -186,6 +187,10 @@ public class ColumnData implements Serializable {
         if (this.foreignKey == null || this.foreignKey.isEmpty())
             return false;
         return true;
+    }
+
+    public String getCompletePrestoColumnName(){
+        return table.getCompletePrestoTableName()+"."+name;
     }
 
     @Override
