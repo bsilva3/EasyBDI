@@ -139,7 +139,7 @@ public class DatabaseConnectionWizardV2 extends JPanel {
         dbList.add(new DBData("localhost:5432", DBModel.PostgreSQL, "employees_horizontal", "postgres", "brunosilva"));//for test
         dbList.add(new DBData("localhost:5432", DBModel.PostgreSQL, "employees_vertical", "postgres", "brunosilva"));//for test
         dbList.add(new DBData("http://localhost:27017", DBModel.MongoDB,"inventory"));
-        dbList.add(new DBData("http://localhost:3306", DBModel.MYSQL,"employeesMYSQL", "bruno", "brunosilva"));
+        //dbList.add(new DBData("http://localhost:3306", DBModel.MYSQL,"employeesMYSQL", "bruno", "brunosilva"));
         if (dbConnectionTested.contains(false) || dbConnectionTested.contains(null)){
             JOptionPane.showMessageDialog(null,
                     "There are databases that could not be connected or databases in which a connection test was not made.\n"
@@ -175,33 +175,6 @@ public class DatabaseConnectionWizardV2 extends JPanel {
         db.setTableList(tables);
         return db;
     }
-
-
-    //for g-wizard
-    /*@Override
-    protected AbstractWizardPage getNextPage() {
-        return new GlobalSchemaConfigurationV2();//TODO: passar lista bases de dados
-    }
-
-    @Override
-    protected boolean isCancelAllowed() {
-        return true;
-    }
-
-    @Override
-    protected boolean isPreviousAllowed() {
-        return false;
-    }
-
-    @Override
-    protected boolean isNextAllowed() {
-        return true;
-    }
-
-    @Override
-    protected boolean isFinishAllowed() {
-        return false;
-    }*/
 
 
     public static void main(String[] args){

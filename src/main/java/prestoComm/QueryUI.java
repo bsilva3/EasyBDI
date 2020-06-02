@@ -10,6 +10,7 @@ import wizards.global_schema_config.NodeType;
 import javax.activation.ActivationDataFlavor;
 import javax.activation.DataHandler;
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
@@ -23,6 +24,8 @@ import java.awt.event.*;
 import java.io.IOException;
 import java.sql.Array;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
 import java.util.*;
 import java.util.List;
 
@@ -46,6 +49,7 @@ public class QueryUI extends JPanel{
     private DefaultListModel fliterListModel;
     private DefaultListModel aggreListModel;
     private DefaultListModel columnListModel;
+    private DefaultTableModel defaultTableModel;
 
     private MetaDataManager metaDataManager;
     private PrestoMediator prestoMediator;
@@ -90,6 +94,10 @@ public class QueryUI extends JPanel{
         filterList.setTransferHandler(new TreeTransferHandler());
         aggregationList.setTransferHandler(new TreeTransferHandler());
         columnsList.setTransferHandler(new TreeTransferHandler());
+
+        //jtable
+        this.defaultTableModel = new DefaultTableModel();
+        this.queryResultsTable.setModel(defaultTableModel);
 
         backButton.addActionListener(new ActionListener()
         {
@@ -262,6 +270,34 @@ public class QueryUI extends JPanel{
             return;
         }
         ResultSet results = prestoMediator.getLocalTablesQueries(localQuery);
+        String[] cols = null;
+        //insert column results in JTable
+        try {
+            ResultSetMetaData rsmd = results.getMetaData();
+            int columnCount = rsmd.getColumnCount();
+            cols = new String[columnCount];
+            for (int i = 1; i <= columnCount; i++ ) {
+                String name = rsmd.getColumnName(i);
+                cols[i - 1] = name;
+            }
+            defaultTableModel.setColumnIdentifiers(cols);
+
+            //place rows
+            //results.beforeFirst(); //return to begining
+            while(results.next()){
+                //Fetch each row from the ResultSet, and add to ArrayList of rows
+                String[] currentRow = new String[columnCount];
+                for(int i = 0; i < columnCount; i++){
+                    //Again, note that ResultSet column indecies start at 1
+                    currentRow[i] = results.getString(i+1);
+                }
+                defaultTableModel.addRow(currentRow);
+            }
+
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+        queryResultsTable.revalidate();
     }
 
     class TreeTransferHandler extends TransferHandler {

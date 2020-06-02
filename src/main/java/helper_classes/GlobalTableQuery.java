@@ -63,6 +63,7 @@ public class GlobalTableQuery {
 
     private String handleHorizontalMapping(GlobalTableData t, List<GlobalColumnData> selectCols){
         String query ="";
+        String tableUnionString = "UNION SELECT ";
         //for each local table that matches with this global table
         Set<TableData> localTables = t.getLocalTablesFromCols();
         for (TableData localTable : localTables){
@@ -72,10 +73,10 @@ public class GlobalTableQuery {
             }
             query+=localCols.get(localCols.size()-1).getCompletePrestoColumnName()+" ";//last column is whithout a comma
             query+= "FROM "+localTable.getCompletePrestoTableName()+" ";
-            query+="UNION ";
+            query+=tableUnionString;
         }
-        if (query.endsWith("UNION ")) {
-            return query.substring(0, query.length() - "UNION ".length());
+        if (query.endsWith(tableUnionString)) {
+            return query.substring(0, query.length() - tableUnionString.length());
         }
         return query;
     }

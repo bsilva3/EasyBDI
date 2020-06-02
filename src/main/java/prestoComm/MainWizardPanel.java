@@ -188,12 +188,12 @@ public class MainWizardPanel extends JPanel{
     private void handleGlobalSchemaConfig(){
         List<DBData> dbs = new ArrayList<>();
         //receive db data from DBConfig window
-        /*List<DBData> dbs = dbConnWizzard.getDbList();
+        dbs = dbConnWizzard.getDbList();
         if (dbs == null || dbs.size() == 0){
             --currentStepNumber;
             return;
-        }*/
-        dbs.addAll(generateLocalSchema());
+        }
+        //dbs.addAll(generateLocalSchema());
         dbs = buildLocalSchema(dbs);
         //print local schema
         metaDataManager.printLocalSchema();
@@ -315,6 +315,8 @@ public class MainWizardPanel extends JPanel{
         java.util.List<TableData> tables = new ArrayList<>();
         DBData dbData1 = new DBData("http://192.168.11.3", DBModel.MYSQL, "lisbonDB");
         DBData dbData2 = new DBData("http://192.168.23.2", DBModel.PostgreSQL, "parisDB");
+        DBData dbData4 = new DBData("http://192.168.23.2", DBModel.PostgreSQL, "vertical1");
+        DBData dbData5 = new DBData("http://192.168.23.2", DBModel.PostgreSQL, "vertical2");
         DBData dbData3 = new DBData("http://192.168.23.5", DBModel.MongoDB, "inventory");
         TableData table1 = new TableData("employees", "schema", dbData1, 1);
         TableData table2 = new TableData("employees_paris", "schema", dbData2, 2);
