@@ -3,10 +3,7 @@ package helper_classes;
 import jdk.nashorn.internal.objects.Global;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class GlobalTableData implements Serializable {
 
@@ -48,6 +45,38 @@ public class GlobalTableData implements Serializable {
         }
         return tables;
     }
+
+    public Set<TableData> getLocalTablesFromCols(List<GlobalColumnData> columnDataList) {
+        Set<ColumnData> localCols = new HashSet<>();//list with all local columns that match to one of the specified columns
+        for (GlobalColumnData globalCol : columnDataList){
+            localCols.addAll(globalCol.getLocalColumns());
+        }
+        Set<TableData> tables = getLocalTablesFromCols();
+
+        Set<TableData> tablesUpdate = new HashSet<>();
+        for (TableData t : tables) {
+            TableData newT = new TableData(t.getTableName(), t.getSchemaName(), t.getDB(), t.getId());
+            newT.setColumnsList(t.getColumnsList());
+            newT.keepOnlySpecifiedColumnsIfExist(localCols);
+            tablesUpdate.add(newT);
+        }
+        return tables;
+    }
+
+    /*public Set<TableData> getLocalTablesFromCols(List<GlobalColumnData> columnDataList) {
+        Set<ColumnData> localCols = new HashSet<>();//list with all local columns that match to one of the specified columns
+        for (GlobalColumnData globalCol : columnDataList){
+            localCols.addAll(globalCol.getLocalColumns());
+        }
+        Set<TableData> tables = getLocalTablesFromCols();
+
+        Set<TableData> tablesUpdate = new HashSet<>();
+        for (TableData t : tables) {
+            t.keepOnlySpecifiedColumnsIfExist(localCols);
+            tablesUpdate.add(t);
+        }
+        return tables;
+    }*/
 
     public MappingType getMappingTypeOfMatches(){//same for all matches, therefore, check only a column
         return globalColumnData.get(0).getLocalColumns().iterator().next().getMapping();
@@ -152,5 +181,19 @@ public class GlobalTableData implements Serializable {
                 ", localTables=" + localTables +
                 ", globalColumnData=" + globalColumnData +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || this.getClass() != o.getClass()) return false;
+        GlobalTableData that = (GlobalTableData) o;
+        return this.id == that.id &&
+                this.tableName.equals(that.tableName);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.tableName, this.id);
     }
 }

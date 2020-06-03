@@ -15,7 +15,6 @@ public class GlobalTableQuery {
         if (selectGlobalColumn.containsKey(table)){
             List<GlobalColumnData> listCols = selectGlobalColumn.get(table);
             if (!listCols.contains(col)){
-                listCols.add(col);
                 selectGlobalColumn.get(table).add(col);
                 return;
             }
@@ -49,7 +48,7 @@ public class GlobalTableQuery {
     private String handleSimpleMapping(GlobalTableData t, List<GlobalColumnData> selectCols){
         //for each local table that matches with this global table
         String query = "";
-        Set<TableData> localTables = t.getLocalTablesFromCols();
+        Set<TableData> localTables = t.getLocalTablesFromCols(selectCols);
         for (TableData localTable : localTables){
             List<ColumnData> localCols = localTable.getColumnsList();
             for (int i = 0; i < localCols.size()-1; i++){
@@ -65,7 +64,7 @@ public class GlobalTableQuery {
         String query ="";
         String tableUnionString = "UNION SELECT ";
         //for each local table that matches with this global table
-        Set<TableData> localTables = t.getLocalTablesFromCols();
+        Set<TableData> localTables = t.getLocalTablesFromCols(selectCols);
         for (TableData localTable : localTables){
             List<ColumnData> localCols = localTable.getColumnsList();
             for (int i = 0; i < localCols.size()-1; i++){

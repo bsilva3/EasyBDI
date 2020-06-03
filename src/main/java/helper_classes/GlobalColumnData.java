@@ -143,4 +143,21 @@ public class GlobalColumnData implements Serializable {
                 ", foreignKey='" + foreignKey + '\'' +
                 '}';
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || this.getClass() != o.getClass()) return false;
+        GlobalColumnData that = (GlobalColumnData) o;
+        return this.columnID == that.columnID &&
+                this.isPrimaryKey == that.isPrimaryKey &&
+                this.name.equals(that.name) &&
+                this.dataType.equals(that.dataType) &&
+                this.foreignKey.equals(that.foreignKey);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.columnID, this.name, this.dataType, this.isPrimaryKey, this.foreignKey);
+    }
 }

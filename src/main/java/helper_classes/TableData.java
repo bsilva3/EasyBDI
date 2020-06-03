@@ -1,9 +1,7 @@
 package helper_classes;
 
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 //helper class. For a given table, shows its name, columns and information of each column
 public class TableData implements Serializable {
@@ -98,6 +96,17 @@ public class TableData implements Serializable {
 
     public String getCompletePrestoTableName(){
         return db.getCatalogName()+"."+schemaName+"."+tableName;
+    }
+
+    //Used for queries in order to select only certain columns
+    public void keepOnlySpecifiedColumnsIfExist(Set<ColumnData> columnDataSet){
+        List<ColumnData> colsSelected = new ArrayList<>();
+        for (ColumnData c : columnsList){
+            if (columnDataSet.contains(c)){
+                colsSelected.add(c);
+            }
+        }
+        this.columnsList = colsSelected;
     }
 
     public int getNCols (){

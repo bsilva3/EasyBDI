@@ -263,6 +263,8 @@ public class QueryUI extends JPanel{
 
 
     public void executeQuery(){
+        defaultTableModel.setColumnCount(0);
+        defaultTableModel.setRowCount(0);//clear any previous results
         String localQuery = globalTableQueries.getLocalTableQuery();
         System.out.println(localQuery);
         if (localQuery.contains("Error")){
@@ -461,6 +463,7 @@ public class QueryUI extends JPanel{
                 }
                 //maybe this table is the last one, insert at last position
                 listModel.addElement("    "+globalCol.getName());//add column
+                globalTableQueries.addSelectColumn(globalTable, globalCol);
                 return;
             }
             else{
