@@ -44,8 +44,10 @@ public class MainWizardPanel extends JPanel{
     private MainMenu mainMenu;
 
     private String projectName;
+    private boolean isEdit;
 
-    public MainWizardPanel(MainMenu mainMenu, String projectName){
+    public MainWizardPanel(MainMenu mainMenu, String projectName, boolean isEdit){
+        this.isEdit = isEdit;
         this.mainMenu = mainMenu;
         this.projectName = projectName;
         prestoMediator = new PrestoMediator();
@@ -99,7 +101,7 @@ public class MainWizardPanel extends JPanel{
     }
 
     public static void main(String[] args){
-        MainWizardPanel m = new MainWizardPanel(new MainMenu(), "My Project");
+        MainWizardPanel m = new MainWizardPanel(new MainMenu(), "My Project", false);
         JFrame frame = new JFrame();
         frame.setPreferredSize(new Dimension(950, 800));
         frame.setContentPane(m);
@@ -188,18 +190,27 @@ public class MainWizardPanel extends JPanel{
     private void handleGlobalSchemaConfig(){
         List<DBData> dbs = new ArrayList<>();
         //receive db data from DBConfig window
-        dbs = dbConnWizzard.getDbList();
+        /*dbs = dbConnWizzard.getDbList();
         if (dbs == null || dbs.size() == 0){
             --currentStepNumber;
             return;
-        }
-        //dbs.addAll(generateLocalSchema());
+        }*/
+        dbs.addAll(generateLocalSchema());
         dbs = buildLocalSchema(dbs);
         //print local schema
         metaDataManager.printLocalSchema();
         /*globalSchemaConfigWizzard = new GlobalSchemaConfigurationV2();
         addToMainPanel(null, globalSchemaConfigWizzard);*/
-        List<GlobalTableData> globalSchema = schemaMatcher.schemaIntegration(dbs);
+
+        List<GlobalTableData> globalSchema = new ArrayList<>();
+        //if user is editing project with an existing global schema created previously, do not perform schema match
+        if (isEdit && metaDataManager.getGlobalTablesCount() > 0){
+            globalSchema = metaDataManager.getGlobalSchema();
+        }
+        else {
+            //new project, or edit of project that does not contain a saved global schema, perform schema match and present a global schema sugestion.
+            globalSchema = schemaMatcher.schemaIntegration(dbs);
+        }
         globalSchemaConfigWizzard = new GlobalSchemaConfigurationV2(projectName, dbs, globalSchema);
         addToMainPanel(dbConnWizzard, globalSchemaConfigWizzard);
     }
@@ -277,10 +288,6 @@ public class MainWizardPanel extends JPanel{
         //GlobalSchemaConfigurationV2 schemaConfigurationV2 = new GlobalSchemaConfigurationV2(dbs, globalTables);
         //insert the global tables, global columns in the database and correspondences between local and global columns
         //metaDataManager.insertGlobalSchemaData(globalTables);
-    }
-
-    public void buildStarSchema(GlobalTableData factTable, List<GlobalTableData> dimTables, List<GlobalColumnData> measures){
-
     }
 
 

@@ -1,5 +1,7 @@
 package helper_classes;
 
+import jdk.nashorn.internal.objects.Global;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -99,7 +101,9 @@ public class GlobalTableData implements Serializable {
     public void setGlobalColumnDataFromLocalColumns(List<ColumnData> columnData) {
         globalColumnData = new ArrayList<>();
         for (ColumnData col: columnData){
-            globalColumnData.add(new GlobalColumnData(col.getName(), col.getDataType(), col.isPrimaryKey(), col));
+            GlobalColumnData globCol = new GlobalColumnData(col.getName(), col.getDataType(), col.isPrimaryKey(), col);
+            globCol.setForeignKey(col.getForeignKey());
+            globalColumnData.add(globCol);
         }
     }
 
@@ -113,6 +117,14 @@ public class GlobalTableData implements Serializable {
 
     public void setLocalTables(List<TableData> localTables) {
         this.localTables = localTables;
+    }
+
+    public GlobalColumnData getGlobalColContainingLocalColAsCorrespondence(ColumnData col){
+        for (GlobalColumnData gc : this.globalColumnData){
+            if (gc.getLocalColumns().contains(col))
+                return gc;
+        }
+        return null;
     }
 
     public void addLocalTable(TableData table){

@@ -49,6 +49,16 @@ public class MetaDataManager {
         }
         return listOfFiles;
     }
+    public static boolean deleteDB(String projectName){
+        File folder = new File(DB_FILE_DIR);
+        File[] listOfFiles = folder.listFiles();
+        for (int i = 0; i < listOfFiles.length; i++) {
+            if (listOfFiles[i].isFile() && listOfFiles[i].getName().equals(projectName)) {
+                return listOfFiles[i].delete();
+            }
+        }
+        return false;
+    }
 
     public static String[] listAllDBNames(){
         File[] listOfFiles = listAllDBFiles();
@@ -756,11 +766,17 @@ public class MetaDataManager {
      * Insert a star schema in the database. It is assumed that the global table objects have their database id's set up
      * @param starSchema
      */
-    public void insertStarSchema(StarSchema starSchema){
+    public boolean insertStarSchema(StarSchema starSchema){
         int cubeId = getOrcreateCube(starSchema.getSchemaName());
-        insertFactsTable(cubeId, starSchema.getFactsTable());
+        if (cubeId < 1){
+            return false;
+        }
+        int factsID = insertFactsTable(cubeId, starSchema.getFactsTable());
+        if (factsID < 1){
+            return false;
+        }
         insertDimsTables(cubeId, starSchema.getDimsTables());
-        //TODO: insert tables's columns in cube
+        return true;
     }
 
     private int insertFactsTable(int cubeID, FactsTable factsTable){
@@ -943,6 +959,23 @@ public class MetaDataManager {
             System.out.println(e.getMessage());
         }
         return new StarSchema(cubeName, cubeID, facts, dimsTables);
+    }
+
+    public List<GlobalTableData> getGlobalSchema(){
+        List<GlobalTableData> globalTables = new ArrayList<>();
+        String sql = "SELECT "+GLOBAL_TABLE_DATA_ID_FIELD +" FROM "+ GLOBAL_TABLE_DATA;
+        try {
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql);
+            // loop through the result set
+            while (rs.next()) {
+                int tableID = rs.getInt(GLOBAL_TABLE_DATA_NAME_FIELD);
+                globalTables.add(getGlobalTableFromID(tableID));
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return globalTables;
     }
 
     public GlobalTableData getGlobalTableFromID(int globalTableID){

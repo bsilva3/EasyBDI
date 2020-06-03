@@ -183,6 +183,14 @@ public class ColumnData implements Serializable {
         return c;
     }
 
+    public ColumnData getForeignKeyColumn(MetaDataManager m){
+        if (!hasForeignKey())
+            return null;
+        String[] foreignKeySplit = this.getForeignKey().split("\\."); //"catalogName.schemaName.TableName.ColumnName"
+        ColumnData c = m.getColumn(this.getTable().getDB(), foreignKeySplit[1], foreignKeySplit[2], foreignKeySplit[3]); //need schemaname, table name and column as well as the dbID
+        return c;
+    }
+
     public boolean hasForeignKey(){
         if (this.foreignKey == null || this.foreignKey.isEmpty())
             return false;

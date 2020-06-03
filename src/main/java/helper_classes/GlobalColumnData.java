@@ -9,7 +9,7 @@ public class GlobalColumnData implements Serializable {
     private String name;
     private String dataType;
     private boolean isPrimaryKey;
-    private String foreignKey;
+    private String foreignKey; //globalTablename.globalColumnName
 
     public GlobalColumnData(String name, String dataType, boolean isPrimaryKey, Set<ColumnData> localCols) {
         this.name = name;
@@ -124,6 +124,12 @@ public class GlobalColumnData implements Serializable {
         if (this.localColumns.contains(col))
             return true;
         return false;
+    }
+
+    public boolean hasForeignKey(){
+        if (this.foreignKey == null || this.foreignKey.isEmpty())
+            return false;
+        return true;
     }
 
     @Override

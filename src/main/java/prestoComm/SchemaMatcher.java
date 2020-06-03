@@ -174,31 +174,21 @@ public class SchemaMatcher {
         List<Match> matches = labelSchemaMatchingTables(tables);
         //matches = labelTypeSchemaMatchColumns(matches); // column matching (should it be here)
         //get the tables that did not match
-        List<GlobalTableData> nonMatchedTables = getNonMatchedTables(matches, tables); //NOTE: non matched tables can become matched after user intervention, and vice versa
+        List<GlobalTableData> nonMatchedTables = getNonMatchedTables(matches, tables);
         //group tables that match to same global table
         List<GlobalTableData> globalTables = groupMatchedTables(matches);
         globalTables = mergeGlobalTableAttributes(globalTables);
-        // In UI, show the result, and edit as user edits them
 
-        //ASSUMING USER ALREADY EDITED EVERYTHING
+        nonMatchedTables = validateForeignKeys(nonMatchedTables, globalTables);
         globalTables.addAll(nonMatchedTables);
         nonMatchedTables.clear();
-        //define mapping type between local and global tables
-        for (int i = 0; i < globalTables.size(); i++){
-            GlobalTableData globalTableData = globalTables.get(i);
-            //get ids of all local tables that have at least 1 column mapping to this
-            //List<TableData> tableData = metaDataManager.getLocalTablesByID(globalTableData.getLocalTablesIDs());
-            //define mapping type
-            //defineDistributionType(globalTableData, tableData);
-            //add global table again with mappings
-            globalTables.set(i, globalTableData);
-        }
         printGlobalTables(globalTables);
         return globalTables;
     }
 
     /**
-     * Get all tables that did not matched and therefore are not in the list of matches
+     * Get all tables that did not matched and therefore are not in the list of matches and create global tables with them.
+     * It also performs correspondence from the original local table
      * @param matches
      * @param tables
      * @return a list of tables that didnt had any matches
@@ -510,5 +500,51 @@ public class SchemaMatcher {
             e.printStackTrace();
         }
         return convertipleDataTypes;
+    }
+
+    /**
+     * Validate the foreign keys of global tables that have simple mapping, by referencing the correct global column.
+     * @param nonMatchedTables
+     * @param globalTables
+     * @return
+     */
+    private List<GlobalTableData> validateForeignKeys(List<GlobalTableData> nonMatchedTables, List<GlobalTableData> globalTables){
+        for (int i = 0; i < nonMatchedTables.size(); i++){
+            GlobalTableData gt = nonMatchedTables.get(i);
+            List<GlobalColumnData> globCols = gt.getGlobalColumnDataList();
+            for (int j = 0; j <globCols.size(); j++ ){
+                GlobalColumnData gc = gt.getGlobalColumnDataList().get(j);
+                ColumnData c = gc.getLocalColumns().iterator().next();//single match, only one local column
+                //check if this column is foreign key (assigned by previously).
+                // if it is it references a local column. Change that to reference the corresponding global column
+                if (c.hasForeignKey()){
+                    ColumnData referencedCol = c.getForeignKeyColumn(metaDataManager);
+                    String key = getReferencesGlobalCol(nonMatchedTables, referencedCol);
+                    if (key == null)
+                        key = getReferencesGlobalCol(globalTables, referencedCol);
+                    gc.setForeignKey(key);
+                    globCols.set(j, gc);
+                }
+            }
+            gt.setGlobalColumnData(globCols);
+            nonMatchedTables.set(i, gt);
+        }
+        return globalTables;
+    }
+
+    /**
+     * given a referenced local column, get the global column that has this column as correspondence
+     * @param globTables
+     * @param referencedCol
+     * @return
+     */
+    private String getReferencesGlobalCol(List<GlobalTableData> globTables, ColumnData referencedCol){
+        for (GlobalTableData gt : globTables){
+            GlobalColumnData globCol = gt.getGlobalColContainingLocalColAsCorrespondence(referencedCol);
+            if (globCol != null){
+                return gt.getTableName()+"."+globCol.getName();
+            }
+        }
+        return null;
     }
 }

@@ -37,6 +37,7 @@ public class GlobalSchemaConfigurationV2 extends JPanel {
     private DefaultTreeModel localSchemaModel;
 
     private String projectName;
+    private boolean isEdit;
 
 
     public GlobalSchemaConfigurationV2(String projectName, List<DBData> dbs, List<GlobalTableData> globalTables){

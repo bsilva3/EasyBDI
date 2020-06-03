@@ -103,6 +103,26 @@
         </constraints>
         <properties/>
       </component>
+      <component id="b2b3d" class="javax.swing.JButton" binding="cancelAndReturnButton" default-binding="true">
+        <constraints>
+          <grid row="8" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="1.0" weighty="0.3"/>
+        </constraints>
+        <properties>
+          <text value="Cancel and Return"/>
+          <visible value="false"/>
+        </properties>
+      </component>
+      <component id="fd910" class="javax.swing.JButton" binding="saveButton" default-binding="true">
+        <constraints>
+          <grid row="8" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="1.0" weighty="0.3"/>
+        </constraints>
+        <properties>
+          <text value="Save"/>
+          <visible value="false"/>
+        </properties>
+      </component>
     </children>
   </grid>
 </form>

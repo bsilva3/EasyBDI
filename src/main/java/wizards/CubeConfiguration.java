@@ -4,6 +4,8 @@ import helper_classes.FactsTable;
 import helper_classes.GlobalColumnData;
 import helper_classes.GlobalTableData;
 import helper_classes.StarSchema;
+import prestoComm.MainMenu;
+import prestoComm.MetaDataManager;
 
 import javax.swing.*;
 import java.awt.*;
@@ -28,9 +30,28 @@ public class CubeConfiguration extends JPanel{
     private JPanel factsPanel;
     private JPanel mainPanel;
     private JTextField cubeNameField;
+    private JButton cancelAndReturnButton;
+    private JButton saveButton;
+
+    private MetaDataManager metaDataManager;
+    private boolean isWizard;
+    private MainMenu mainMenu;
+
+    public CubeConfiguration (String projectName, MainMenu mainMenu){
+        this.mainMenu = mainMenu;
+        isWizard = false;
+        metaDataManager = new MetaDataManager(projectName);
+        globalTables = metaDataManager.getGlobalSchema();
+        initUI();
+    }
 
     public CubeConfiguration (List<GlobalTableData> globalTables){
+        this.isWizard = true;
         this.globalTables = globalTables;
+        initUI();
+    }
+
+    private void initUI(){
         helpLabel.setText("<html>Create a star schema from the previously created Global Schema. "
                 +"<br/> Select dimensions, facts and measurements.</html>");
         stepLabel.setText("Step 3/4");
@@ -55,6 +76,32 @@ public class CubeConfiguration extends JPanel{
                 setMeasuresCheckBox();
             }
         });
+        if (!isWizard){
+            cancelAndReturnButton.setVisible(true);
+            saveButton.setVisible(true);
+            cancelAndReturnButton.addActionListener(new ActionListener()
+            {
+                public void actionPerformed(ActionEvent e)
+                {
+                    mainMenu.returnToMainMenu();
+                }
+            });
+            saveButton.addActionListener(new ActionListener()
+            {
+                public void actionPerformed(ActionEvent e)
+                {
+                    StarSchema starSchema = getMultiDimSchema();
+                    boolean success = metaDataManager.insertStarSchema(starSchema);
+                    if (success){
+                      JOptionPane.showMessageDialog(null, "Star Schema created!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                    }
+                    else{
+                        JOptionPane.showMessageDialog(null, "Failed to create star Schema.\nThere could be a problem with the global schema.", "Failed", JOptionPane.ERROR_MESSAGE);
+                    }
+                    mainMenu.returnToMainMenu();
+                }
+            });
+        }
         this.add(mainPanel);
         this.setVisible(true);
     }

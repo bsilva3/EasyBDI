@@ -1,5 +1,7 @@
 package prestoComm;
 
+import wizards.CubeConfiguration;
+
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
@@ -14,6 +16,8 @@ public class MainMenu extends JFrame{
     private JButton editProjectBtn;
     private JPanel mainPanel;
     private JComboBox projectsComboBox;
+    private JButton createStarSchemaBtn;
+    private JButton deleteSelectedProjectButton;
     //button icons
     private Image queryBtnImage;
     private Image newProjectBtnImage;
@@ -65,6 +69,7 @@ public class MainMenu extends JFrame{
             public void actionPerformed(ActionEvent e)
             {
                 //open wizard and edit current project
+                editCurrentProject();
             }
         });
 
@@ -72,7 +77,16 @@ public class MainMenu extends JFrame{
         {
             public void actionPerformed(ActionEvent e)
             {
-                //open wizard and edit current project
+                createNewStarSchema();
+            }
+        });
+
+        createStarSchemaBtn.addActionListener(new ActionListener()
+        {
+            public void actionPerformed(ActionEvent e)
+            {
+                //open query window with selected project in combo box
+                openQueryUI();
             }
         });
 
@@ -84,11 +98,41 @@ public class MainMenu extends JFrame{
                 openQueryUI();
             }
         });
+
+        deleteSelectedProjectButton.addActionListener(new ActionListener()
+        {
+            public void actionPerformed(ActionEvent e)
+            {
+                //open query window with selected project in combo box
+                deleteProject();
+            }
+        });
+    }
+
+    private void deleteProject(){
+        String projectName = projectsComboBox.getSelectedItem().toString();
+        int dialogResult = JOptionPane.showConfirmDialog (null, "Are you sure? The project will be permanently deleted.","Warning",JOptionPane.YES_NO_OPTION);
+        if(dialogResult == JOptionPane.YES_OPTION){
+            boolean success = MetaDataManager.deleteDB(projectName);
+            if (success){
+                refreshProjectsInComboBox();
+                JOptionPane.showMessageDialog(null, "Project deleted successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+            }
+            else{
+                JOptionPane.showMessageDialog(null, "Failed to delete project.\nProject may no longer exist or does not have permition to be deleted.", "Failed to delete", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+
     }
 
     private void openQueryUI(){
         placePanelInFrame(new QueryUI(projectsComboBox.getSelectedItem().toString(), this));
     }
+
+    private void createNewStarSchema(){
+        placePanelInFrame(new CubeConfiguration(projectsComboBox.getSelectedItem().toString(), this));
+    }
+
 
     private void createNewProjectWizard(){
         //dialog for user to enter project name
@@ -110,8 +154,13 @@ public class MainMenu extends JFrame{
         }
 
         //open wizard and add new project
-        placePanelInFrame(new MainWizardPanel(this, projectName));
+        placePanelInFrame(new MainWizardPanel(this, projectName, false));
     }
+
+    private void editCurrentProject(){
+        placePanelInFrame(new MainWizardPanel(this, projectsComboBox.getSelectedItem().toString(), true));
+    }
+
 
     private void placePanelInFrame(JPanel panel){
         setContentPane(panel);
