@@ -969,7 +969,7 @@ public class MetaDataManager {
             ResultSet rs = stmt.executeQuery(sql);
             // loop through the result set
             while (rs.next()) {
-                int tableID = rs.getInt(GLOBAL_TABLE_DATA_NAME_FIELD);
+                int tableID = rs.getInt(GLOBAL_TABLE_DATA_ID_FIELD);
                 globalTables.add(getGlobalTableFromID(tableID));
             }
         } catch (SQLException e) {

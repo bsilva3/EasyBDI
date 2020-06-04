@@ -24,8 +24,7 @@ public class MainMenu extends JFrame{
     private Image editProjectBtnImage;
     private Image newStarSchemaBtnImage;
 
-    //windows
-    private MainWizardPanel wizard;
+    private String currentProjectSelected;
 
     public MainMenu(){
         try {
@@ -43,6 +42,8 @@ public class MainMenu extends JFrame{
 
         //fill combobox with projects
         refreshProjectsInComboBox();
+        projectsComboBox.setSelectedIndex(0);
+        currentProjectSelected = projectsComboBox.getSelectedItem().toString();
         setListeners();
 
         this.setPreferredSize(new Dimension(950, 800));
@@ -108,6 +109,12 @@ public class MainMenu extends JFrame{
             {
                 //open query window with selected project in combo box
                 deleteProject();
+            }
+        });
+
+        projectsComboBox.addActionListener (new ActionListener () {
+            public void actionPerformed(ActionEvent e) {
+                currentProjectSelected = projectsComboBox.getSelectedItem().toString();
             }
         });
     }
@@ -178,6 +185,12 @@ public class MainMenu extends JFrame{
     private void refreshProjectsInComboBox(){
         String[] dbNames = MetaDataManager.listAllDBNames();
         projectsComboBox.setModel(new DefaultComboBoxModel(dbNames));
+        for (String s : dbNames){
+            if (s.equals(currentProjectSelected)){
+                projectsComboBox.setSelectedItem(currentProjectSelected);//project name selected is still in list, use it as selected
+            }
+        }
+
     }
 
 

@@ -81,12 +81,14 @@ public class MainWizardPanel extends JPanel{
         {
             public void actionPerformed(ActionEvent e)
             {
-                int dialogResult = JOptionPane.showConfirmDialog (null, "Would You Like to Save all configurations currently made to this project?","Warning",JOptionPane.YES_NO_OPTION);
-                if(dialogResult == JOptionPane.YES_OPTION){
+                if (!isEdit){
+                    int dialogResult = JOptionPane.showConfirmDialog (null, "Would You Like to Save all configurations currently made to this project?","Warning",JOptionPane.YES_NO_OPTION);
+                    if(dialogResult == JOptionPane.YES_OPTION){
 
-                }
-                else{
-                    metaDataManager.removeDB(projectName); //remove database file (dont save progress
+                    }
+                    else{
+                        metaDataManager.removeDB(projectName); //remove database file (dont save progress
+                    }
                 }
                 mainMenu.returnToMainMenu();
             }
