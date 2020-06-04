@@ -22,6 +22,7 @@ import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.dnd.*;
 import java.awt.event.*;
 import java.io.IOException;
+import java.lang.annotation.ElementType;
 import java.sql.Array;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -128,13 +129,8 @@ public class QueryUI extends JPanel{
             }
         });
 
-        //pop up menus for each list
-        //COLUMNS JLIST
-        JPopupMenu menu = new JPopupMenu();
-        JMenuItem item1 = new JMenuItem("Delete");
-        //item1.addActionListener(getRemoveActionListener());
-        menu.add(item1);
-        columnsList.setComponentPopupMenu(menu);
+        //listeners for lists left click to open menus
+        columnsList.addMouseListener(getMouseListenerForColumnList());
 
         add(mainPanel);
         this.setVisible(true);
@@ -237,30 +233,42 @@ public class QueryUI extends JPanel{
         return new DefaultTreeModel(root);
     }
 
-    private MouseListener getMouseListener() {
-        return new MouseAdapter() {
+    private ActionListener getRemoveActionListenerForColumnList(int index) {
+        return new ActionListener() {
             @Override
-            public void mousePressed(MouseEvent arg0) {
-                if (SwingUtilities.isRightMouseButton(arg0)){
-                    JPopupMenu menu = new JPopupMenu();
-                    JMenuItem item = new JMenuItem("Say hello");
-                    item.addActionListener(new ActionListener() {
-                        public void actionPerformed(ActionEvent e) {
-                            JOptionPane.showMessageDialog(null, "Hello "
-                                    + columnsList.getSelectedValue());
-                        }
-                    });
-                    menu.add(item);
-                    menu.show(null, 5, columnsList.getCellBounds(
-                            columnsList.getSelectedIndex() + 1,
-                            columnsList.getSelectedIndex() + 1).y);
+            public void actionPerformed(ActionEvent arg0) {
+                ListElementWrapper elem = (ListElementWrapper)columnListModel.get(index);
+                GlobalColumnData col = null;
+                if (elem.getType() == ListElementType.GLOBAL_COLUMN){
+                    col = (GlobalColumnData) elem.getObj();
                 }
-                super.mousePressed(arg0);
+                else{
+                    return;
+                }
+                GlobalTableData table = getTableInColumnIndex(index);
+                boolean success = globalTableQueries.deleteSelectColumnFromTable(table, col);
+                if (success){
+                    columnListModel.remove(index);
+                    columnsList.revalidate();
+                }
             }
         };
     }
 
-
+    /**
+     * In the list of columns, returns the table name that contains the column with the index specified
+     * @param index
+     * @return
+     */
+    private GlobalTableData getTableInColumnIndex(int index){
+        for (int i = index; i >=0; i--){
+            ListElementWrapper elem = (ListElementWrapper) columnListModel.get(i);
+            if (elem.getType() == ListElementType.GLOBAL_TABLE){//first table to appear belongs to this
+                return (GlobalTableData) elem.getObj();
+            }
+        }
+        return null;
+    }
 
     public void executeQuery(){
         defaultTableModel.setColumnCount(0);
@@ -300,6 +308,27 @@ public class QueryUI extends JPanel{
             throwables.printStackTrace();
         }
         queryResultsTable.revalidate();
+    }
+
+    private MouseListener getMouseListenerForColumnList() {
+        return new MouseAdapter() {
+
+            @Override
+            public void mousePressed(MouseEvent arg0) {
+                if (SwingUtilities.isRightMouseButton(arg0)){
+                    int index = columnsList.locationToIndex(arg0.getPoint());
+                    System.out.println(index);
+
+                    JPopupMenu menu = new JPopupMenu();
+                    JMenuItem item1 = new JMenuItem("Delete");
+                    item1.addActionListener(getRemoveActionListenerForColumnList(index));
+                    //item1.addActionListener(getRemoveActionListener());
+                    menu.add(item1);
+                    columnsList.setComponentPopupMenu(menu);
+                }
+                super.mousePressed(arg0);
+            }
+        };
     }
 
     class TreeTransferHandler extends TransferHandler {
@@ -437,6 +466,7 @@ public class QueryUI extends JPanel{
                 listModel.add(index++, lisElem);
             }
             else if (list.equals(columnsList)){
+                //select columns list
                 CustomTreeNode parentNode = (CustomTreeNode) data.getParent();//global table
                 addColumnsToColumnsList(listModel, (GlobalColumnData)data.getObj(), (GlobalTableData) parentNode.getObj()) ;
             }
@@ -450,25 +480,26 @@ public class QueryUI extends JPanel{
         private void addColumnsToColumnsList(DefaultListModel listModel, GlobalColumnData globalCol, GlobalTableData globalTable){
             String[] s = null;
             //check if table name of this column exists. If true then inserted here
-            if (columnListModel.contains(globalTable.getTableName())){
-                int index = columnListModel.indexOf(globalTable.getTableName());
+            ListElementWrapper elemtTosearch = new ListElementWrapper(globalTable.getTableName(), globalTable, ListElementType.GLOBAL_TABLE);
+            if (columnListModel.contains(elemtTosearch)){
+                int index = columnListModel.indexOf(elemtTosearch);
                 index++;
                 //iterate the columns of this tables. insert a new one
                 for (int i = index; i < columnListModel.getSize(); i++) {
                     if (!String.valueOf(columnListModel.getElementAt(i)).contains("    ")){
-                        listModel.add(i, "    "+globalCol.getName());//add column
+                        listModel.add(i, new ListElementWrapper("    "+globalCol.getName(), globalCol, ListElementType.GLOBAL_COLUMN));//add column
                         globalTableQueries.addSelectColumn(globalTable, globalCol);
                         return;
                     }
                 }
                 //maybe this table is the last one, insert at last position
-                listModel.addElement("    "+globalCol.getName());//add column
+                listModel.addElement(new ListElementWrapper("    "+globalCol.getName(), globalCol, ListElementType.GLOBAL_COLUMN));//add column
                 globalTableQueries.addSelectColumn(globalTable, globalCol);
                 return;
             }
             else{
-                listModel.addElement(globalTable.getTableName()); //add table name
-                listModel.addElement("    "+globalCol.getName());//add column
+                listModel.addElement(new ListElementWrapper(globalTable.getTableName(), globalTable, ListElementType.GLOBAL_TABLE)); //add table name
+                listModel.addElement(new ListElementWrapper("    "+globalCol.getName(), globalCol, ListElementType.GLOBAL_COLUMN));//add column
                 globalTableQueries.addSelectColumn(globalTable, globalCol);
             }
         }

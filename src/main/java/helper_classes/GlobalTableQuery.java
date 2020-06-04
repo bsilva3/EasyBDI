@@ -26,6 +26,10 @@ public class GlobalTableQuery {
         }
     }
 
+    public boolean deleteSelectColumnFromTable(GlobalTableData table, GlobalColumnData columnName){
+        return selectGlobalColumn.get(table).remove(columnName);
+    }
+
     public String getLocalTableQuery(){
         String query = "SELECT ";
         for (Map.Entry<GlobalTableData, List<GlobalColumnData>> tableSelectColumns : selectGlobalColumn.entrySet()){
