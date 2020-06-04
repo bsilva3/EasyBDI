@@ -47,7 +47,7 @@ public class GlobalTableData implements Serializable {
     }
 
     public Set<TableData> getLocalTablesFromCols(List<GlobalColumnData> columnDataList) {
-        Set<ColumnData> localCols = new HashSet<>();//list with all local columns that match to one of the specified columns
+        List<ColumnData> localCols = new ArrayList<>();//list with all local columns that match to one of the specified columns
         for (GlobalColumnData globalCol : columnDataList){
             localCols.addAll(globalCol.getLocalColumns());
         }
@@ -56,11 +56,17 @@ public class GlobalTableData implements Serializable {
         Set<TableData> tablesUpdate = new HashSet<>();
         for (TableData t : tables) {
             TableData newT = new TableData(t.getTableName(), t.getSchemaName(), t.getDB(), t.getId());
-            newT.setColumnsList(t.getColumnsList());
-            newT.keepOnlySpecifiedColumnsIfExist(localCols);
+
+            List<ColumnData> colsSelectInOrder = new ArrayList<>();
+            for (ColumnData localCol : localCols){
+                if (localCol.getTable().getId() == t.getId())
+                    newT.addColumn(localCol);
+            }
+            //newT.setColumnsList(t.getColumnsList());
+            //newT.keepOnlySpecifiedColumnsIfExist(localCols);
             tablesUpdate.add(newT);
         }
-        return tables;
+        return tablesUpdate;
     }
 
     /*public Set<TableData> getLocalTablesFromCols(List<GlobalColumnData> columnDataList) {

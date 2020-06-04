@@ -39,9 +39,9 @@ public class CubeConfiguration extends JPanel{
 
     public CubeConfiguration (String projectName, MainMenu mainMenu){
         this.mainMenu = mainMenu;
-        isWizard = false;
-        metaDataManager = new MetaDataManager(projectName);
-        globalTables = metaDataManager.getGlobalSchema();
+        this.isWizard = false;
+        this.metaDataManager = new MetaDataManager(projectName);
+        this.globalTables = metaDataManager.getGlobalSchema();
         initUI();
     }
 

@@ -14,14 +14,15 @@ public class MainMenu extends JFrame{
     private JButton queryExecutionBtn;
     private JButton newProjectBtn;
     private JButton editProjectBtn;
+    private JButton createStarSchemaBtn;
     private JPanel mainPanel;
     private JComboBox projectsComboBox;
-    private JButton createStarSchemaBtn;
     private JButton deleteSelectedProjectButton;
     //button icons
     private Image queryBtnImage;
     private Image newProjectBtnImage;
     private Image editProjectBtnImage;
+    private Image newStarSchemaBtnImage;
 
     //windows
     private MainWizardPanel wizard;
@@ -34,6 +35,8 @@ public class MainMenu extends JFrame{
             editProjectBtn.setIcon(new ImageIcon(editProjectBtnImage.getScaledInstance(80, 80, 0)));
             newProjectBtnImage = ImageIO.read(new File(Constants.IMAGES_DIR+"new_project_icon.png"));
             newProjectBtn.setIcon(new ImageIcon(newProjectBtnImage.getScaledInstance(80, 80, 0)));
+            newStarSchemaBtnImage = ImageIO.read(new File(Constants.IMAGES_DIR+"new_star_schema_icon.png"));
+            createStarSchemaBtn.setIcon(new ImageIcon(newStarSchemaBtnImage.getScaledInstance(80, 80, 0)));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -86,7 +89,7 @@ public class MainMenu extends JFrame{
             public void actionPerformed(ActionEvent e)
             {
                 //open query window with selected project in combo box
-                openQueryUI();
+                createNewStarSchema();
             }
         });
 

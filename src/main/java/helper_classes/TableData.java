@@ -30,6 +30,12 @@ public class TableData implements Serializable {
         this.id = id;
     }
 
+    public void addColumn(ColumnData col){
+        if (this.columnsList == null)
+            columnsList = new ArrayList<>();
+        columnsList.add(col);
+    }
+
     public String getTableName() {
         return tableName;
     }
@@ -99,7 +105,7 @@ public class TableData implements Serializable {
     }
 
     //Used for queries in order to select only certain columns
-    public void keepOnlySpecifiedColumnsIfExist(Set<ColumnData> columnDataSet){
+    public void keepOnlySpecifiedColumnsIfExist(Collection<ColumnData> columnDataSet){
         List<ColumnData> colsSelected = new ArrayList<>();
         for (ColumnData c : columnsList){
             if (columnDataSet.contains(c)){
