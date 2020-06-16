@@ -52,7 +52,7 @@ public class GlobalSchemaConfigurationV2 extends JPanel {
         //global schema tree set up
         globalSchemaTree.setEditable(true);
         globalSchemaTree.addMouseListener(getMouseListener());
-        globalSchemaTree.addMouseListener(getMouseListener());
+        //globalSchemaTree.addMouseListener(getMouseListener());
         //globalSchemaModel = setExampleData();
         //define distribuituin types for each global table
         for (int i = 0; i < globalTables.size(); i++){
@@ -1013,8 +1013,8 @@ public class GlobalSchemaConfigurationV2 extends JPanel {
             } catch(java.io.IOException ioe) {
                 ioe.printStackTrace();
             }
-            System.out.println("node level: " +node.getLevel());
-            System.out.println("child count: "+localSchemaModel.getChildCount(node));
+            //System.out.println("node level: " +node.getLevel());
+            //System.out.println("child count: "+localSchemaModel.getChildCount(node));
             // Get drop location info.
             JTree.DropLocation dl =
                     (JTree.DropLocation)support.getDropLocation();
@@ -1023,7 +1023,7 @@ public class GlobalSchemaConfigurationV2 extends JPanel {
             CustomTreeNode parent =
                     (CustomTreeNode)dest.getLastPathComponent();
 
-            System.out.println("dropping in: "+parent.getNodeType());
+            //System.out.println("dropping in: "+parent.getNodeType());
             CustomTreeNode globalTableNode = null;
             boolean updateMappingsInTable = false;
             //determine if user can drop in this location. If possible, rearrange the node accordingly (if needed)

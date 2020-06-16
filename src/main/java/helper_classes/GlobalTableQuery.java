@@ -27,15 +27,24 @@ public class GlobalTableQuery {
     }
 
     public boolean deleteSelectColumnFromTable(GlobalTableData table, GlobalColumnData columnName){
-        return selectGlobalColumn.get(table).remove(columnName);
+        boolean success = selectGlobalColumn.get(table).remove(columnName);
+        if (success && selectGlobalColumn.get(table).size()==0){
+            selectGlobalColumn.remove(table);
+        }
+        return success;
     }
 
     public String getLocalTableQuery(){
         String query = "SELECT ";
-        for (Map.Entry<GlobalTableData, List<GlobalColumnData>> tableSelectColumns : selectGlobalColumn.entrySet()){
+        for (Map.Entry<GlobalTableData, List<GlobalColumnData>> tableSelectColumns : selectGlobalColumn.entrySet()){//TODO: is iteration correct??
             //for each global table
             GlobalTableData t = tableSelectColumns.getKey();
             List<GlobalColumnData> selectCols = tableSelectColumns.getValue();
+            for (int i = 0; i < selectCols.size()-1; i++){
+                query+= selectCols.get(i).getName()+",";
+            }
+            query+= selectCols.get(selectCols.size()-1).getName() +" ";//last elemment without comma
+            query+= "FROM (";
             MappingType mapping = t.getMappingTypeOfMatches();
             if (mapping == MappingType.Simple)
                 query+=handleSimpleMapping(t, selectCols);
@@ -45,6 +54,7 @@ public class GlobalTableQuery {
                 query+=handleVerticalMapping(t, selectCols);
             else
                 return "Error: Invalid Mapping Type";
+            query+= ")";
         }
         return query;
     }

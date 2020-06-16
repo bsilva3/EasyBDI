@@ -1,5 +1,6 @@
 package prestoComm;
 
+import prestoComm.query_ui.QueryUI;
 import wizards.CubeConfiguration;
 
 import javax.imageio.ImageIO;
@@ -74,14 +75,6 @@ public class MainMenu extends JFrame{
             {
                 //open wizard and edit current project
                 editCurrentProject();
-            }
-        });
-
-        editProjectBtn.addActionListener(new ActionListener()
-        {
-            public void actionPerformed(ActionEvent e)
-            {
-                createNewStarSchema();
             }
         });
 

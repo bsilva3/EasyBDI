@@ -106,6 +106,14 @@ public class MetaDataManager {
         fillDBDataTable();
     }
 
+    public void close(){
+        if (conn != null) {
+            try {
+                conn.close();
+            } catch (SQLException e) { e.printStackTrace();}
+        }
+    }
+
     public void createTables(){
         // SQLite connection string
 

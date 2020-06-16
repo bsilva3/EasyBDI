@@ -84,6 +84,7 @@ public class CubeConfiguration extends JPanel{
             {
                 public void actionPerformed(ActionEvent e)
                 {
+                    metaDataManager.close();
                     mainMenu.returnToMainMenu();
                 }
             });
@@ -99,6 +100,7 @@ public class CubeConfiguration extends JPanel{
                     else{
                         JOptionPane.showMessageDialog(null, "Failed to create star Schema.\nThere could be a problem with the global schema.", "Failed", JOptionPane.ERROR_MESSAGE);
                     }
+                    metaDataManager.close();
                     mainMenu.returnToMainMenu();
                 }
             });
