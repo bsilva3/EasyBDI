@@ -877,7 +877,6 @@ public class GlobalSchemaConfigurationV2 extends JPanel {
     private boolean isVerticalMapping(GlobalTableData globalTable) {
         Set<TableData> completeLocalTables = globalTable.getLocalTablesFromCols();
         if (completeLocalTables.size() > 1) {
-            Map<TableData, List<TableData>> tablesVerticallyPartioned = new HashMap<>();
             ColumnData referencedColumn = null;
             List<ColumnData> fullLocalCols = globalTable.getFullListColumnsCorrespondences();
             for (TableData  localTable : completeLocalTables) {
