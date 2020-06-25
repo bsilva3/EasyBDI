@@ -185,7 +185,10 @@ public class MainWizardPanel extends JPanel{
     }
 
     private void handleDBConnConfig(){
-        dbConnWizzard = new DatabaseConnectionWizardV2(prestoMediator);
+        if (isEdit)
+            dbConnWizzard = new DatabaseConnectionWizardV2(prestoMediator, metaDataManager, true);
+        else
+            dbConnWizzard = new DatabaseConnectionWizardV2(prestoMediator, metaDataManager, false);
         addToMainPanel(null, dbConnWizzard);
     }
 

@@ -302,10 +302,19 @@ public class QueryUI extends JPanel{
                     //remove node
                     FilterNode parent = (FilterNode) node.getParent();
                     int index = parent.getIndex(node);
+                    int childCount = parent.getChildCount();
                     if (index > 0){
-                        FilterNode nodeAbove = (FilterNode) node.getChildAt(index-1);
+                        //need to
+                        FilterNode nodeAbove = (FilterNode) parent.getChildAt(index-1);
                         if (nodeAbove.getNodeType() == FilterNodeType.BOOLEAN_OPERATION){
                             filterTreeModel.removeNodeFromParent(nodeAbove);
+                        }
+                    }
+                    else if (index == 0 && childCount > 1){
+                        //if there is a boolean operation below, remove it
+                        FilterNode nodeBellow = (FilterNode) parent.getChildAt(index+1);
+                        if (nodeBellow.getNodeType() == FilterNodeType.BOOLEAN_OPERATION){
+                            filterTreeModel.removeNodeFromParent(nodeBellow);
                         }
                     }
                     filterTreeModel.removeNodeFromParent(node);
@@ -316,6 +325,18 @@ public class QueryUI extends JPanel{
         };
     }
 
+    private ActionListener changeBooleanOperation(String booleanOp, FilterNode selectedNode) {
+        return new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                //FilterNode node = (FilterNode) parentNode.getChildAt(index);
+                selectedNode.setUserObject(booleanOp);
+                filterTree.repaint();
+                filterTree.updateUI();
+            }
+        };
+    }
     /**
      * In the list of columns, returns the table name that contains the column with the index specified
      * @param index
@@ -462,6 +483,14 @@ public class QueryUI extends JPanel{
                         }
                         else if (selectedNode.getNodeType() == FilterNodeType.BOOLEAN_OPERATION){
                             //menu for a boolean op
+                            JPopupMenu menu = new JPopupMenu();
+                            JMenuItem item1 = new JMenuItem("AND");
+                            JMenuItem item2 = new JMenuItem("OR");
+                            item1.addActionListener(changeBooleanOperation("AND", selectedNode));
+                            item2.addActionListener(changeBooleanOperation("OR", selectedNode));
+                            menu.add(item1);
+                            menu.add(item2);
+                            filterTree.setComponentPopupMenu(menu);
                         }
                     }
                 }
@@ -568,12 +597,32 @@ public class QueryUI extends JPanel{
             else if (info.getComponent() instanceof JTree){
                 JTree tree = (JTree) info.getComponent();
                 if (tree.equals(filterTree)){
+                    String s[] = null;
                     //user drops in the filter tree
-
-                    if (filterTreeModel == null){
-                        String s[] = createFilterStringOperation(column, true);
+                    if (filterTreeModel == null){//filters dropped for the first time (bug if root added on jtree creation, thats why there's two ifs..)
+                        while (s == null){
+                            s = createFilterStringOperation(column, true);
+                        }
+                        if (s.length == 0)
+                            return false;
                         //no filters added yet
                         FilterNode root = new FilterNode("", null, null);
+                        root.add(new FilterNode(s[1], column, FilterNodeType.CONDITION));
+                        filterTreeModel = new DefaultTreeModel(root);
+                        filterTree.setModel(filterTreeModel);
+                        filterTree.setRootVisible(false);
+                        filterTree.revalidate();
+                        filterTree.updateUI();
+                        return true;
+                    }
+                    FilterNode root = (FilterNode) filterTreeModel.getRoot();
+                    if (root.getChildCount() == 0){//filters added and removed such that jtree is empty
+                        while (s == null){
+                            s = createFilterStringOperation(column, true);
+                        }
+                        if (s.length == 0)
+                            return false;
+                        //no filters added
                         root.add(new FilterNode(s[1], column, FilterNodeType.CONDITION));
                         filterTreeModel = new DefaultTreeModel(root);
                         filterTree.setModel(filterTreeModel);
@@ -593,8 +642,11 @@ public class QueryUI extends JPanel{
                     if(childIndex == -1) {     // DropMode.ON
                         index = parent.getChildCount();
                     }*/
-                    String s[] = createFilterStringOperation(column, false);
-                    FilterNode root = (FilterNode) filterTreeModel.getRoot();
+                    while (s == null){
+                        s = createFilterStringOperation(column, false);
+                    }
+                    if (s.length == 0)
+                        return false;
                     filterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION), root, root.getChildCount());
                     filterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), root, root.getChildCount());
                     return true;
@@ -643,11 +695,17 @@ public class QueryUI extends JPanel{
             String filterValue = "";
             if (result == JOptionPane.OK_OPTION) {
                 filterValue = value.getText();
+                if (filterValue.length() == 0){
+                    JOptionPane.showMessageDialog(null, "Please insert a filter value with same data type",
+                            "Operation Failed", JOptionPane.ERROR_MESSAGE);
+                    return null;
+                }
                 elem+= filter.getSelectedItem().toString() + filterValue;
             }
             else{
                 JOptionPane.showMessageDialog(null, "Please select a filter operation and insert a filter value with same data type",
                         "Operation Failed", JOptionPane.ERROR_MESSAGE);
+                return new String[0];
             }
             if (!isFirst){
                 s[0] = logicOperation.getSelectedItem().toString();

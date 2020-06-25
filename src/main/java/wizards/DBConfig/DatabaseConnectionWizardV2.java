@@ -1,9 +1,11 @@
 package wizards.DBConfig;
 
 import helper_classes.DBData;
+import helper_classes.SimpleDBData;
 import helper_classes.TableData;
 import org.omg.PortableInterceptor.SUCCESSFUL;
 import prestoComm.DBModel;
+import prestoComm.MetaDataManager;
 import prestoComm.PrestoMediator;
 
 import javax.swing.*;
@@ -33,13 +35,17 @@ public class DatabaseConnectionWizardV2 extends JPanel {
     private JLabel helpLabel;
     private JLabel stepLabel;
     private JLabel noteLabel;
+    private JButton importDataSourceFromButton;
     private List<DBData> dbList;
     private List<Boolean> dbConnectionTested;
     private DefaultListModel<String> listModel;
     private DefaultListModel<String> connListModel;
     private PrestoMediator prestoMediator;
+    private MetaDataManager metaDataManager;
+    private boolean isEdit;
 
-    public DatabaseConnectionWizardV2(PrestoMediator prestoMediator){
+    public DatabaseConnectionWizardV2(PrestoMediator prestoMediator, MetaDataManager metaDataManager){
+        this.metaDataManager = metaDataManager;
         helpLabel.setText("<html>Please, enter database url, database model and the name of the database you want to connect."
                 +"<br/> Do not specify a database in the url (x.x.x./dbname). Always specify the database in the 'database name' field."
                 +"<br/> You must test if it is possible to connect to the database you inserted. To do this, select a database in the list and click 'test connection' button."
@@ -91,6 +97,38 @@ public class DatabaseConnectionWizardV2 extends JPanel {
 
             }
         });
+        importDataSourceFromButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                openDBImporter();
+            }
+        });
+    }
+
+    public DatabaseConnectionWizardV2(PrestoMediator prestoMediator, MetaDataManager metaDataManager, boolean isEdit){
+        this(prestoMediator, metaDataManager);
+        this.isEdit = isEdit;
+        if (isEdit) {
+            List<DBData> dbs = metaDataManager.getDatabases();
+            for (DBData db : dbs) {
+                addDatabase(db.getDbName(), db.getDbModel(), db.getUrl(), db.getUser(), db.getPass());
+            }
+            databaseList.revalidate();
+            databaseList.updateUI();
+        }
+    }
+
+    public void addImportedDatabases(List<SimpleDBData> importedDBs){
+        List<DBData> dbs = metaDataManager.getDatabases();
+        for (DBData db : dbs) {
+            addDatabase(db.getDbName(), db.getDbModel(), db.getUrl(), db.getUser(), db.getPass());
+        }
+        databaseList.revalidate();
+        databaseList.updateUI();
+    }
+
+    private void openDBImporter(){
+        new DataSourceProjectImporter(this);
     }
 
     private void addDatabase(String name, DBModel model, String url, String user, String pass){
@@ -174,11 +212,6 @@ public class DatabaseConnectionWizardV2 extends JPanel {
         }
         db.setTableList(tables);
         return db;
-    }
-
-
-    public static void main(String[] args){
-        DatabaseConnectionWizardV2 window = new DatabaseConnectionWizardV2(new PrestoMediator());
     }
 
 }

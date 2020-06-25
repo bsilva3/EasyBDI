@@ -10,8 +10,8 @@ import static prestoComm.Constants.*;
 
 public class MetaDataManager {
 
-    private static final String DB_FILE_DIR = SQLITE_DB_FOLDER + File.separator;
-    private static final String URL = "jdbc:sqlite:" + DB_FILE_DIR;
+    private static final String PROJECT_FILE_DIR = SQLITE_DB_FOLDER + File.separator;
+    private static final String URL = "jdbc:sqlite:" + PROJECT_FILE_DIR;
     private String DB_FILE_URL = URL;//will have the database name to connect to
     private Connection conn;
     private String databaseName;
@@ -36,8 +36,8 @@ public class MetaDataManager {
         return conn;
     }
 
-    public static File[] listAllDBFiles(){
-        File folder = new File(DB_FILE_DIR);
+    public static File[] listAllProjectFiles(){
+        File folder = new File(PROJECT_FILE_DIR);
         File[] listOfFiles = folder.listFiles();
 
         for (int i = 0; i < listOfFiles.length; i++) {
@@ -49,8 +49,8 @@ public class MetaDataManager {
         }
         return listOfFiles;
     }
-    public static boolean deleteDB(String projectName){
-        File folder = new File(DB_FILE_DIR);
+    public static boolean deleteProject(String projectName){
+        File folder = new File(PROJECT_FILE_DIR);
         File[] listOfFiles = folder.listFiles();
         for (int i = 0; i < listOfFiles.length; i++) {
             if (listOfFiles[i].isFile() && listOfFiles[i].getName().equals(projectName)) {
@@ -60,8 +60,8 @@ public class MetaDataManager {
         return false;
     }
 
-    public static String[] listAllDBNames(){
-        File[] listOfFiles = listAllDBFiles();
+    public static String[] listAllProjectNames(){
+        File[] listOfFiles = listAllProjectFiles();
         String[] dbNames = new String[listOfFiles.length];
         for (int i = 0; i < listOfFiles.length; i++) {
             if (listOfFiles[i].isFile()) {
@@ -72,13 +72,27 @@ public class MetaDataManager {
         return dbNames;
     }
 
+    public static Set<SimpleDBData> getAllDatabasesInProjects(){
+        Set<SimpleDBData> dbs = new HashSet<>();
+        String[] projects = listAllProjectNames();
+        for (String project : projects){
+            MetaDataManager m = new MetaDataManager(project);
+            List<DBData> dbsInProjects = m.getDatabases();
+            for (DBData db : dbsInProjects){
+                dbs.add(db.convertToSimpleDB());
+            }
+            m.close();
+        }
+        return dbs;
+    }
+
     /**
      * Check if db file exists
      * @param dbName
      * @return
      */
     public static boolean dbExists(String dbName){
-        File[] listOfFiles = listAllDBFiles();
+        File[] listOfFiles = listAllProjectFiles();
         for (int i = 0; i < listOfFiles.length; i++) {
             if (listOfFiles[i].isFile()) {
                 String fileName = listOfFiles[i].getName().split("\\.")[0];
@@ -90,7 +104,7 @@ public class MetaDataManager {
     }
 
     public boolean removeDB(String dbName){
-        File[] listOfFiles = listAllDBFiles();
+        File[] listOfFiles = listAllProjectFiles();
         for (int i = 0; i < listOfFiles.length; i++) {
             if (listOfFiles[i].isFile()) {
                 String fileName = listOfFiles[i].getName().split("\\.")[0];

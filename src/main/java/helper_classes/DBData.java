@@ -45,6 +45,10 @@ public class DBData implements Serializable {
         this.id = id;
     }
 
+    public SimpleDBData convertToSimpleDB(){
+        return new SimpleDBData(this.getUrl(), this.getDbModel(), this.getDbName(), this.getUser(), this.getPass());
+    }
+
     public List<TableData> getTableList() {
         return this.tableList;
     }
@@ -130,7 +134,6 @@ public class DBData implements Serializable {
                 ", dbModel=" + dbModel +
                 ", url='" + url + '\'' +
                 ", user='" + user + '\'' +
-                ", pass='" + pass + '\'' +
                 ", catalogName='" + catalogName + '\'' +
                 ", id=" + id +
                 '}';

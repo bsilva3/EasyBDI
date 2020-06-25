@@ -116,7 +116,7 @@ public class MainMenu extends JFrame{
         String projectName = projectsComboBox.getSelectedItem().toString();
         int dialogResult = JOptionPane.showConfirmDialog (null, "Are you sure? The project will be permanently deleted.","Warning",JOptionPane.YES_NO_OPTION);
         if(dialogResult == JOptionPane.YES_OPTION){
-            boolean success = MetaDataManager.deleteDB(projectName);
+            boolean success = MetaDataManager.deleteProject(projectName);
             if (success){
                 refreshProjectsInComboBox();
                 JOptionPane.showMessageDialog(null, "Project deleted successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
@@ -176,7 +176,7 @@ public class MainMenu extends JFrame{
     }
 
     private void refreshProjectsInComboBox(){
-        String[] dbNames = MetaDataManager.listAllDBNames();
+        String[] dbNames = MetaDataManager.listAllProjectNames();
         projectsComboBox.setModel(new DefaultComboBoxModel(dbNames));
         for (String s : dbNames){
             if (s.equals(currentProjectSelected)){
