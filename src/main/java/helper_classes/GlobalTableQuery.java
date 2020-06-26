@@ -34,6 +34,7 @@ public class GlobalTableQuery {
         return success;
     }
 
+    //Creates a SELECT XXX FROM () with the necessary inner queries to get local schema data
     public String getLocalTableQuery(){
         String query = "SELECT ";
         for (Map.Entry<GlobalTableData, List<GlobalColumnData>> tableSelectColumns : selectGlobalColumn.entrySet()){//TODO: is iteration correct??
@@ -61,7 +62,7 @@ public class GlobalTableQuery {
 
     private String handleSimpleMapping(GlobalTableData t, List<GlobalColumnData> selectCols){
         //for each local table that matches with this global table
-        String query = "";
+        String query = " SELECT ";
         Set<TableData> localTables = t.getLocalTablesFromCols(selectCols);
         for (TableData localTable : localTables){
             List<ColumnData> localCols = localTable.getColumnsList();
@@ -95,20 +96,35 @@ public class GlobalTableQuery {
     }
 
     private String handleVerticalMapping(GlobalTableData t, List<GlobalColumnData> selectCols){
-        String query ="";
         //for each local table that matches with this global table
-        Set<TableData> localTables = t.getLocalTablesFromCols();
+        String query = " SELECT ";
+        Set<TableData> localTables = t.getLocalTablesFromCols(selectCols);
+        String tableJoinString = "INNER JOIN ";
+        ColumnData primaryKeyCol = null;
+        List<ColumnData> foreignKeyCols = new ArrayList<>();
         for (TableData localTable : localTables){
             List<ColumnData> localCols = localTable.getColumnsList();
-            for (int i = 0; i < localCols.size()-1; i++){
-                query+=localCols.get(i).getCompletePrestoColumnName() +", ";
+            for (int i = 0; i < localCols.size(); i++){
+                ColumnData col = localCols.get(i);
+                if (col.isPrimaryKey() && !col.hasForeignKey()){
+                    primaryKeyCol = col;
+                }
+                else if(col.isPrimaryKey() && col.hasForeignKey()) {//skip, this column is the same as primary key
+                    foreignKeyCols.add(col);
+                    continue;
+                }
+                query+=col.getCompletePrestoColumnName() +", ";
             }
             query+=localCols.get(localCols.size()-1).getCompletePrestoColumnName()+" ";//last column is whithout a comma
             query+= "FROM "+localTable.getCompletePrestoTableName()+" ";
-            query+="JOIN ";
         }
-        if (query.endsWith("JOIN ")) {
-            return query.substring(0, query.length() - "UNION ".length());
+        if (query.endsWith(", ")) {
+            query = query.substring(0, query.length() - ", ".length());//last column is whithout a comma
+        }
+        query+= " FROM "+primaryKeyCol.getTable().getCompletePrestoTableName()+" ";
+        //add joins
+        for (ColumnData col : foreignKeyCols){
+            query+= tableJoinString +" "+col.getTable().getCompletePrestoTableName()+ " ON "+primaryKeyCol.getCompletePrestoColumnName()+ " = "+col.getCompletePrestoColumnName();
         }
         return query;
     }
