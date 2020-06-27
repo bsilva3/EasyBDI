@@ -13,6 +13,7 @@ import wizards.global_schema_config.CustomeTreeCellRenderer;
 import wizards.global_schema_config.NodeType;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileFilter;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
@@ -22,6 +23,10 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -42,6 +47,8 @@ public class QueryUI extends JPanel{
     private JList measuresList;
     private JTabbedPane tabbedPane1;
     private JList queryLogList;
+    private JButton saveSelectedQueryButton;
+    private JButton saveAllQueriesButton;
     private String project;
 
     private StarSchema starSchema;
@@ -64,7 +71,7 @@ public class QueryUI extends JPanel{
 
     private MainMenu mainMenu;
 
-    public QueryUI(String projectName, MainMenu mainMenu){
+    public QueryUI(String projectName, final MainMenu mainMenu){
         this.mainMenu = mainMenu;
         this.projectName = projectName;
         this.metaDataManager = new MetaDataManager(projectName);
@@ -148,9 +155,9 @@ public class QueryUI extends JPanel{
                     if (evt.getClickCount() == 2) {
                         // Double-click on list log item: show full message
                         int index = list.locationToIndex(evt.getPoint());
-                        String queryLog = (String) queryLogModel.get(index);
+                        QueryLog queryLog = (QueryLog) queryLogModel.get(index);
                         JOptionPane optionPane = new NarrowOptionPane();
-                        optionPane.setMessage(queryLog);
+                        optionPane.setMessage(queryLog.toString());
                         optionPane.setMessageType(JOptionPane.INFORMATION_MESSAGE);
                         JDialog dialog = optionPane.createDialog(null, "Query Log");
                         dialog.setVisible(true);
@@ -161,6 +168,111 @@ public class QueryUI extends JPanel{
             add(mainPanel);
             this.setVisible(true);
         }
+        saveAllQueriesButton.addActionListener(e -> {
+            saveToFile(true);
+        });
+        saveSelectedQueryButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                saveToFile(false);
+            }
+        });
+    }
+
+    private void saveToFile(boolean multiline){
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setFileFilter(new FileFilter() {
+
+            public String getDescription() {
+                return "txt file (*.txt)";
+            }
+
+            public boolean accept(File f) {
+                if (f.isDirectory()) {
+                    return true;
+                } else {
+                    String filename = f.getName().toLowerCase();
+                    return filename.endsWith(".txt");
+                }
+            }
+        });
+        fileChooser.setDialogTitle("Specify a file to save");
+        int userSelection = fileChooser.showSaveDialog(mainMenu);
+
+        if (userSelection == JFileChooser.APPROVE_OPTION) {
+            File fileToSave = fileChooser.getSelectedFile();
+            //validate
+            String[] fileSplit = fileToSave.toString().split(".");
+            if (fileSplit.length == 2 && fileSplit[1].equals("txt")) {
+                // filename is OK as-is
+            } else {
+                fileToSave = new File(fileToSave.toString() + ".txt");  // append .xml if "foo.jpg.xml" is OK
+            }
+            System.out.println("Save as file: " + fileToSave.getAbsolutePath());
+            boolean success = false;
+            if (multiline)
+                success = saveAllQueriesLog(fileToSave);
+            else
+                success = saveLogToFile(queryLogModel.get(queryLogList.getSelectedIndex()).toString(), fileToSave);
+            if (success){
+                JOptionPane.showMessageDialog(mainMenu, "Query Log Saved!", "Success", JOptionPane.INFORMATION_MESSAGE);
+            }
+            else{
+                JOptionPane.showMessageDialog(mainMenu, "Failed to save query log. Select an apropriate folder.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+    private boolean saveAllQueriesLog(File file){
+        BufferedWriter writer = null;
+        try {
+            writer = new BufferedWriter(new FileWriter(file));
+            for (int i = 0; i < queryLogModel.getSize(); i++) {
+                //saveLogToFile(queryLogModel.get(i).toString(), folder);
+                List<String> limitLine = textLimiter(queryLogModel.get(i).toString(), 80);
+                for (String s : limitLine)
+                    writer.write(s+"\n");
+                writer.write("\n ------------------------------------------------------------------------------- \n");
+            }
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
+    }
+
+    private boolean saveLogToFile(String log, File folder){
+        BufferedWriter writer = null;
+        try {
+            writer = new BufferedWriter(new FileWriter(folder));
+            List<String> limitLine = textLimiter(log, 80);
+            for (String s : limitLine)
+                writer.write(s+"\n");
+
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
+    }
+
+    private List<String> textLimiter(String input, int limit) {
+        List<String> returnList = new ArrayList<>();
+        String[] parts = input.split("[ ,\n]");
+        StringBuilder sb = new StringBuilder();
+        for (String part : parts) {
+            if (sb.length() + part.length() > limit) {
+                returnList.add(sb.toString().substring(0, sb.toString().length() - 1));
+                sb = new StringBuilder();
+            }
+            sb.append(part + " ");
+        }
+        if (sb.length() > 0) {
+            returnList.add(sb.toString());
+        }
+        return returnList;
     }
 
     public static void main(String[] args){
@@ -374,6 +486,8 @@ public class QueryUI extends JPanel{
     }
 
     public String getFilterQuery(){
+        if (this.filterTreeModel == null) //easy fix
+            return "";
         FilterNode root = (FilterNode) this.filterTreeModel.getRoot();
         int nChilds = root.getChildCount();
         if (nChilds <= 0){
@@ -391,6 +505,8 @@ public class QueryUI extends JPanel{
         defaultTableModel.setColumnCount(0);
         defaultTableModel.setRowCount(0);//clear any previous results
 
+        DateTimeFormatter formatter = DateTimeFormat.forPattern("HH:mm:ss");
+        DateTime beginTime = new DateTime();
 
         String localQuery = globalTableQueries.getLocalTableQuery();//create query with inner query to get local table data
         //get all filters as a string
@@ -400,11 +516,10 @@ public class QueryUI extends JPanel{
         }
         System.out.println(localQuery);
         ///mover pro fim da funçlão:
-        DateTimeFormatter formatter = DateTimeFormat.forPattern("HH:mm:ss");
-        DateTime time = new DateTime();
-        String log = formatter.print(time)+" - "+localQuery;
-        queryLogModel.addElement(log);
-        ////////////
+        DateTime endTime = new DateTime();
+        String log = formatter.print(endTime)+" - "+localQuery;
+        queryLogModel.addElement(new QueryLog(localQuery, beginTime, endTime, 0));
+        //////////
         if (localQuery.contains("Error")){
             JOptionPane.showMessageDialog(null, "Could not execute query:\n"+localQuery, "Query Error", JOptionPane.ERROR_MESSAGE);
             return;
@@ -424,11 +539,13 @@ public class QueryUI extends JPanel{
 
             //place rows
             //results.beforeFirst(); //return to begining
+            int nRows = 0;
             while(results.next()){
+                nRows++;
                 //Fetch each row from the ResultSet, and add to ArrayList of rows
                 String[] currentRow = new String[columnCount];
                 for(int i = 0; i < columnCount; i++){
-                    //Again, note that ResultSet column indecies start at 1
+                    //Again, note that ResultSet column indices start at 1
                     currentRow[i] = results.getString(i+1);
                 }
                 defaultTableModel.addRow(currentRow);
@@ -438,6 +555,8 @@ public class QueryUI extends JPanel{
             throwables.printStackTrace();
         }
         queryResultsTable.revalidate();
+
+        //TODO: add end time here
 
     }
 

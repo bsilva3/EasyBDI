@@ -8,24 +8,22 @@
     <artifactId>prestoComunicator</artifactId>
     <version>1.0-SNAPSHOT</version>
     <repositories>
-        <repository>
-            <!-- winter schema matching tool -->
-            <id>releases</id>
-            <url>https://breda.informatik.uni-mannheim.de/nexus/content/repositories/releases/</url>
-        </repository>
     </repositories>
     <build>
         <plugins>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <source>8</source>
-                    <target>8</target>
+                    <source>1.8</source>
+                    <target>1.8</target>
                 </configuration>
             </plugin>
         </plugins>
     </build>
+    <properties>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.source>1.8</maven.compiler.source>
+    </properties>
 
     <dependencies>
         <dependency>
@@ -45,12 +43,6 @@
             <artifactId>sqlite-jdbc</artifactId>
             <version>3.30.1</version>
         </dependency>
-        <dependency>
-            <!-- winter schema matching tool -->
-            <groupId>de.uni_mannheim.informatik.dws</groupId>
-            <artifactId>winter</artifactId>
-            <version>1.0</version>
-        </dependency>
         <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-text -->
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -63,6 +55,13 @@
             <artifactId>forms</artifactId>
             <version>1.2.1</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/joda-time/joda-time -->
+        <dependency>
+            <groupId>joda-time</groupId>
+            <artifactId>joda-time</artifactId>
+            <version>2.10.6</version>
+        </dependency>
+
 
 
 
