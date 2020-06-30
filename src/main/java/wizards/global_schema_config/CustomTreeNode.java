@@ -109,6 +109,9 @@ public class CustomTreeNode extends DefaultMutableTreeNode implements Serializab
             case MATCHES: //matches in local schema
                 fileName = "match_icon.png";
                 break;
+            case MEASURE: //matches in local schema
+                fileName = "measures_icon.png";
+                break;
             default:
                 fileName = "info_icon.png";
                 break;

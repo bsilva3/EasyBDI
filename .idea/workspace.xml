@@ -2,12 +2,12 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="4372070e-ade1-4e3a-bab8-4e40966e7856" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/f.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/prestoComm/query_ui/QueryLog.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/files/images/measures_icon.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/prestoComm/query_ui/QueryUI.form" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/prestoComm/query_ui/QueryUI.form" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/prestoComm/query_ui/QueryUI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/prestoComm/query_ui/QueryUI.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/wizards/global_schema_config/CustomTreeNode.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/wizards/global_schema_config/CustomTreeNode.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/wizards/global_schema_config/NodeType.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/wizards/global_schema_config/NodeType.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -361,12 +361,18 @@
       <option name="project" value="LOCAL" />
       <updated>1593177878469</updated>
     </task>
-    <option name="localTasksCounter" value="31" />
+    <task id="LOCAL-00031" summary="Added saveing of query log in file">
+      <created>1593296302822</created>
+      <option name="number" value="00031" />
+      <option name="presentableId" value="LOCAL-00031" />
+      <option name="project" value="LOCAL" />
+      <updated>1593296302822</updated>
+    </task>
+    <option name="localTasksCounter" value="32" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
-    <MESSAGE value="added logic to access data from presto, store data in postgres (will be removed) and initial logic for sqlite" />
     <MESSAGE value="changed logic do sqlite." />
     <MESSAGE value="added schema matching library" />
     <MESSAGE value="Added setup methods on all classes" />
@@ -391,7 +397,8 @@
     <MESSAGE value="Bug fixes." />
     <MESSAGE value="Bug fixes and added import for other data sources on wizards" />
     <MESSAGE value="Import Data sources from other projects: bug fixes" />
-    <option name="LAST_COMMIT_MESSAGE" value="Import Data sources from other projects: bug fixes" />
+    <MESSAGE value="Added saveing of query log in file" />
+    <option name="LAST_COMMIT_MESSAGE" value="Added saveing of query log in file" />
   </component>
   <component name="WindowStateProjectService">
     <state x="552" y="178" key="#Inspections" timestamp="1587567330579">
@@ -450,46 +457,46 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="1021" y="169" key="#xdebugger.evaluate/0.0.1920.1040@0.0.1920.1040" timestamp="1591312805604" />
-    <state x="607" y="116" width="747" height="803" key="CommitChangelistDialog2" timestamp="1593177877915">
+    <state x="607" y="116" width="747" height="803" key="CommitChangelistDialog2" timestamp="1593296302257">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="607" y="116" width="747" height="803" key="CommitChangelistDialog2/0.0.1920.1040@0.0.1920.1040" timestamp="1593177877915" />
+    <state x="607" y="116" width="747" height="803" key="CommitChangelistDialog2/0.0.1920.1040@0.0.1920.1040" timestamp="1593296302257" />
     <state x="740" y="275" key="FileChooserDialogImpl" timestamp="1593295497358">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="740" y="275" key="FileChooserDialogImpl/0.0.1920.1040@0.0.1920.1040" timestamp="1593295497358" />
-    <state width="1877" height="188" key="GridCell.Tab.0.bottom" timestamp="1593296210350">
+    <state width="1877" height="188" key="GridCell.Tab.0.bottom" timestamp="1593524526442">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1877" height="188" key="GridCell.Tab.0.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1593296210350" />
-    <state width="1877" height="188" key="GridCell.Tab.0.center" timestamp="1593296210350">
+    <state width="1877" height="188" key="GridCell.Tab.0.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1593524526442" />
+    <state width="1877" height="188" key="GridCell.Tab.0.center" timestamp="1593524526441">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1877" height="188" key="GridCell.Tab.0.center/0.0.1920.1040@0.0.1920.1040" timestamp="1593296210350" />
-    <state width="1877" height="188" key="GridCell.Tab.0.left" timestamp="1593296210350">
+    <state width="1877" height="188" key="GridCell.Tab.0.center/0.0.1920.1040@0.0.1920.1040" timestamp="1593524526441" />
+    <state width="1877" height="188" key="GridCell.Tab.0.left" timestamp="1593524526441">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1877" height="188" key="GridCell.Tab.0.left/0.0.1920.1040@0.0.1920.1040" timestamp="1593296210350" />
-    <state width="1877" height="188" key="GridCell.Tab.0.right" timestamp="1593296210350">
+    <state width="1877" height="188" key="GridCell.Tab.0.left/0.0.1920.1040@0.0.1920.1040" timestamp="1593524526441" />
+    <state width="1877" height="188" key="GridCell.Tab.0.right" timestamp="1593524526442">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1877" height="188" key="GridCell.Tab.0.right/0.0.1920.1040@0.0.1920.1040" timestamp="1593296210350" />
-    <state width="1877" height="211" key="GridCell.Tab.1.bottom" timestamp="1593105782519">
+    <state width="1877" height="188" key="GridCell.Tab.0.right/0.0.1920.1040@0.0.1920.1040" timestamp="1593524526442" />
+    <state width="1877" height="211" key="GridCell.Tab.1.bottom" timestamp="1593519780845">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1877" height="211" key="GridCell.Tab.1.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1593105782519" />
-    <state width="1877" height="211" key="GridCell.Tab.1.center" timestamp="1593105782519">
+    <state width="1877" height="211" key="GridCell.Tab.1.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1593519780845" />
+    <state width="1877" height="211" key="GridCell.Tab.1.center" timestamp="1593519780845">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1877" height="211" key="GridCell.Tab.1.center/0.0.1920.1040@0.0.1920.1040" timestamp="1593105782519" />
-    <state width="1877" height="211" key="GridCell.Tab.1.left" timestamp="1593105782519">
+    <state width="1877" height="211" key="GridCell.Tab.1.center/0.0.1920.1040@0.0.1920.1040" timestamp="1593519780845" />
+    <state width="1877" height="211" key="GridCell.Tab.1.left" timestamp="1593519780845">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1877" height="211" key="GridCell.Tab.1.left/0.0.1920.1040@0.0.1920.1040" timestamp="1593105782519" />
-    <state width="1877" height="211" key="GridCell.Tab.1.right" timestamp="1593105782519">
+    <state width="1877" height="211" key="GridCell.Tab.1.left/0.0.1920.1040@0.0.1920.1040" timestamp="1593519780845" />
+    <state width="1877" height="211" key="GridCell.Tab.1.right" timestamp="1593519780845">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1877" height="211" key="GridCell.Tab.1.right/0.0.1920.1040@0.0.1920.1040" timestamp="1593105782519" />
+    <state width="1877" height="211" key="GridCell.Tab.1.right/0.0.1920.1040@0.0.1920.1040" timestamp="1593519780845" />
     <state x="490" y="175" key="Maven.ArtifactSearchDialog" timestamp="1593282948757">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -514,18 +521,18 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="839" y="314" key="UIDesigner.ListEditorDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1591014590450" />
-    <state x="555" y="255" width="800" height="526" key="Vcs.Push.Dialog.v2" timestamp="1593177880015">
+    <state x="555" y="255" width="800" height="526" key="Vcs.Push.Dialog.v2" timestamp="1593296304133">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="555" y="255" width="800" height="526" key="Vcs.Push.Dialog.v2/0.0.1920.1040@0.0.1920.1040" timestamp="1593177880015" />
+    <state x="555" y="255" width="800" height="526" key="Vcs.Push.Dialog.v2/0.0.1920.1040@0.0.1920.1040" timestamp="1593296304133" />
     <state width="968" height="528" key="XDebugger.FullValuePopup" timestamp="1591223463121">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="968" height="528" key="XDebugger.FullValuePopup/0.0.1920.1040@0.0.1920.1040" timestamp="1591223463121" />
-    <state x="653" y="346" key="com.intellij.ide.util.TipDialog" timestamp="1593282771490">
+    <state x="653" y="346" key="com.intellij.ide.util.TipDialog" timestamp="1593518867858">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="653" y="346" key="com.intellij.ide.util.TipDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1593282771490" />
+    <state x="653" y="346" key="com.intellij.ide.util.TipDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1593518867858" />
     <state x="676" y="312" width="574" height="412" key="git4idea.merge.GitPullDialog" timestamp="1593105716063">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -538,10 +545,10 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="624" y="237" width="672" height="677" key="run.anything.popup/0.0.1920.1040@0.0.1920.1040" timestamp="1589195986452" />
-    <state x="623" y="228" width="672" height="678" key="search.everywhere.popup" timestamp="1591135435501">
+    <state x="623" y="228" width="672" height="678" key="search.everywhere.popup" timestamp="1593519326816">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="623" y="228" width="672" height="678" key="search.everywhere.popup/0.0.1920.1040@0.0.1920.1040" timestamp="1591135435501" />
+    <state x="623" y="228" width="672" height="678" key="search.everywhere.popup/0.0.1920.1040@0.0.1920.1040" timestamp="1593519326816" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -713,7 +720,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/prestoComm/query_ui/QueryUI.java</url>
-          <line>522</line>
+          <line>528</line>
           <option name="timeStamp" value="189" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
@@ -728,7 +735,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/prestoComm/query_ui/QueryUI.java</url>
-          <line>502</line>
+          <line>508</line>
           <option name="timeStamp" value="196" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
@@ -768,12 +775,12 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/prestoComm/query_ui/QueryUI.java</url>
-          <line>835</line>
+          <line>850</line>
           <option name="timeStamp" value="208" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/prestoComm/query_ui/QueryUI.java</url>
-          <line>851</line>
+          <line>866</line>
           <option name="timeStamp" value="209" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
@@ -823,12 +830,12 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/prestoComm/query_ui/QueryUI.java</url>
-          <line>758</line>
+          <line>773</line>
           <option name="timeStamp" value="223" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/prestoComm/query_ui/QueryUI.java</url>
-          <line>752</line>
+          <line>767</line>
           <option name="timeStamp" value="231" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
@@ -838,12 +845,12 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/prestoComm/query_ui/QueryUI.java</url>
-          <line>591</line>
+          <line>597</line>
           <option name="timeStamp" value="235" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/prestoComm/query_ui/QueryUI.java</url>
-          <line>600</line>
+          <line>606</line>
           <option name="timeStamp" value="237" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
@@ -855,6 +862,11 @@
           <url>file://$PROJECT_DIR$/src/main/java/wizards/DBConfig/DataSourceProjectImporter.java</url>
           <line>57</line>
           <option name="timeStamp" value="244" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/prestoComm/query_ui/QueryUI.java</url>
+          <line>691</line>
+          <option name="timeStamp" value="245" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

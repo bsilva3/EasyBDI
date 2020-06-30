@@ -44,7 +44,7 @@ public class QueryUI extends JPanel{
     private JComboBox cubeSelectionComboBox;
     private JButton executeQueryButton;
     private JButton backButton;
-    private JList measuresList;
+    private JList rowsList;
     private JTabbedPane tabbedPane1;
     private JList queryLogList;
     private JButton saveSelectedQueryButton;
@@ -64,7 +64,7 @@ public class QueryUI extends JPanel{
     private MetaDataManager metaDataManager;
     private PrestoMediator prestoMediator;
     private String projectName;
-    private final String[] aggregations = { "count", "sum", "average", "min", "max"};
+    private final String[] aggregations = { "simple", "count", "sum", "average", "min", "max"};
     private final String[] numberOperations = { "=", "!=", ">", "=>", "<", "<="};
     private final String[] stringOperations = { "=", "!=", "like"};
     //TODO: checkbox disntinct?
@@ -258,6 +258,12 @@ public class QueryUI extends JPanel{
         return true;
     }
 
+    /**
+     * Limit the ammount of chars by line when saving to file
+     * @param input
+     * @param limit
+     * @return
+     */
     private List<String> textLimiter(String input, int limit) {
         List<String> returnList = new ArrayList<>();
         String[] parts = input.split("[ ,\n]");
@@ -343,14 +349,14 @@ public class QueryUI extends JPanel{
             return null;
         FactsTable facts = starSchema.getFactsTable();
         CustomTreeNode root = new CustomTreeNode("root", NodeType.GLOBAL_TABLES);
-        CustomTreeNode factsNode = new CustomTreeNode("Measures of "+facts.getGlobalTable().getTableName(), NodeType.GLOBAL_TABLES);
+        CustomTreeNode factsNode = new CustomTreeNode("Measures of "+facts.getGlobalTable().getTableName(), NodeType.FACTS_TABLE);
         //set columns that are measures ONLY
         Map<GlobalColumnData, Boolean> cols = facts.getColumns();
         for (Map.Entry<GlobalColumnData, Boolean> col : cols.entrySet()){
             if (col.getValue() == true){
                 //is measure, add
                 GlobalColumnData measure = col.getKey();
-                factsNode.add(new CustomTreeNode(measure.getName(), measure, NodeType.GLOBAL_COLUMN));
+                factsNode.add(new CustomTreeNode(measure.getName(), measure, NodeType.MEASURE));
             }
         }
         //dimension tables
@@ -683,7 +689,7 @@ public class QueryUI extends JPanel{
                 return false;
             }
 
-            if (data.getNodeType() != NodeType.GLOBAL_COLUMN){
+            if (data.getNodeType() != NodeType.GLOBAL_COLUMN && data.getNodeType() != NodeType.MEASURE){
                 JOptionPane.showMessageDialog(null, "You can only drag and drop columns.",
                         "Operation Failed", JOptionPane.ERROR_MESSAGE);
                 return false;
@@ -704,9 +710,18 @@ public class QueryUI extends JPanel{
                 if (list.equals(columnsList)){
                     //select columns list
                     CustomTreeNode parentNode = (CustomTreeNode) data.getParent();//global table
-                    addColumnsToColumnsList(listModel, (GlobalColumnData)data.getObj(), (GlobalTableData) parentNode.getObj()) ;
+                    addColumnsToList(listModel, (GlobalColumnData)data.getObj(), (GlobalTableData) parentNode.getObj()) ;
+                }
+                else if (list.equals(rowsList)){
+                    //select rows list
+                    CustomTreeNode parentNode = (CustomTreeNode) data.getParent();//global table
+                    addColumnsToList(listModel, (GlobalColumnData)data.getObj(), (GlobalTableData) parentNode.getObj()) ;
                 }
                 else if (list.equals(aggregationList)){
+                    if (data.getNodeType() != NodeType.MEASURE){
+                        JOptionPane.showMessageDialog(mainMenu, "You can only drag measures to this area.", "Measures only", JOptionPane.WARNING_MESSAGE);
+                        return false;
+                    }
                     lisElem+= " ("+ aggregationOpComboBox.getSelectedItem().toString() +")";
                     listModel.add(index++, lisElem);
                 }
@@ -833,16 +848,16 @@ public class QueryUI extends JPanel{
             return s;
         }
 
-        private void addColumnsToColumnsList(DefaultListModel listModel, GlobalColumnData globalCol, GlobalTableData globalTable){
+        private void addColumnsToList(DefaultListModel listModel, GlobalColumnData globalCol, GlobalTableData globalTable){
             String[] s = null;
             //check if table name of this column exists. If true then inserted here
             ListElementWrapper elemtTosearch = new ListElementWrapper(globalTable.getTableName(), globalTable, ListElementType.GLOBAL_TABLE);
-            if (columnListModel.contains(elemtTosearch)){
-                int index = columnListModel.indexOf(elemtTosearch);
+            if (listModel.contains(elemtTosearch)){
+                int index = listModel.indexOf(elemtTosearch);
                 index++;
                 //iterate the columns of this tables. insert a new one
-                for (int i = index; i < columnListModel.getSize(); i++) {
-                    if (!String.valueOf(columnListModel.getElementAt(i)).contains("    ")){
+                for (int i = index; i < listModel.getSize(); i++) {
+                    if (!String.valueOf(listModel.getElementAt(i)).contains("    ")){
                         listModel.add(i, new ListElementWrapper("    "+globalCol.getName(), globalCol, ListElementType.GLOBAL_COLUMN));//add column
                         globalTableQueries.addSelectColumn(globalTable, globalCol);
                         return;
