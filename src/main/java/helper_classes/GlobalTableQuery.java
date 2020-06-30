@@ -5,9 +5,11 @@ import java.util.*;
 public class GlobalTableQuery {
 
     private Map<GlobalTableData, List<GlobalColumnData>> selectGlobalColumn;
+    private Map<GlobalTableData, List<GlobalColumnData>> selectRowGlobalColumn;
 
     public GlobalTableQuery() {
         selectGlobalColumn = new HashMap<>();
+        selectRowGlobalColumn = new HashMap<>();
     }
 
     public void addSelectColumn(GlobalTableData table, GlobalColumnData col){
