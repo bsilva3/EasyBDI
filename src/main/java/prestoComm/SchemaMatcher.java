@@ -174,6 +174,17 @@ public class SchemaMatcher {
         List<Match> matches = labelSchemaMatchingTables(tables);
         //matches = labelTypeSchemaMatchColumns(matches); // column matching (should it be here)
         //get the tables that did not match
+        if (matches.size() == 0){ //no matches, simply convert each local table into a global table
+            List<GlobalTableData> globalTables = new ArrayList<>();
+            for (TableData t : tables){
+                GlobalTableData gt = new GlobalTableData(t.getTableName());
+                gt.addLocalTable(t);
+                gt.setGlobalColumnDataFromLocalColumns(t.getColumnsList());
+                globalTables.add(gt);
+
+            }
+            return globalTables;
+        }
         List<GlobalTableData> nonMatchedTables = getNonMatchedTables(matches, tables);
         //group tables that match to same global table
         List<GlobalTableData> globalTables = groupMatchedTables(matches);

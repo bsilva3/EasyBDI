@@ -4,9 +4,7 @@ import prestoComm.Constants;
 import prestoComm.DBModel;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 public class DBData implements Serializable {
 
@@ -51,6 +49,24 @@ public class DBData implements Serializable {
 
     public List<TableData> getTableList() {
         return this.tableList;
+    }
+
+    public Map<String, List<TableData>> getTableBySchemaMap() {
+        Map<String, List<TableData>> tablesInSchmeas = new HashMap<>();
+        for (TableData t : tableList){
+            if (tablesInSchmeas.containsKey(t.getSchemaName())){//add table to schema
+                List<TableData> tables = tablesInSchmeas.get(t.getSchemaName());
+                tables.add(t);
+                tablesInSchmeas.put(t.getSchemaName(), tables);
+            }
+            else{
+                //add new schema
+                List<TableData> tables = new ArrayList<>();
+                tables.add(t);
+                tablesInSchmeas.put(t.getSchemaName(), tables);
+            }
+        }
+        return tablesInSchmeas;
     }
 
     public void setTableList(List<TableData> tableList) {
@@ -125,6 +141,10 @@ public class DBData implements Serializable {
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    public void clearTables(){
+        tableList.clear();
     }
 
     @Override

@@ -3,6 +3,7 @@ package prestoComm;
 import helper_classes.*;
 import wizards.CubeConfiguration;
 import wizards.DBConfig.DatabaseConnectionWizardV2;
+import wizards.DBConfig.DatabaseSelection;
 import wizards.global_schema_config.GlobalSchemaConfigurationV2;
 
 import javax.swing.*;
@@ -22,17 +23,19 @@ public class MainWizardPanel extends JPanel{
     //wizards;
     private DatabaseConnectionWizardV2 dbConnWizzard;
     private GlobalSchemaConfigurationV2 globalSchemaConfigWizzard;
+    private DatabaseSelection dbSelection;
     private CubeConfiguration cubeConfigWizzard;
 
     //steps
     private final String DB_CONN_CONFIG = "DBConfig";
+    private final String DB_SELECTION = "DBSelection";
     private final String GLOBAL_SCHEMA_CONFIG = "globalSchemaConfig";
     private final String MULTI_DIM_CONFIG = "MultidimensionalSchemaConfig";
     private final String REVIEW = "Review";//?
 
     private boolean isLast;
     private int currentStepNumber;
-    private String[] steps = {DB_CONN_CONFIG, GLOBAL_SCHEMA_CONFIG, MULTI_DIM_CONFIG}; //add DB_CONN...
+    private String[] steps = {DB_CONN_CONFIG, DB_SELECTION, GLOBAL_SCHEMA_CONFIG, MULTI_DIM_CONFIG}; //add DB_CONN...
     private PrestoMediator prestoMediator;
     private MetaDataManager metaDataManager;
     private SchemaMatcher schemaMatcher;
@@ -87,7 +90,7 @@ public class MainWizardPanel extends JPanel{
 
                     }
                     else{
-                        metaDataManager.removeDB(projectName); //remove database file (dont save progress
+                        MetaDataManager.deleteProject(projectName); //remove database file (dont save progress)
                     }
                 }
                 mainMenu.returnToMainMenu();
@@ -136,7 +139,9 @@ public class MainWizardPanel extends JPanel{
         nextBtn.setText("Next");
         switch (steps[currentStepNumber]){
             case(DB_CONN_CONFIG):
-                addToMainPanel(globalSchemaConfigWizzard, dbConnWizzard);//return to DB Connection config wizard interface
+                addToMainPanel(dbSelection, dbConnWizzard);//return to DB Connection config wizard interface
+            case(DB_SELECTION):
+                addToMainPanel(globalSchemaConfigWizzard, dbSelection);//return to DB Connection config wizard interface
             case(GLOBAL_SCHEMA_CONFIG):
                 addToMainPanel(cubeConfigWizzard, globalSchemaConfigWizzard);//return to to global schema wizard interface
                 break;
@@ -153,6 +158,9 @@ public class MainWizardPanel extends JPanel{
         switch (steps[currentStepNumber]){
             case(DB_CONN_CONFIG):
                 handleDBConnConfig();//transition to database config wizard interface
+                break;
+            case(DB_SELECTION):
+                handleDBSelect();//transition to database selection wizard interface
                 break;
             case(GLOBAL_SCHEMA_CONFIG):
                 handleGlobalSchemaConfig();//transition to global schema wizard interface
@@ -192,22 +200,35 @@ public class MainWizardPanel extends JPanel{
         addToMainPanel(null, dbConnWizzard);
     }
 
-    private void handleGlobalSchemaConfig(){
+    private void handleDBSelect(){
         List<DBData> dbs = new ArrayList<>();
         //receive db data from DBConfig window
+        /*dbs = dbConnWizzard.getDbList();
+        if (dbs == null || dbs.size() == 0){//nothing to continue
+            --currentStepNumber;
+            return;
+        }*/
+        dbs.addAll(generateLocalSchema());
+        dbSelection = new DatabaseSelection(dbs);
+        addToMainPanel(dbConnWizzard, dbSelection);
+    }
+
+    private void handleGlobalSchemaConfig(){
+        List<DBData> dbs = new ArrayList<>();
+        //receive db data from DBConfig window (ORIGINAL)
         /*dbs = dbConnWizzard.getDbList();
         if (dbs == null || dbs.size() == 0){
             --currentStepNumber;
             return;
         }*/
-        dbs.addAll(generateLocalSchema());
+        //dbs.addAll(generateLocalSchema());
+        dbs = dbSelection.getSelection();
         dbs = buildLocalSchema(dbs);
         //print local schema
         metaDataManager.printLocalSchema();
-        /*globalSchemaConfigWizzard = new GlobalSchemaConfigurationV2();
-        addToMainPanel(null, globalSchemaConfigWizzard);*/
 
-        List<GlobalTableData> globalSchema = new ArrayList<>();
+
+        List<GlobalTableData> globalSchema;
         //if user is editing project with an existing global schema created previously, do not perform schema match
         if (isEdit && metaDataManager.getGlobalTablesCount() > 0){
             globalSchema = metaDataManager.getGlobalSchema();
@@ -217,7 +238,7 @@ public class MainWizardPanel extends JPanel{
             globalSchema = schemaMatcher.schemaIntegration(dbs);
         }
         globalSchemaConfigWizzard = new GlobalSchemaConfigurationV2(projectName, dbs, globalSchema);
-        addToMainPanel(dbConnWizzard, globalSchemaConfigWizzard);
+        addToMainPanel(dbSelection, globalSchemaConfigWizzard);
     }
 
     private void handleCubeConfig(){
