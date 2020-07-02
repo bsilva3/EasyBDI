@@ -119,8 +119,7 @@ public class DatabaseConnectionWizardV2 extends JPanel {
     }
 
     public void addImportedDatabases(List<SimpleDBData> importedDBs){
-        List<DBData> dbs = metaDataManager.getDatabases();
-        for (DBData db : dbs) {
+        for (SimpleDBData db : importedDBs) {
             addDatabase(db.getDbName(), db.getDbModel(), db.getUrl(), db.getUser(), db.getPass());
         }
         databaseList.revalidate();
@@ -152,6 +151,12 @@ public class DatabaseConnectionWizardV2 extends JPanel {
     }
 
     private boolean testConnection(int index){
+        if (index < 0){
+            JOptionPane.showMessageDialog(null,
+                    "Please, select first a data source from the list by cliking on it. Then press 'Test connection'",
+                    "Connection Test Failed",
+                    JOptionPane.ERROR_MESSAGE);
+        }
         String result = prestoMediator.testDBConnection(dbList.get(index));
         if (result.equals(SUCCESS_STR)){
             //connection success
@@ -174,10 +179,10 @@ public class DatabaseConnectionWizardV2 extends JPanel {
     }
 
     public List<DBData> getDbList(){
-        dbList.add(new DBData("localhost:5432", DBModel.PostgreSQL, "employees_horizontal", "postgres", "brunosilva"));//for test
+        /*dbList.add(new DBData("localhost:5432", DBModel.PostgreSQL, "employees_horizontal", "postgres", "brunosilva"));//for test
         dbList.add(new DBData("localhost:5432", DBModel.PostgreSQL, "employees_vertical", "postgres", "brunosilva"));//for test
         dbList.add(new DBData("http://localhost:27017", DBModel.MongoDB,"inventory"));
-        //dbList.add(new DBData("http://localhost:3306", DBModel.MYSQL,"employeesMYSQL", "bruno", "brunosilva"));
+        //dbList.add(new DBData("http://localhost:3306", DBModel.MYSQL,"employeesMYSQL", "bruno", "brunosilva"));*/
         if (dbConnectionTested.contains(false) || dbConnectionTested.contains(null)){
             JOptionPane.showMessageDialog(null,
                     "There are databases that could not be connected or databases in which a connection test was not made.\n"
@@ -198,7 +203,9 @@ public class DatabaseConnectionWizardV2 extends JPanel {
         prestoMediator.showRestartPrompt();
         for (int i = 0; i < dbList.size(); i++){
             DBData db = getTablesInDBFromPresto(dbList.get(i));
-            //TODO: what to do if presto cant get tables.. fix
+            if (db == null){
+                return null;
+            }
             dbList.set(i, db);
         }
         return dbList;
@@ -208,6 +215,9 @@ public class DatabaseConnectionWizardV2 extends JPanel {
         List<TableData> tables = prestoMediator.getTablesInDatabase(db);
         for (int i = 0; i < tables.size(); i++){
             TableData table = prestoMediator.getColumnsInTable(tables.get(i));
+            if (table == null){
+                return null;
+            }
             tables.set(i, table); //update the table in this index with its columns
         }
         db.setTableList(tables);

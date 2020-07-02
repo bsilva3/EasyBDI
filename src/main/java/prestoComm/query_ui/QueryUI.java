@@ -39,12 +39,12 @@ public class QueryUI extends JPanel{
     private JTree filterTree;
     private JList aggregationList;
     private JComboBox aggregationOpComboBox;
-    private JList columnsList;
+    private JList rowsList;
     private JPanel mainPanel;
     private JComboBox cubeSelectionComboBox;
     private JButton executeQueryButton;
     private JButton backButton;
-    private JList rowsList;
+    private JList columnsList;
     private JTabbedPane tabbedPane1;
     private JList queryLogList;
     private JButton saveSelectedQueryButton;
@@ -58,6 +58,7 @@ public class QueryUI extends JPanel{
     private DefaultTreeModel filterTreeModel;
     private DefaultListModel aggreListModel;
     private DefaultListModel columnListModel;
+    private DefaultListModel rowsListModel;
     private DefaultListModel queryLogModel;
     private DefaultTableModel defaultTableModel;
 
@@ -76,7 +77,6 @@ public class QueryUI extends JPanel{
         this.projectName = projectName;
         this.metaDataManager = new MetaDataManager(projectName);
         this.prestoMediator = new PrestoMediator();
-        this.globalTableQueries = new GlobalTableQuery();
 
         List<String> starSchemas =  metaDataManager.getStarSchemaNames();
         if (starSchemas.isEmpty()){
@@ -104,16 +104,19 @@ public class QueryUI extends JPanel{
 
             aggreListModel = new DefaultListModel();
             columnListModel = new DefaultListModel();
+            rowsListModel = new DefaultListModel();
             queryLogModel = new DefaultListModel();
             filterTree.setModel(filterTreeModel);
             filterTree.setCellRenderer(new FilterNodeCellRenderer());
             filterTree.addMouseListener(getMouseListenerForFilterTree());
             aggregationList.setModel(aggreListModel);
+            rowsList.setModel(rowsListModel);
             columnsList.setModel(columnListModel);
             queryLogList.setModel(queryLogModel);
 
             filterTree.setTransferHandler(new TreeTransferHandler());
             aggregationList.setTransferHandler(new TreeTransferHandler());
+            rowsList.setTransferHandler(new TreeTransferHandler());
             columnsList.setTransferHandler(new TreeTransferHandler());
 
             //jtable
@@ -148,6 +151,7 @@ public class QueryUI extends JPanel{
 
             //listeners for lists left click to open menus
             columnsList.addMouseListener(getMouseListenerForColumnList());
+            rowsList.addMouseListener(getMouseListenerForRowsList());
 
             queryLogList.addMouseListener(new MouseAdapter() {
                 public void mouseClicked(MouseEvent evt) {
@@ -165,6 +169,7 @@ public class QueryUI extends JPanel{
                 }
             });
 
+            this.globalTableQueries = new GlobalTableQuery(prestoMediator, starSchema.getFactsTable().getGlobalTable());
             add(mainPanel);
             this.setVisible(true);
         }
@@ -411,6 +416,39 @@ public class QueryUI extends JPanel{
         };
     }
 
+    private ActionListener getRemoveActionListenerForRowsList(int index) {
+        return new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent arg0) {
+                if (index < 0)
+                    return;
+                ListElementWrapper elem = (ListElementWrapper)rowsListModel.get(index);
+                GlobalColumnData col = null;
+                if (elem.getType() == ListElementType.GLOBAL_COLUMN){
+                    col = (GlobalColumnData) elem.getObj();
+                }
+                else{
+                    return;
+                }
+                GlobalTableData table = getTableInRowIndex(index);
+                boolean success = globalTableQueries.deleteSelectRowFromTable(table, col);
+                if (success){
+                    rowsListModel.remove(index);
+                    if (rowsListModel.size()==1){
+                        //remove the table name from the list (if only one table was present and all its columns was deleted)
+                        rowsListModel.remove(0);
+                    }
+                    else if (index < rowsListModel.size() && !rowsListModel.get(index).toString().contains("    ")){//all columns of a table have been deleted. If there are multiple tables
+                        //index will now be a next table. in that case remove the element index-1 is the table with no columns in the list that must be removed
+                        rowsListModel.remove(index-1);
+                    }
+
+                    rowsList.revalidate();
+                }
+            }
+        };
+    }
+
     private ActionListener getRemoveFilterNodActionListener(FilterNode node) {
         return new ActionListener() {
 
@@ -470,6 +508,21 @@ public class QueryUI extends JPanel{
         return null;
     }
 
+    /**
+     * In the list of rows, returns the table name that contains the column with the index specified
+     * @param index
+     * @return
+     */
+    private GlobalTableData getTableInRowIndex(int index){
+        for (int i = index; i >=0; i--){
+            ListElementWrapper elem = (ListElementWrapper) rowsListModel.get(i);
+            if (elem.getType() == ListElementType.GLOBAL_TABLE){//first table to appear belongs to this
+                return (GlobalTableData) elem.getObj();
+            }
+        }
+        return null;
+    }
+
     private void expandAllStarSchema(TreePath path, boolean expand) {
         CustomTreeNode node = (CustomTreeNode) path.getLastPathComponent();
         if (node.getNodeType() == NodeType.GLOBAL_COLUMN )
@@ -514,7 +567,7 @@ public class QueryUI extends JPanel{
         DateTimeFormatter formatter = DateTimeFormat.forPattern("HH:mm:ss");
         DateTime beginTime = new DateTime();
 
-        String localQuery = globalTableQueries.getLocalTableQuery();//create query with inner query to get local table data
+        String localQuery = globalTableQueries.buildQuery();//create query with inner query to get local table data
         //get all filters as a string
         String filterQuery = getFilterQuery();
         if (filterQuery.length() > 0){
@@ -572,7 +625,7 @@ public class QueryUI extends JPanel{
             @Override
             public void mousePressed(MouseEvent arg0) {
                 if (SwingUtilities.isRightMouseButton(arg0)){
-                    int index = columnsList.locationToIndex(arg0.getPoint());
+                    int index = rowsList.locationToIndex(arg0.getPoint());
 
                     JPopupMenu menu = new JPopupMenu();
                     JMenuItem item1 = new JMenuItem("Delete");
@@ -580,6 +633,26 @@ public class QueryUI extends JPanel{
                     //item1.addActionListener(getRemoveActionListener());
                     menu.add(item1);
                     columnsList.setComponentPopupMenu(menu);
+                }
+                super.mousePressed(arg0);
+            }
+        };
+    }
+
+    private MouseListener getMouseListenerForRowsList() {
+        return new MouseAdapter() {
+
+            @Override
+            public void mousePressed(MouseEvent arg0) {
+                if (SwingUtilities.isRightMouseButton(arg0)){
+                    int index = rowsList.locationToIndex(arg0.getPoint());
+
+                    JPopupMenu menu = new JPopupMenu();
+                    JMenuItem item1 = new JMenuItem("Delete");
+                    item1.addActionListener(getRemoveActionListenerForRowsList(index));
+                    //item1.addActionListener(getRemoveActionListener());
+                    menu.add(item1);
+                    rowsList.setComponentPopupMenu(menu);
                 }
                 super.mousePressed(arg0);
             }
@@ -715,7 +788,7 @@ public class QueryUI extends JPanel{
                 else if (list.equals(rowsList)){
                     //select rows list
                     CustomTreeNode parentNode = (CustomTreeNode) data.getParent();//global table
-                    addColumnsToList(listModel, (GlobalColumnData)data.getObj(), (GlobalTableData) parentNode.getObj()) ;
+                    addRowsToList(listModel, (GlobalColumnData)data.getObj(), (GlobalTableData) parentNode.getObj()) ;
                 }
                 else if (list.equals(aggregationList)){
                     if (data.getNodeType() != NodeType.MEASURE){
@@ -872,6 +945,33 @@ public class QueryUI extends JPanel{
                 listModel.addElement(new ListElementWrapper(globalTable.getTableName(), globalTable, ListElementType.GLOBAL_TABLE)); //add table name
                 listModel.addElement(new ListElementWrapper("    "+globalCol.getName(), globalCol, ListElementType.GLOBAL_COLUMN));//add column
                 globalTableQueries.addSelectColumn(globalTable, globalCol);
+            }
+        }
+
+        private void addRowsToList(DefaultListModel listModel, GlobalColumnData globalCol, GlobalTableData globalTable){//TODO: Similar methods, join in 1 function
+            String[] s = null;
+            //check if table name of this column exists. If true then inserted here
+            ListElementWrapper elemtTosearch = new ListElementWrapper(globalTable.getTableName(), globalTable, ListElementType.GLOBAL_TABLE);
+            if (listModel.contains(elemtTosearch)){
+                int index = listModel.indexOf(elemtTosearch);
+                index++;
+                //iterate the columns of this tables. insert a new one
+                for (int i = index; i < listModel.getSize(); i++) {
+                    if (!String.valueOf(listModel.getElementAt(i)).contains("    ")){
+                        listModel.add(i, new ListElementWrapper("    "+globalCol.getName(), globalCol, ListElementType.GLOBAL_COLUMN));//add row
+                        globalTableQueries.addSelectRow(globalTable, globalCol);
+                        return;
+                    }
+                }
+                //maybe this table is the last one, insert at last position
+                listModel.addElement(new ListElementWrapper("    "+globalCol.getName(), globalCol, ListElementType.GLOBAL_COLUMN));//add row
+                globalTableQueries.addSelectRow(globalTable, globalCol);
+                return;
+            }
+            else{
+                listModel.addElement(new ListElementWrapper(globalTable.getTableName(), globalTable, ListElementType.GLOBAL_TABLE)); //add table name
+                listModel.addElement(new ListElementWrapper("    "+globalCol.getName(), globalCol, ListElementType.GLOBAL_COLUMN));//add row
+                globalTableQueries.addSelectRow(globalTable, globalCol);
             }
         }
 

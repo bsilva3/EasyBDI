@@ -147,7 +147,7 @@ public class MainMenu extends JFrame{
                 null,
                 null,
                 "My Project");
-        if (projectName.isEmpty()){
+        if (projectName == null || projectName.isEmpty()){
             JOptionPane.showMessageDialog(this, "Empty project name", "Failed to create project", JOptionPane.ERROR_MESSAGE);
             return;
         }

@@ -29,7 +29,7 @@
               <gridbag top="0" left="10" bottom="0" right="0" weightx="1.0" weighty="0.2"/>
             </constraints>
             <properties>
-              <text value="Columns"/>
+              <text value="Rows"/>
             </properties>
           </component>
           <component id="59d96" class="javax.swing.JComboBox" binding="aggregationOpComboBox">
@@ -65,7 +65,7 @@
             <properties/>
             <border type="none"/>
             <children>
-              <component id="ec2a9" class="javax.swing.JList" binding="columnsList">
+              <component id="ec2a9" class="javax.swing.JList" binding="rowsList">
                 <constraints/>
                 <properties>
                   <model/>
@@ -111,7 +111,7 @@
               <gridbag weightx="1.0" weighty="0.2"/>
             </constraints>
             <properties>
-              <text value="Rows"/>
+              <text value="Columns"/>
             </properties>
           </component>
           <scrollpane id="3d495">
@@ -122,7 +122,7 @@
             <properties/>
             <border type="none"/>
             <children>
-              <component id="75222" class="javax.swing.JList" binding="rowsList">
+              <component id="75222" class="javax.swing.JList" binding="columnsList">
                 <constraints/>
                 <properties/>
               </component>

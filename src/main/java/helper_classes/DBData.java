@@ -26,9 +26,9 @@ public class DBData implements Serializable {
         if (!this.url.isEmpty() && this.url.charAt(this.url.length() - 1) == '/'){
             this.url = this.url.substring(0, this.url.length()-1);
         }
-        this.dbName = dbName.replaceFirst("/", "");
+        this.dbName = dbName.replaceAll("/", "");//replaceFirst?
         this.catalogName = dbModel+"_"+this.url+"_"+this.dbName;
-        this.catalogName = this.catalogName.toLowerCase().replaceAll("[\\:\\-\\.]", "_");
+        this.catalogName = this.catalogName.toLowerCase().replaceAll("[\\:\\-\\.()]", "_");
     }
 
 

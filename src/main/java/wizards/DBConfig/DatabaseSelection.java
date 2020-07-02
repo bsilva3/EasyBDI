@@ -3,6 +3,7 @@ package wizards.DBConfig;
 import helper_classes.DBData;
 import helper_classes.TableData;
 import prestoComm.DBModel;
+import wizards.global_schema_config.CustomTreeNode;
 import wizards.global_schema_config.NodeType;
 
 import javax.swing.*;
@@ -65,6 +66,8 @@ public class DatabaseSelection extends JPanel{
             checkBoxTree.expandRow(i);
         }
         checkBoxTree.checkSubTree(new TreePath(root.getPath()), true);//begin with all nodes checked
+        checkBoxTree.revalidate();
+        checkBoxTree.updateUI();
     }
     /*private void createUIComponents() {
         GridBagConstraints gc = new GridBagConstraints();

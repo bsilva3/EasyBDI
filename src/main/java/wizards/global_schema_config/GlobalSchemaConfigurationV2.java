@@ -700,23 +700,42 @@ public class GlobalSchemaConfigurationV2 extends JPanel {
                 CustomTreeNode selNode = (CustomTreeNode) globalSchemaTree
                         .getLastSelectedPathComponent();
                 if(selNode != null){
-                    /*System.out.println("pressed " + selectedNode);
-                    DefaultMutableTreeNode n = new DefaultMutableTreeNode("added");
-                    selectedNode.add(n);
-                    globalSchemaTree.repaint();
-                    globalSchemaTree.updateUI();*/
-                    CustomTreeNode newNode = null;
-                    if (selectedNode.getNodeType() == NodeType.GLOBAL_TABLE) {
-                        newNode = new CustomTreeNode("primary key", null, NodeType.PRIMARY_KEY);
+                    if (selectedNode.getNodeType() == NodeType.GLOBAL_COLUMN) {
+                        CustomTreeNode newNode = new CustomTreeNode("primary key", null, NodeType.PRIMARY_KEY);
+                        globalSchemaModel.insertNodeInto(newNode, selNode, selNode.getChildCount());
+                        TreeNode[] nodes = globalSchemaModel.getPathToRoot(newNode);
+                        TreePath path = new TreePath(nodes);
+                        globalSchemaTree.scrollPathToVisible(path);
+                        globalSchemaTree.setSelectionPath(path);
+                        globalSchemaTree.startEditingAtPath(path);
+                        globalSchemaTree.repaint();
+                        globalSchemaTree.updateUI();
                     }
-                    globalSchemaModel.insertNodeInto(newNode, selNode, selNode.getChildCount());
-                    TreeNode[] nodes = globalSchemaModel.getPathToRoot(newNode);
-                    TreePath path = new TreePath(nodes);
-                    globalSchemaTree.scrollPathToVisible(path);
-                    globalSchemaTree.setSelectionPath(path);
-                    globalSchemaTree.startEditingAtPath(path);
-                    globalSchemaTree.repaint();
-                    globalSchemaTree.updateUI();
+                }
+            }
+        };
+    }
+
+    //when user click on column, he can add a foreign key constraint
+    private ActionListener addForeignKeyActionListener() {
+        return new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent arg0) {
+                CustomTreeNode selNode = (CustomTreeNode) globalSchemaTree
+                        .getLastSelectedPathComponent();
+                if(selNode != null){
+                    if (selectedNode.getNodeType() == NodeType.GLOBAL_COLUMN) {
+                        CustomTreeNode newNode = new CustomTreeNode("foreign key: ", null, NodeType.FOREIGN_KEY);
+                        globalSchemaModel.insertNodeInto(newNode, selNode, selNode.getChildCount());
+                        TreeNode[] nodes = globalSchemaModel.getPathToRoot(newNode);
+                        TreePath path = new TreePath(nodes);
+                        globalSchemaTree.scrollPathToVisible(path);
+                        globalSchemaTree.setSelectionPath(path);
+                        globalSchemaTree.startEditingAtPath(path);
+                        globalSchemaTree.repaint();
+                        globalSchemaTree.updateUI();
+                    }
                 }
             }
         };

@@ -203,12 +203,12 @@ public class MainWizardPanel extends JPanel{
     private void handleDBSelect(){
         List<DBData> dbs = new ArrayList<>();
         //receive db data from DBConfig window
-        /*dbs = dbConnWizzard.getDbList();
+        dbs = dbConnWizzard.getDbList();
         if (dbs == null || dbs.size() == 0){//nothing to continue
             --currentStepNumber;
             return;
-        }*/
-        dbs.addAll(generateLocalSchema());
+        }
+        //dbs.addAll(generateLocalSchema());
         dbSelection = new DatabaseSelection(dbs);
         addToMainPanel(dbConnWizzard, dbSelection);
     }

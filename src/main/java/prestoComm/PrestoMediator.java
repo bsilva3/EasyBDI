@@ -161,7 +161,7 @@ public class PrestoMediator {
     public String testDBConnection(DBData db){
         createDBFileProperties(db);
         showRestartPrompt();
-        String state = this.makeQuery("show schemas from "+db.getCatalogName());
+        String state = this.makeQuery("show schemas from \""+db.getCatalogName()+"\"");
         if (!state.equals(SUCCESS_STR))
             removeDBFile(db.getFullFilePath()); //remove config file that points to DB with incorrect permitions or data
         return state;
@@ -247,6 +247,9 @@ public class PrestoMediator {
             //if this table belongs to a relational DB, get information about primary keys and foreign key constraints
             if(table.getDB().getDbModel().isRelational()){
                 columnsInTable = updateTableConstraints(table, columnsInTable);
+                if (columnsInTable == null){
+                    return null;
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -278,9 +281,14 @@ public class PrestoMediator {
     private List<ColumnData> updateTableConstraints(TableData table, List<ColumnData> columns){
         //update with foreign key constraints
         columns = updateForeignKeyInfo(table, columns);
-
+        if (columns == null){
+            return null;
+        }
         // update with  primary key(s) constraints
         columns = updatePrimaryKeyInfo(table, columns);
+        if (columns == null){
+            return null;
+        }
         return columns;
     }
 
@@ -326,7 +334,7 @@ public class PrestoMediator {
                         "The necessary schema '"+METADATA_VIEW_FOREIGN_KEY_NAME+"' is not created in the database "+table.getDB().getDbName()+". Please create it before moving on.",
                         "Schema "+METADATA_VIEW_FOREIGN_KEY_NAME+" not found",
                         JOptionPane.ERROR_MESSAGE);
-                System.exit(1);
+                return null;
             }
         }
         return columns;

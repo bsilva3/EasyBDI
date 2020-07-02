@@ -21,9 +21,7 @@
         <children>
           <component id="9b6c0" class="wizards.DBConfig.JCheckBoxTree" binding="checkBoxTree">
             <constraints/>
-            <properties>
-              <preferredSize width="700" height="450"/>
-            </properties>
+            <properties/>
           </component>
         </children>
       </scrollpane>
