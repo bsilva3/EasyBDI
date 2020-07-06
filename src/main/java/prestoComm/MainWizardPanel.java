@@ -215,13 +215,6 @@ public class MainWizardPanel extends JPanel{
 
     private void handleGlobalSchemaConfig(){
         List<DBData> dbs = new ArrayList<>();
-        //receive db data from DBConfig window (ORIGINAL)
-        /*dbs = dbConnWizzard.getDbList();
-        if (dbs == null || dbs.size() == 0){
-            --currentStepNumber;
-            return;
-        }*/
-        //dbs.addAll(generateLocalSchema());
         dbs = dbSelection.getSelection();
         dbs = buildLocalSchema(dbs);
         //print local schema
@@ -244,7 +237,7 @@ public class MainWizardPanel extends JPanel{
     private void handleCubeConfig(){
         // receive global schema from global schema config window
         this.globalSchema = globalSchemaConfigWizzard.getGlobalSchemaFromTree();
-        cubeConfigWizzard = new CubeConfiguration(globalSchema);
+        cubeConfigWizzard = new CubeConfiguration(globalSchema, metaDataManager);
         addToMainPanel(globalSchemaConfigWizzard, cubeConfigWizzard);
     }
 

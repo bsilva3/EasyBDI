@@ -37,7 +37,7 @@ public class QueryUI extends JPanel{
     private JTable queryResultsTable;
     private JTree schemaTree;
     private JTree filterTree;
-    private JList aggregationList;
+    private JList measuresList;
     private JComboBox aggregationOpComboBox;
     private JList rowsList;
     private JPanel mainPanel;
@@ -65,7 +65,7 @@ public class QueryUI extends JPanel{
     private MetaDataManager metaDataManager;
     private PrestoMediator prestoMediator;
     private String projectName;
-    private final String[] aggregations = { "simple", "count", "sum", "average", "min", "max"};
+    private final String[] aggregations = { "count", "sum", "average", "min", "max"};
     private final String[] numberOperations = { "=", "!=", ">", "=>", "<", "<="};
     private final String[] stringOperations = { "=", "!=", "like"};
     //TODO: checkbox disntinct?
@@ -109,13 +109,13 @@ public class QueryUI extends JPanel{
             filterTree.setModel(filterTreeModel);
             filterTree.setCellRenderer(new FilterNodeCellRenderer());
             filterTree.addMouseListener(getMouseListenerForFilterTree());
-            aggregationList.setModel(aggreListModel);
+            measuresList.setModel(aggreListModel);
             rowsList.setModel(rowsListModel);
             columnsList.setModel(columnListModel);
             queryLogList.setModel(queryLogModel);
 
             filterTree.setTransferHandler(new TreeTransferHandler());
-            aggregationList.setTransferHandler(new TreeTransferHandler());
+            measuresList.setTransferHandler(new TreeTransferHandler());
             rowsList.setTransferHandler(new TreeTransferHandler());
             columnsList.setTransferHandler(new TreeTransferHandler());
 
@@ -152,6 +152,7 @@ public class QueryUI extends JPanel{
             //listeners for lists left click to open menus
             columnsList.addMouseListener(getMouseListenerForColumnList());
             rowsList.addMouseListener(getMouseListenerForRowsList());
+            measuresList.addMouseListener(getMouseListenerForMeasuresList());
 
             queryLogList.addMouseListener(new MouseAdapter() {
                 public void mouseClicked(MouseEvent evt) {
@@ -169,7 +170,7 @@ public class QueryUI extends JPanel{
                 }
             });
 
-            this.globalTableQueries = new GlobalTableQuery(prestoMediator, starSchema.getFactsTable().getGlobalTable());
+            this.globalTableQueries = new GlobalTableQuery(prestoMediator, starSchema.getFactsTable());
             add(mainPanel);
             this.setVisible(true);
         }
@@ -449,6 +450,17 @@ public class QueryUI extends JPanel{
         };
     }
 
+    private ActionListener getRemoveActionListenerForMeasuresList(int index) {
+        return new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent arg0) {
+                if (index < 0)
+                    return;
+                measuresList.remove(index);
+            }
+        };
+    }
+
     private ActionListener getRemoveFilterNodActionListener(FilterNode node) {
         return new ActionListener() {
 
@@ -659,6 +671,26 @@ public class QueryUI extends JPanel{
         };
     }
 
+    private MouseListener getMouseListenerForMeasuresList() {
+        return new MouseAdapter() {
+
+            @Override
+            public void mousePressed(MouseEvent arg0) {
+                if (SwingUtilities.isRightMouseButton(arg0)){
+                    int index = measuresList.locationToIndex(arg0.getPoint());
+
+                    JPopupMenu menu = new JPopupMenu();
+                    JMenuItem item1 = new JMenuItem("Delete");
+                    item1.addActionListener(getRemoveActionListenerForMeasuresList(index));
+                    //item1.addActionListener(getRemoveActionListener());
+                    menu.add(item1);
+                    measuresList.setComponentPopupMenu(menu);
+                }
+                super.mousePressed(arg0);
+            }
+        };
+    }
+
     private MouseListener getMouseListenerForFilterTree() {
         return new MouseAdapter() {
 
@@ -768,7 +800,6 @@ public class QueryUI extends JPanel{
                 return false;
             }
             GlobalColumnData column = (GlobalColumnData) data.getObj();
-            String lisElem = data.getUserObject().toString();
 
             if (info.getComponent() instanceof JList){
                 JList list = (JList) info.getComponent();
@@ -790,13 +821,13 @@ public class QueryUI extends JPanel{
                     CustomTreeNode parentNode = (CustomTreeNode) data.getParent();//global table
                     addRowsToList(listModel, (GlobalColumnData)data.getObj(), (GlobalTableData) parentNode.getObj()) ;
                 }
-                else if (list.equals(aggregationList)){
+                else if (list.equals(measuresList)){
                     if (data.getNodeType() != NodeType.MEASURE){
                         JOptionPane.showMessageDialog(mainMenu, "You can only drag measures to this area.", "Measures only", JOptionPane.WARNING_MESSAGE);
                         return false;
                     }
-                    lisElem+= " ("+ aggregationOpComboBox.getSelectedItem().toString() +")";
-                    listModel.add(index++, lisElem);
+                    String measureStr = aggregationOpComboBox.getSelectedItem().toString() +"("+ column.getName() +")";
+                    addMeasure(listModel, measureStr);
                 }
                 return true;
             }
@@ -948,7 +979,7 @@ public class QueryUI extends JPanel{
             }
         }
 
-        private void addRowsToList(DefaultListModel listModel, GlobalColumnData globalCol, GlobalTableData globalTable){//TODO: Similar methods, join in 1 function
+        private void addRowsToList(DefaultListModel listModel, GlobalColumnData globalCol, GlobalTableData globalTable){
             String[] s = null;
             //check if table name of this column exists. If true then inserted here
             ListElementWrapper elemtTosearch = new ListElementWrapper(globalTable.getTableName(), globalTable, ListElementType.GLOBAL_TABLE);
@@ -973,6 +1004,23 @@ public class QueryUI extends JPanel{
                 listModel.addElement(new ListElementWrapper("    "+globalCol.getName(), globalCol, ListElementType.GLOBAL_COLUMN));//add row
                 globalTableQueries.addSelectRow(globalTable, globalCol);
             }
+        }
+
+        private void addMeasure(DefaultListModel listModel, String measureStr){
+            //make sure this measure is not added already
+            String measureName = measureStr.split("[(]")[1]; //in the form "aggr(measureName)"
+            for (int i = 0; i < listModel.size(); i++){
+                if (listModel.get(i).toString().contains(measureName)){
+                    JOptionPane.showMessageDialog(mainMenu, "Measure already present. Cannot add repeated Measure.", "Cannot add measure", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+            }
+            listModel.add(listModel.size(), measureStr);
+            globalTableQueries.addMeasure(measureStr);
+        }
+
+        private void removeMeasure(String measureStr){
+            globalTableQueries.removeMeasure(measureStr);
         }
 
         public String toString() {

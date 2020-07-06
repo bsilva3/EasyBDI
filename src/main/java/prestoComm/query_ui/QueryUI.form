@@ -99,7 +99,7 @@
             <properties/>
             <border type="none"/>
             <children>
-              <component id="7ad95" class="javax.swing.JList" binding="aggregationList">
+              <component id="7ad95" class="javax.swing.JList" binding="measuresList">
                 <constraints/>
                 <properties/>
               </component>

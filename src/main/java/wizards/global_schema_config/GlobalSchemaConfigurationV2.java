@@ -38,10 +38,11 @@ public class GlobalSchemaConfigurationV2 extends JPanel {
 
     private String projectName;
     private boolean isEdit;
-
+    private Map<GlobalColumnData, String> referencedCols;
 
     public GlobalSchemaConfigurationV2(String projectName, List<DBData> dbs, List<GlobalTableData> globalTables){
         this.projectName = projectName;
+        referencedCols = new HashMap<>();
 
         helpLabel.setText("<html>Verify the proposed schema matching and Global Schema and make the necessary adjustments. "
                 +"<br/> You can drag and drop columns or tables from the local schema to the global schema to add new items or to create correlations. " +
@@ -529,6 +530,8 @@ public class GlobalSchemaConfigurationV2 extends JPanel {
                             menu = getPopUpMenuForColumn();
                         else if (selectedNode.getNodeType() == NodeType.PRIMARY_KEY)
                             menu = getPopUpMenuForPrimaryKey();
+                        else if (selectedNode.getNodeType() == NodeType.FOREIGN_KEY)
+                            menu = getPopUpMenuForForeignKey();
                         else
                             menu = getPopUpMenuGeneral();
                         if (menu!= null)
@@ -583,9 +586,13 @@ public class GlobalSchemaConfigurationV2 extends JPanel {
         item2.addActionListener(getAddPrimaryKeyActionListener());
         menu.add(item2);
 
-        JMenuItem item3 = new JMenuItem("Delete column");
-        item3.addActionListener(getRemoveActionListener());
+        JMenuItem item3 = new JMenuItem("Add Foreign Key");
+        item3.addActionListener(addForeignKeyActionListener());
         menu.add(item3);
+
+        JMenuItem item4 = new JMenuItem("Delete column");
+        item4.addActionListener(getRemoveActionListener());
+        menu.add(item4);
         if (selectedNode != null)
             System.out.println(selectedNode.getUserObject());
 
@@ -596,6 +603,17 @@ public class GlobalSchemaConfigurationV2 extends JPanel {
     private JPopupMenu getPopUpMenuForPrimaryKey() {
         JPopupMenu menu = new JPopupMenu();
         JMenuItem item1 = new JMenuItem("Remove Primary Key constraint");
+        item1.addActionListener(getRemoveActionListener());
+        menu.add(item1);
+        if (selectedNode != null)
+            System.out.println(selectedNode.getUserObject());
+
+        return menu;
+    }
+    //pop up menu that shows up when right clicking a column
+    private JPopupMenu getPopUpMenuForForeignKey() {
+        JPopupMenu menu = new JPopupMenu();
+        JMenuItem item1 = new JMenuItem("Remove Foreign Key constraint");
         item1.addActionListener(getRemoveActionListener());
         menu.add(item1);
         if (selectedNode != null)
@@ -702,7 +720,7 @@ public class GlobalSchemaConfigurationV2 extends JPanel {
                 if(selNode != null){
                     if (selectedNode.getNodeType() == NodeType.GLOBAL_COLUMN) {
                         CustomTreeNode newNode = new CustomTreeNode("primary key", null, NodeType.PRIMARY_KEY);
-                        globalSchemaModel.insertNodeInto(newNode, selNode, selNode.getChildCount());
+                        globalSchemaModel.insertNodeInto(newNode, selNode, 1);
                         TreeNode[] nodes = globalSchemaModel.getPathToRoot(newNode);
                         TreePath path = new TreePath(nodes);
                         globalSchemaTree.scrollPathToVisible(path);
@@ -724,21 +742,59 @@ public class GlobalSchemaConfigurationV2 extends JPanel {
             public void actionPerformed(ActionEvent arg0) {
                 CustomTreeNode selNode = (CustomTreeNode) globalSchemaTree
                         .getLastSelectedPathComponent();
-                if(selNode != null){
-                    if (selectedNode.getNodeType() == NodeType.GLOBAL_COLUMN) {
-                        CustomTreeNode newNode = new CustomTreeNode("foreign key: ", null, NodeType.FOREIGN_KEY);
-                        globalSchemaModel.insertNodeInto(newNode, selNode, selNode.getChildCount());
-                        TreeNode[] nodes = globalSchemaModel.getPathToRoot(newNode);
-                        TreePath path = new TreePath(nodes);
-                        globalSchemaTree.scrollPathToVisible(path);
-                        globalSchemaTree.setSelectionPath(path);
-                        globalSchemaTree.startEditingAtPath(path);
-                        globalSchemaTree.repaint();
-                        globalSchemaTree.updateUI();
-                    }
+                if(selNode != null && selNode.getNodeType() == NodeType.GLOBAL_COLUMN){
+                    new ForeignKeySelector(GlobalSchemaConfigurationV2.this, getGlobalTablesWithPrimKeys());//Open window to select a primary key to be referenced
                 }
             }
         };
+    }
+
+    public void addForeignKey(GlobalTableData t, GlobalColumnData referencedCol){
+        if (selectedNode != null){
+            CustomTreeNode newNode = new CustomTreeNode("foreign key: "+ t.getTableName()+"."+referencedCol.getName(), t.getTableName()+"."+referencedCol.getName(), NodeType.FOREIGN_KEY);
+            referencedCols.put((GlobalColumnData) selectedNode.getObj(), t.getTableName()+"."+referencedCol.getName());
+            globalSchemaModel.insertNodeInto(newNode, selectedNode, selectedNode.getChildCount()-1);
+            TreeNode[] nodes = globalSchemaModel.getPathToRoot(newNode);
+            TreePath path = new TreePath(nodes);
+            globalSchemaTree.scrollPathToVisible(path);
+            globalSchemaTree.setSelectionPath(path);
+            globalSchemaTree.startEditingAtPath(path);
+            globalSchemaTree.repaint();
+            globalSchemaTree.updateUI();
+        }
+    }
+
+    /**
+     * Iterate the current global schema tree and returns a list of tables with at least on primary key and their primary key columns.
+     * @return
+     */
+    private List<GlobalTableData> getGlobalTablesWithPrimKeys(){
+        List<GlobalTableData> tables = new ArrayList<>();
+        CustomTreeNode root = (CustomTreeNode) globalSchemaModel.getRoot();
+        int nChilds = root.getChildCount();
+        for (int i = 0; i < nChilds; i++) {
+            //iterate global tables
+            CustomTreeNode globalTableNode = (CustomTreeNode) root.getChildAt(i);
+            GlobalTableData globalTable = (GlobalTableData) globalTableNode.getObj();
+            GlobalTableData g = new GlobalTableData(globalTable.getTableName());
+            g.setId(globalTable.getId());
+            int nTableChilds = globalTableNode.getChildCount();
+            for (int j = 0; j < nTableChilds; j++) {
+                CustomTreeNode globalColumn = (CustomTreeNode) globalTableNode.getChildAt(j);
+                int nColumnsChilds = globalColumn.getChildCount();
+                for (int k = 0; k < nColumnsChilds; k++) {
+                    CustomTreeNode colChild = (CustomTreeNode) globalColumn.getChildAt(k);
+                    if (colChild.getNodeType() == NodeType.PRIMARY_KEY){
+                        GlobalColumnData c = (GlobalColumnData) globalColumn.getObj();
+                        g.addGlobalColumn(c);
+                    }
+                }
+            }
+            if (g.getGlobalColumnDataList() != null && g.getGlobalColumnDataList().size() > 0){//add a table only if there are primary keys
+                tables.add(g);
+            }
+        }
+        return tables;
     }
 
     private ActionListener getEditActionListener() {
@@ -765,6 +821,33 @@ public class GlobalSchemaConfigurationV2 extends JPanel {
             @Override
             public void actionPerformed(ActionEvent arg0) {
                 if(selectedNode != null){
+                    //check if columns are referenced
+                    if (selectedNode.getNodeType() == NodeType.GLOBAL_TABLE){
+                        boolean isReferenced = isColumnsReferenced(selectedNode);
+                        if (isReferenced){
+                            JOptionPane.showMessageDialog(mainPanel, "A column is referencing this table as its Foreign Key.\nPlease remove that constraint first.");
+                            return;
+                        }
+                        // check now if there is a global column that is a foreign key and remove it
+                        deleteForeignKeyReferenceIfExist(selectedNode);
+                    }
+                    else if (selectedNode.getNodeType() == NodeType.GLOBAL_COLUMN){
+                        String colName = selectedNode.getUserObject().toString();
+                        CustomTreeNode globTabNode =  (CustomTreeNode) selectedNode.getParent();
+                        String tabName = globTabNode.getUserObject().toString();
+                        if (referencedCols.values().contains(tabName+"."+colName)){
+                            JOptionPane.showMessageDialog(mainPanel, "Another column is referencing this column as its Foreign Key.\nPlease remove that constraint first.");
+                            return;
+                        }
+                        else if(referencedCols.containsKey((GlobalColumnData) selectedNode.getObj())){
+                            referencedCols.remove((GlobalColumnData) selectedNode.getObj()); //remove this reference as it is being deleted
+                        }
+                    }
+                    else if (selectedNode.getNodeType() == NodeType.FOREIGN_KEY){
+                        CustomTreeNode columNodeParent = (CustomTreeNode) selectedNode.getParent();
+                        try{referencedCols.remove((GlobalColumnData) columNodeParent.getObj());//remove this reference as it is being deleted
+                        } catch (Exception e) {}
+                    }
                     //remove node and its children
                     globalSchemaModel.removeNodeFromParent(selectedNode);
                     globalSchemaTree.repaint();
@@ -772,6 +855,30 @@ public class GlobalSchemaConfigurationV2 extends JPanel {
                 }
             }
         };
+    }
+
+    private boolean isColumnsReferenced(CustomTreeNode globalTableNode){
+        int nChilds = globalTableNode.getChildCount();
+        for (int i = 0; i < nChilds; i++){
+            CustomTreeNode childCol = (CustomTreeNode) globalTableNode.getChildAt(i);
+            String colName = childCol.getUserObject().toString();
+            String tableName = globalTableNode.getUserObject().toString();
+            if (referencedCols.values().contains(tableName+"."+colName)){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void deleteForeignKeyReferenceIfExist(CustomTreeNode globalTableNode){
+        int nChilds = globalTableNode.getChildCount();
+        for (int i = 0; i < nChilds; i++){
+            CustomTreeNode childCol = (CustomTreeNode) globalTableNode.getChildAt(i);
+            GlobalColumnData c = (GlobalColumnData) childCol.getObj();
+            if (referencedCols.containsKey(c)){
+                referencedCols.remove(c);
+            }
+        }
     }
 
     //get global schema
@@ -805,6 +912,8 @@ public class GlobalSchemaConfigurationV2 extends JPanel {
                 CustomTreeNode node = (CustomTreeNode)globalColumnNode.getChildAt(k);
                 if (node.getNodeType() == NodeType.PRIMARY_KEY)
                     globalCol.setPrimaryKey(true);
+                if (node.getNodeType() == NodeType.FOREIGN_KEY)
+                    globalCol.setForeignKey(node.getObj().toString());
                 else if (node.getNodeType() == NodeType.MATCHES){
                     //set matches list
                     Set<ColumnData> matches = new HashSet<>();
@@ -960,31 +1069,6 @@ public class GlobalSchemaConfigurationV2 extends JPanel {
             support.setShowDropLocation(true);
             if(!support.isDataFlavorSupported(nodesFlavor)) {
                 return false;
-            }
-            return true;
-        }
-
-        private boolean haveCompleteNode(JTree tree) {
-            int[] selRows = tree.getSelectionRows();
-            TreePath path = tree.getPathForRow(selRows[0]);
-            CustomTreeNode first =
-                    (CustomTreeNode)path.getLastPathComponent();
-            int childCount = first.getChildCount();
-            // first has children and no children are selected.
-            if(childCount > 0 && selRows.length == 1)
-                return false;
-            // first may have children.
-            for(int i = 1; i < selRows.length; i++) {
-                path = tree.getPathForRow(selRows[i]);
-                CustomTreeNode next =
-                        (CustomTreeNode)path.getLastPathComponent();
-                if(first.isNodeChild(next)) {
-                    // Found a child of first.
-                    if(childCount > selRows.length-1) {
-                        // Not all children of first are selected.
-                        return false;
-                    }
-                }
             }
             return true;
         }
@@ -1173,6 +1257,10 @@ public class GlobalSchemaConfigurationV2 extends JPanel {
                 newNode.add(new CustomTreeNode(globalCol.getDataType(), null, NodeType.COLUMN_INFO));
                 if (globalCol.isPrimaryKey())
                     newNode.add(new CustomTreeNode("Primary Key", null, NodeType.PRIMARY_KEY));
+                if (globalCol.hasForeignKey()) {
+                    //TODO: check if table exists first!?
+                    newNode.add(new CustomTreeNode("foreign key: " + globalCol.getForeignKey(), null, NodeType.FOREIGN_KEY));
+                }
                 //add matches node and the local col
                 CustomTreeNode matches = new CustomTreeNode("Matches", null, NodeType.MATCHES);
                 CustomTreeNode dbTableLocalNode = new CustomTreeNode(localCol.getTable().getDB().getDbName()+"."+localCol.getTable().getTableName(), null, NodeType.TABLE_MATCHES);

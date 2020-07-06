@@ -9,15 +9,16 @@ public class GlobalTableQuery {
 
     private Map<GlobalTableData, List<GlobalColumnData>> selectRows;
     private Map<GlobalTableData, List<GlobalColumnData>> selectColumns;
-    private List<GlobalColumnData> measures;
-    private GlobalTableData factsTable;
+    private List<String> measures;
+    private FactsTable factsTable;
     private PrestoMediator presto;
 
-    public GlobalTableQuery(PrestoMediator presto, GlobalTableData factsTable) {
+    public GlobalTableQuery(PrestoMediator presto, FactsTable factsTable) {
         this.presto = presto;
         this.factsTable = factsTable;
         selectRows = new HashMap<>();
         selectColumns = new HashMap<>();
+        measures = new ArrayList<>();
     }
 
     public void addSelectColumn(GlobalTableData table, GlobalColumnData col){
@@ -52,8 +53,8 @@ public class GlobalTableQuery {
         }
     }
 
-    public void addMeasure(GlobalColumnData measure){
-
+    public void addMeasure(String measure){
+        this.measures.add(measure);
     }
 
     public boolean deleteSelectColumnFromTable(GlobalTableData table, GlobalColumnData columnName){
@@ -70,6 +71,10 @@ public class GlobalTableQuery {
             selectRows.remove(table);
         }
         return success;
+    }
+
+    public void removeMeasure(String measure){
+        this.measures.remove(measure);
     }
 
     /*public String addPivotQuery(){
@@ -101,9 +106,9 @@ public class GlobalTableQuery {
     public String getLocalTableQuery(GlobalTableData t){
         MappingType mapping = t.getMappingTypeOfMatches();
         if (mapping == MappingType.Simple)
-            return handleSimpleMapping(t, t.getGlobalColumnDataList());
+            return handleSimpleMapping(t);
         else if (mapping == MappingType.Horizontal)
-            return handleHorizontalMapping(t, t.getGlobalColumnDataList());
+            return handleHorizontalMapping(t);
         else if (mapping == MappingType.Vertical)
             return handleVerticalMapping(t, t.getGlobalColumnDataList());
         else
@@ -111,26 +116,150 @@ public class GlobalTableQuery {
     }
 
     //Creates a SELECT XXX FROM () with the necessary inner queries to get local schema data
-    public String buildQuery(){
+    public String buildQuerySelectRowsOnly(){
         String query = "SELECT ";
-        for (Map.Entry<GlobalTableData, List<GlobalColumnData>> tableSelectRows : selectRows.entrySet()){//TODO: is iteration correct??
+        Collection<List<GlobalColumnData>> dimsRows = (Collection<List<GlobalColumnData>>) selectRows.values(); //list with a list of rows of each dim table
+        //first add to the select the dimensions columns
+
+        for (List<GlobalColumnData> dimsRowsOfTable : dimsRows){
+            for (GlobalColumnData c : dimsRowsOfTable){
+                query+= c.getName()+",";
+            }
+        }
+        query = query.substring(0, query.length() - 1);//last elemment without comma
+        query+= " FROM ";
+        for (Map.Entry<GlobalTableData, List<GlobalColumnData>> tableSelectRows : selectRows.entrySet()){//TODO: not Correct for multiple Dim tables!
             //for each global table
             GlobalTableData t = tableSelectRows.getKey();
             List<GlobalColumnData> rowsForSelect = tableSelectRows.getValue();
-            for (int i = 0; i < rowsForSelect.size()-1; i++){
-                query+= rowsForSelect.get(i).getName()+",";
-            }
-            query+= rowsForSelect.get(rowsForSelect.size()-1).getName() +" ";//last elemment without comma
-            query+= "FROM (";
-            String subQueries = getLocalTableQuery(t, rowsForSelect);
+            //query+= "FROM (";
+            String subQueries = "("+getLocalTableQuery(t, rowsForSelect);
 
             if(subQueries.contains("Error")){
                 return subQueries;//propagate error
             }
             query+=subQueries;
-            query+= ")";
+            query+= ") AS "+t.getTableName()+",";
         }
+        query = query.substring(0, query.length() - 1);//last elemment without comma
         return query;
+    }
+
+    //Creates a 'SELECT XXX FROM ( ) join fatcs with dims foreign keys' with the necessary inner queries to get local schema data and join facts foreign keys with dims. Also
+    //performs aggregations on the measures and groups the dimensions rows
+    public String buildQuerySelectRowsAndMeasures(){
+        String query = "SELECT ";
+        Collection<List<GlobalColumnData>> dimsRows = (Collection<List<GlobalColumnData>>) selectRows.values(); //list with a list of rows of each dim table
+        //first add to the select the dimensions columns
+        for (List<GlobalColumnData> dimsRowsOfTable : dimsRows){
+            for (GlobalColumnData c : dimsRowsOfTable){
+                query+= c.getName()+",";
+            }
+        }
+        //add to the select the measures with the aggregation operation (in the form 'aggr(measureName)'). This a string taken from the drop are in the interface.
+        for (String measureCol : measures){
+            String measureName = measureCol.split("[()]")[1]; //split on first space to the measure name (its in the form "aggr(measureName)" )
+            query+= measureCol+" AS "+measureName+",";
+        }
+        query = query.substring(0, query.length() - 1);//last elemment without comma
+        query+= " FROM ";
+        for (Map.Entry<GlobalTableData, List<GlobalColumnData>> tableSelectRows : selectRows.entrySet()){
+            //for each global column create inner queries in the 'From' clause
+            GlobalTableData t = tableSelectRows.getKey();
+            List<GlobalColumnData> rowsForSelect = tableSelectRows.getValue();
+
+            String subQueries = getLocalTableQuery(t, rowsForSelect);
+
+            if(subQueries.contains("Error")){
+                return subQueries;//propagate error
+            }
+            query+="("+subQueries;
+            //Join on facts table
+            query+= ") AS " + t.getTableName()+",";
+        }
+        query = query.substring(0, query.length() - 1);//last elemment without comma
+
+        Map<GlobalColumnData, Boolean> factColumns = factsTable.getColumns();
+        String factsLocalTableQuery = getLocalTableQuery(factsTable.getGlobalTable()); //not efficient (repeats for every join..)
+        if (factsLocalTableQuery.contains("Error")){
+            return factsLocalTableQuery;
+        }
+        //foreign key of facts = prim key of the dimensions
+        for (Map.Entry<GlobalColumnData, Boolean> factColumn : factColumns.entrySet()){
+            boolean isMeasure = factColumn.getValue();
+            if (!isMeasure){ //it must be a foreign key, check if it references a dim table
+                for (GlobalTableData tableDim : selectRows.keySet()){
+                    /*for (Map.Entry<GlobalColumnData, Boolean> factColumn : factColumns.entrySet()){
+                        boolean isMeasure = factColumn.getValue();
+                        if (!isMeasure){*/
+                    GlobalColumnData factsCol = factColumn.getKey();
+                    if (factsCol.hasForeignKey()){
+                        GlobalColumnData referencedCol = isFactsColReferencingDimTable(factsCol.getForeignKey(), tableDim);
+                        if (referencedCol != null){
+                            query+= " JOIN (" + factsLocalTableQuery +") AS "+factsTable.getGlobalTable().getTableName()+" ON " ;
+                            query+= tableDim.getTableName()+"."+referencedCol.getName() +" = "+factsTable.getGlobalTable().getTableName()+"."+factsCol.getName();
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        //validate query so far
+        if (!query.contains("JOIN"))
+            return "Error: Query not correctly formulated";
+        //group by for each dim column
+        query += " GROUP BY ( ";
+        for (Map.Entry<GlobalTableData, List<GlobalColumnData>> tableSelectRows : selectRows.entrySet()) {
+            //for each global column create inner queries in the 'From' clause
+            GlobalTableData table = tableSelectRows.getKey();
+            List<GlobalColumnData> columns = tableSelectRows.getValue();
+            for (GlobalColumnData col : columns) {
+                query +=table.getTableName()+"."+col.getName()+",";
+            }
+        }
+        query = query.substring(0, query.length() - 1);//last elemment without comma
+        query += ")"; //close group by
+
+        //Oder by here if (any)...
+        return query;
+    }
+
+    public String buildQuery(){
+        if (selectColumns.size() == 0 && measures.size() == 0 && selectRows.size() > 0){
+            return buildQuerySelectRowsOnly();
+        }
+        else if (selectColumns.size() == 0 && measures.size() > 0 && selectRows.size() > 0){
+            return buildQuerySelectRowsAndMeasures();
+        }
+        return "Error invalid query elements given";
+    }
+
+    private List<GlobalColumnData> getSelectedMeasureCols(List<String> measuresString){
+        List<GlobalColumnData> selectedMeasures = new ArrayList<>();
+        Set<GlobalColumnData> measureCols = factsTable.getColumns().keySet();
+        for (String measureString : measuresString){
+            String measureName = measureString.split("[()]")[1]; //split on first space to the measure name (its in the form "aggr(measureName)" )
+            for (GlobalColumnData measureCol : measureCols){
+                if (measureCol.getName().equals(measureName)){
+                    selectedMeasures.add(measureCol);
+                }
+            }
+        }
+        return selectedMeasures;
+    }
+
+    private GlobalColumnData isFactsColReferencingDimTable(String foreignKey, GlobalTableData dimTable){
+        String[] splitStr = foreignKey.split("\\.");
+        String tableName = splitStr[0];
+        String columnName = splitStr[1];
+        if (dimTable.getTableName().equals(tableName)){
+            List<GlobalColumnData> globalColsDims = dimTable.getGlobalColumnDataList();
+            for (GlobalColumnData c : globalColsDims){
+                if (c.getName().equals(columnName))
+                    return c;
+            }
+        }
+        return null;
     }
 
     private String handleSimpleMapping(GlobalTableData t, List<GlobalColumnData> selectCols){
@@ -147,6 +276,15 @@ public class GlobalTableQuery {
         }
         return query;
     }
+    private String handleSimpleMapping(GlobalTableData t){
+        //for each local table that matches with this global table
+        String query = " SELECT * ";
+        Set<TableData> localTables = t.getLocalTablesFromCols(t.getGlobalColumnDataList());
+        for (TableData localTable : localTables){
+            query+= "FROM "+localTable.getCompletePrestoTableName()+" ";
+        }
+        return query;
+    }
 
     private String handleHorizontalMapping(GlobalTableData t, List<GlobalColumnData> selectCols){
         String query ="SELECT ";
@@ -159,6 +297,21 @@ public class GlobalTableQuery {
                 query+=localCols.get(i).getCompletePrestoColumnName() +", ";
             }
             query+=localCols.get(localCols.size()-1).getCompletePrestoColumnName()+" ";//last column is whithout a comma
+            query+= "FROM "+localTable.getCompletePrestoTableName()+" ";
+            query+=tableUnionString;
+        }
+        if (query.endsWith(tableUnionString)) {
+            return query.substring(0, query.length() - tableUnionString.length());
+        }
+        return query;
+    }
+
+    private String handleHorizontalMapping(GlobalTableData t){
+        String query ="SELECT * ";
+        String tableUnionString = "UNION SELECT ";
+        //for each local table that matches with this global table
+        Set<TableData> localTables = t.getLocalTablesFromCols(t.getGlobalColumnDataList());
+        for (TableData localTable : localTables){
             query+= "FROM "+localTable.getCompletePrestoTableName()+" ";
             query+=tableUnionString;
         }
@@ -210,11 +363,11 @@ public class GlobalTableQuery {
         this.selectRows = selectRows;
     }
 
-    public GlobalTableData getFactsTable() {
+    public FactsTable getFactsTable() {
         return this.factsTable;
     }
 
-    public void setFactsTable(GlobalTableData factsTable) {
+    public void setFactsTable(FactsTable factsTable) {
         this.factsTable = factsTable;
     }
 }

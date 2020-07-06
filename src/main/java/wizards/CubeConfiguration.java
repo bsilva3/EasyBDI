@@ -45,8 +45,9 @@ public class CubeConfiguration extends JPanel{
         initUI();
     }
 
-    public CubeConfiguration (List<GlobalTableData> globalTables){
+    public CubeConfiguration (List<GlobalTableData> globalTables, MetaDataManager metaDataManager){
         this.isWizard = true;
+        this.metaDataManager = metaDataManager;
         this.globalTables = globalTables;
         initUI();
     }
@@ -84,7 +85,8 @@ public class CubeConfiguration extends JPanel{
             {
                 public void actionPerformed(ActionEvent e)
                 {
-                    metaDataManager.close();
+                    if (!isWizard)
+                        metaDataManager.close();
                     mainMenu.returnToMainMenu();
                 }
             });
@@ -100,7 +102,8 @@ public class CubeConfiguration extends JPanel{
                     else{
                         JOptionPane.showMessageDialog(null, "Failed to create star Schema.\nThere could be a problem with the global schema.", "Failed", JOptionPane.ERROR_MESSAGE);
                     }
-                    metaDataManager.close();
+                    if (!isWizard)
+                        metaDataManager.close();
                     mainMenu.returnToMainMenu();
                 }
             });
@@ -165,13 +168,24 @@ public class CubeConfiguration extends JPanel{
         //iterate all cols
         for (int i = 0; i < globalCols.size(); i++){
             GlobalColumnData globalCol = globalCols.get(i);
-            if (measuresCheckBoxes.containsKey(globalCol) && measuresCheckBoxes.get(globalCol).isSelected()){
+            if (measureCheckBoxContainsGlobalColIDAnsIsSelected(globalCol)){
                 factsCols.put(globalCol, true);
             }
             else
                 factsCols.put(globalCol, false);
         }
         return factsCols;
+    }
+
+    private boolean measureCheckBoxContainsGlobalColIDAnsIsSelected(GlobalColumnData g){
+        for (Map.Entry<GlobalColumnData, JCheckBox> map : measuresCheckBoxes.entrySet()){
+            GlobalColumnData t = map.getKey();
+            boolean isChecked = map.getValue().isSelected();
+            if (t.getName().equals(g.getName()) && isChecked){
+                return true;
+            }
+        }
+        return false;
     }
 
     public StarSchema getMultiDimSchema(){

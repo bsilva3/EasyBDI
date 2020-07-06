@@ -228,6 +228,9 @@ public class PrestoMediator {
             }
         } catch (SQLException e) {
             e.printStackTrace();
+            if (e.getCause().getMessage().contains("Failed to connect")){
+                JOptionPane.showMessageDialog(null, "Unnable to connect to Presto. Make sure it is running.", "Failed to connect to Presto", JOptionPane.ERROR_MESSAGE);
+            }
         }
         return tablesInDB;
     }
@@ -239,9 +242,9 @@ public class PrestoMediator {
             List<Map> tableColumns = getColumnsResultQuery("show columns from " +  table.getDB().getCatalogName()+"."+table.getSchemaName()+".\""+table.getTableName()+"\"", false);
 
             //for each column, store its info.
-            for (Map tableColumn : tableColumns){
-                String columnName = (String) tableColumn.get(SHOW_COLS_COLUMN);
-                String columnDataType = (String) tableColumn.get(SHOW_COLS_TYPE);
+            for (int i = 0 ; i < tableColumns.size(); i++){
+                String columnName = (String) tableColumns.get(i).keySet().iterator().next();
+                String columnDataType = (String) tableColumns.get(i).get(columnName);
                 columnsInTable.add(new ColumnData.Builder(columnName, columnDataType).withTable(table).build());
             }
             //if this table belongs to a relational DB, get information about primary keys and foreign key constraints
@@ -253,6 +256,9 @@ public class PrestoMediator {
             }
         } catch (SQLException e) {
             e.printStackTrace();
+            if (e.getCause().getMessage().contains("Failed to connect")){
+                JOptionPane.showMessageDialog(null, "Unnable to connect to Presto. Make sure it is running.", "Failed to connect to Presto", JOptionPane.ERROR_MESSAGE);
+            }
         }
         table.setColumnsList(columnsInTable);
         return table;
@@ -336,11 +342,15 @@ public class PrestoMediator {
                         JOptionPane.ERROR_MESSAGE);
                 return null;
             }
+            else if (e.getCause().getMessage().contains("Failed to connect")){
+                JOptionPane.showMessageDialog(null, "Unnable to connect to Presto. Make sure it is running.", "Failed to connect to Presto", JOptionPane.ERROR_MESSAGE);
+            }
         }
         return columns;
     }
 
     private List<ColumnData> updatePrimaryKeyInfo(TableData table, List<ColumnData> columns){
+        List<ColumnData> columnsUpdated = new ArrayList<>();
         String query = "select * from "+ table.getDB().getCatalogName()+"."+METADATA_VIEW_SCHEMA_NAME+"."+METADATA_VIEW_PRIMARY_KEY_NAME + " where " + METADATA_VIEW_PRIMARY_SCHEMA + " = '"+table.getSchemaName()
                 + "' and " + METADATA_VIEW_PRIMARY_TABLE +" = '" + table.getTableName() + "'";
         try {
@@ -348,24 +358,25 @@ public class PrestoMediator {
             ResultSet res = stmt.executeQuery(query);
 
             //each row is a primary key in this table
+
             while (res.next()) {
-                //get the column of this table that is a foreign key
+                //get the column of this table that is a primary key
                 String columnName = res.getString(METADATA_VIEW_COLUMN);
                 ColumnData columnToUpdate = null;
-                for (ColumnData col : columns){
-                    if (col.getName().equals(columnName)){
-                        columnToUpdate = col;
+                boolean noPK = true;
+                for (int i = 0; i < columns.size(); i++){
+                    if (columns.get(i).getName().equals(columnName)){
+                        columnToUpdate = columns.get(i);
+                        if (columnToUpdate != null){
+                            //there is no column to update about primary keys
+                            columnToUpdate.setPrimaryKey(true);
+                            columns.set(i, columnToUpdate);//add column with prim key constraint
+                        }
                     }
                 }
-                if (columnToUpdate == null){
-                    //there is no column
-                    return columns;
-                }
-                else{
-                    columns.remove(columnToUpdate);
-                }
-                columnToUpdate.setPrimaryKey(true);
-                columns.add(columnToUpdate);
+                /*if (noPK){
+                    columnsUpdated.add(i, columns.get(i));
+                }*/
 
             }
         } catch (SQLException e) {
@@ -410,15 +421,14 @@ public class PrestoMediator {
         List<Map> records = new ArrayList<>();
         while (res.next()) {
             Map <String, String> row = new HashMap<>();//store a row from the records. Stores each column in the form (column name -> column value)
-            for (int i = 1; i < rsmd.getColumnCount(); i++){
-                String name = rsmd.getColumnName(i);
-                row.put(name,res.getString(name));
-                if (print)
-                    System.out.print(name+": " + res.getString(name)+", ");
-            }
+            String name = rsmd.getColumnName(1); //first column in the resultset is name of the column of the table
+            String datatype = rsmd.getColumnName(2); //first column in the resultset is name of the column of the table
+            row.put(res.getString(name), res.getString(datatype));
             records.add(row);
-            if (print)
+            if (print) {
+                System.out.print(name + ": " + res.getString(name) + ", ");
                 System.out.println("");
+            }
         }
         return records;
     }
@@ -510,6 +520,9 @@ public class PrestoMediator {
             return res;
         } catch (SQLException e) {
             e.printStackTrace();
+            if (e.getCause().getMessage().contains("Failed to connect")){
+                JOptionPane.showMessageDialog(null, "Unnable to connect to Presto. Make sure it is running.", "Failed to connect to Presto", JOptionPane.ERROR_MESSAGE);
+            }
         }
         return null;
     }

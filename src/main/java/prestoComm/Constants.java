@@ -72,6 +72,7 @@ public class Constants {
     public static final String GLOBAL_COLUMN_DATA_ID_FIELD = "global_col_id";
     public static final String GLOBAL_COLUMN_DATA_TYPE_FIELD = "data_type";
     public static final String GLOBAL_COLUMN_DATA_PRIMARY_KEY_FIELD = "is_primary_key";
+    public static final String GLOBAL_COLUMN_DATA_FOREIGN_KEY_FIELD = "foreign_key";
 
     //table for the correspondences between global columns and local columns. 1 local column belongs to 1 global column in 1 cube. 1 Global column may contain
     //multiple local columns (because they matched)

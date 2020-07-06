@@ -192,7 +192,6 @@ public class SchemaMatcher {
 
         nonMatchedTables = validateForeignKeys(nonMatchedTables, globalTables);
         globalTables.addAll(nonMatchedTables);
-        nonMatchedTables.clear();
         printGlobalTables(globalTables);
         return globalTables;
     }
@@ -540,7 +539,7 @@ public class SchemaMatcher {
             gt.setGlobalColumnData(globCols);
             nonMatchedTables.set(i, gt);
         }
-        return globalTables;
+        return nonMatchedTables;
     }
 
     /**
