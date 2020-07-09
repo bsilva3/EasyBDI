@@ -434,16 +434,32 @@ public class QueryUI extends JPanel{
                 GlobalTableData table = getTableInRowIndex(index);
                 boolean success = globalTableQueries.deleteSelectRowFromTable(table, col);
                 if (success){
-                    rowsListModel.remove(index);
-                    if (rowsListModel.size()==1){
+                    int indexBefore = index - 1;
+                    int indexAfter = index + 1;
+                    if (rowsListModel.size()==2){
                         //remove the table name from the list (if only one table was present and all its columns was deleted)
+                        rowsListModel.remove(index);
                         rowsListModel.remove(0);
                     }
-                    else if (index < rowsListModel.size() && !rowsListModel.get(index).toString().contains("    ")){//all columns of a table have been deleted. If there are multiple tables
-                        //index will now be a next table. in that case remove the element index-1 is the table with no columns in the list that must be removed
-                        rowsListModel.remove(index-1);
+                    else if (!rowsListModel.get(indexBefore).toString().contains("    ") && indexAfter < rowsListModel.size()-1 && !rowsListModel.get(indexAfter).toString().contains("    ")){
+                        rowsListModel.remove(index);
+                        rowsListModel.remove(indexBefore);
+                    }
+                    else{
+                        rowsListModel.remove(index);
                     }
 
+                    /*
+                    else if (indexBefore < rowsListModel.size()-1 && !rowsListModel.get(indexBefore).toString().contains("    ")){//all columns of a table have been deleted. If there are multiple tables
+                        //index will now be a next table. in that case remove the element index-1 is the table with no columns in the list that must be removed
+                        //if (index +1 < rowsListModel.size() && rowsListModel.get(indexBefore).toString().contains("    "))//there is a next element and is a table
+                            rowsListModel.remove(indexBefore);
+
+                    }
+                    else if (indexBefore == rowsListModel.size() -1 && !rowsListModel.get(indexBefore).toString().contains("    ")){//all columns of a table have been deleted. If there are multiple tables
+                        //index will now be a next table. in that case remove the element index-1 is the table with no columns in the list that must be removed
+                        rowsListModel.remove(indexBefore);
+                    }*/
                     rowsList.revalidate();
                 }
             }
@@ -653,19 +669,21 @@ public class QueryUI extends JPanel{
 
     private MouseListener getMouseListenerForRowsList() {
         return new MouseAdapter() {
-
             @Override
             public void mousePressed(MouseEvent arg0) {
-                if (SwingUtilities.isRightMouseButton(arg0)){
+                System.out.println(SwingUtilities.isRightMouseButton(arg0));
+                //if (SwingUtilities.isRightMouseButton(arg0)){
                     int index = rowsList.locationToIndex(arg0.getPoint());
-
+                    rowsList.setSelectedIndex(index);
+                    System.out.println(index);
+                    System.out.println(arg0.getPoint());
                     JPopupMenu menu = new JPopupMenu();
                     JMenuItem item1 = new JMenuItem("Delete");
                     item1.addActionListener(getRemoveActionListenerForRowsList(index));
                     //item1.addActionListener(getRemoveActionListener());
                     menu.add(item1);
                     rowsList.setComponentPopupMenu(menu);
-                }
+                //}
                 super.mousePressed(arg0);
             }
         };

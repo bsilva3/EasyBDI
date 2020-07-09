@@ -115,6 +115,14 @@ public class GlobalTableData implements Serializable {
         return tablesIDS;
     }
 
+    public GlobalColumnData getPrimaryKeyColumn(){
+        for (GlobalColumnData c : globalColumnData){
+            if (c.isPrimaryKey())
+                return c;
+        }
+        return null;
+    }
+
 
     public List<GlobalColumnData> getGlobalColumnDataList() {
         return globalColumnData;
