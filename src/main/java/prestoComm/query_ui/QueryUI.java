@@ -466,6 +466,67 @@ public class QueryUI extends JPanel{
         };
     }
 
+    private ActionListener getAddGroupByListenerRows(int index, boolean isAsc) {
+        return new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent arg0) {
+                if (index < 0)
+                    return;
+                ListElementWrapper elem = (ListElementWrapper)rowsListModel.get(index);
+                if (elem.getType() != ListElementType.GLOBAL_COLUMN){
+                    return;
+                }
+                String colName = rowsListModel.getElementAt(index).toString();
+                colName.replaceAll("\\s+", "");
+                String tableName = getTableNameOfColumnInList(rowsListModel, index);
+                if (tableName == null)
+                    return;
+                //add to the list (ASC or DESC)
+                String order = "";
+                if (isAsc)
+                    order = "ASC";
+                else
+                    order = "DESC";
+                rowsListModel.setElementAt(rowsListModel.getElementAt(index).toString()+ " ("+order+")", index);//update element with ASC or DESC to signal it will be ordered
+                globalTableQueries.addOrderByRow(tableName+"."+colName+" "+order);
+                rowsList.revalidate();
+                rowsList.updateUI();
+            }
+        };
+    }
+
+    private String getTableNameOfColumnInList(DefaultListModel listModel, int colIndex) {//must be either column or row list
+        for (int i = colIndex-1; i >= 0; i--){
+            String name = listModel.getElementAt(i).toString();
+            if (!name.contains("    ")){
+                return name;
+            }
+        }
+        return null;
+    }
+
+    private ActionListener getRemoveGroupByListenerRows(int index) {
+        return new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent arg0) {
+                if (index < 0)
+                    return;
+
+                String colName = rowsListModel.getElementAt(index).toString();
+                colName = colName.split(" \\(")[0]; //keep element in list, but remove (ASC) or (DESC)
+
+                String colNameOnly = colName;
+                colNameOnly.replaceAll("\\s+", "");
+                String tableName = getTableNameOfColumnInList(rowsListModel, index);
+                if (tableName == null)
+                    return;
+                rowsListModel.setElementAt(colName, index);//update element with ASC or DESC to signal it will be ordered
+                globalTableQueries.removeOrderByIfPresent(tableName+"."+colNameOnly);
+                rowsList.revalidate();
+            }
+        };
+    }
+
     private ActionListener getRemoveActionListenerForMeasuresList(int index) {
         return new ActionListener() {
             @Override
@@ -673,16 +734,31 @@ public class QueryUI extends JPanel{
             public void mousePressed(MouseEvent arg0) {
                 System.out.println(SwingUtilities.isRightMouseButton(arg0));
                 //if (SwingUtilities.isRightMouseButton(arg0)){
-                    int index = rowsList.locationToIndex(arg0.getPoint());
-                    rowsList.setSelectedIndex(index);
-                    System.out.println(index);
-                    System.out.println(arg0.getPoint());
-                    JPopupMenu menu = new JPopupMenu();
-                    JMenuItem item1 = new JMenuItem("Delete");
-                    item1.addActionListener(getRemoveActionListenerForRowsList(index));
-                    //item1.addActionListener(getRemoveActionListener());
-                    menu.add(item1);
-                    rowsList.setComponentPopupMenu(menu);
+                int index = rowsList.locationToIndex(arg0.getPoint());
+                if (!rowsListModel.getElementAt(index).toString().contains("    ")){
+                    rowsList.setComponentPopupMenu(null);
+                    return;
+                }
+                rowsList.setSelectedIndex(index);
+                System.out.println(index);
+                System.out.println(arg0.getPoint());
+                JPopupMenu menu = new JPopupMenu();
+                JMenuItem item1 = new JMenuItem("Delete");
+                JMenu subMenu = new JMenu("Order by");
+                JMenuItem subItem = new JMenuItem("Ascending");
+                JMenuItem subItem2 = new JMenuItem("Descending");
+                JMenuItem subItem3 = new JMenuItem("No order");
+                subMenu.add(subItem);
+                subMenu.add(subItem2);
+                subMenu.add(subItem3);
+                item1.addActionListener(getRemoveActionListenerForRowsList(index));
+                subItem.addActionListener(getAddGroupByListenerRows(index, true));
+                subItem2.addActionListener(getAddGroupByListenerRows(index, false));
+                subItem3.addActionListener(getRemoveGroupByListenerRows(index));
+                //item1.addActionListener(getRemoveActionListener());
+                menu.add(item1);
+                menu.add(subMenu);
+                rowsList.setComponentPopupMenu(menu);
                 //}
                 super.mousePressed(arg0);
             }
@@ -887,17 +963,7 @@ public class QueryUI extends JPanel{
                         filterTree.updateUI();
                         return true;
                     }
-                    /*JTree.DropLocation dl =
-                            (JTree.DropLocation)info.getDropLocation();
-                    int childIndex = dl.getChildIndex();
-                    TreePath dest = dl.getPath();
-                    FilterNode parent =
-                            (FilterNode)dest.getLastPathComponent();
-                    int index = childIndex;    // DropMode.INSERT
-                    if(index == -1)
-                    if(childIndex == -1) {     // DropMode.ON
-                        index = parent.getChildCount();
-                    }*/
+
                     while (s == null){
                         s = createFilterStringOperation(column, false);
                     }
@@ -905,6 +971,8 @@ public class QueryUI extends JPanel{
                         return false;
                     filterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION), root, root.getChildCount());
                     filterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), root, root.getChildCount());
+                    filterTree.revalidate();
+                    filterTree.updateUI();
                     return true;
                 }
             }

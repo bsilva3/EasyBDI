@@ -10,6 +10,7 @@ public class GlobalTableQuery {
     private Map<GlobalTableData, List<GlobalColumnData>> selectRows;
     private Map<GlobalTableData, List<GlobalColumnData>> selectColumns;
     private List<String> measures;
+    private List<String> orderBy;
     private FactsTable factsTable;
     private PrestoMediator presto;
 
@@ -19,6 +20,11 @@ public class GlobalTableQuery {
         selectRows = new HashMap<>();
         selectColumns = new HashMap<>();
         measures = new ArrayList<>();
+        orderBy = new ArrayList<>();
+    }
+
+    public void addOrderByRow(String groupByRow){
+        orderBy.add(groupByRow);
     }
 
     public void addSelectColumn(GlobalTableData table, GlobalColumnData col){
@@ -70,7 +76,21 @@ public class GlobalTableQuery {
         if (success && selectRows.get(table).size()==0){
             selectRows.remove(table);
         }
+        removeOrderByIfPresent(table.getTableName()+"."+columnName.getName());
         return success;
+    }
+
+    /**
+     * Removes an order by element if present. Searches for strings in the form 'tablename.columnname'
+     * @param orderByElem
+     */
+    public void removeOrderByIfPresent(String orderByElem){
+        for (String s : orderBy){
+            if (s.contains(orderByElem)){
+                orderBy.remove(s);
+                return;
+            }
+        }
     }
 
     public void removeMeasure(String measure){
@@ -333,13 +353,24 @@ public class GlobalTableQuery {
     }*/
 
     public String buildQuery(){
+        String query = "";
         if (selectColumns.size() == 0 && measures.size() == 0 && selectRows.size() > 0){
-            return buildQuerySelectRowsOnly();
+            query = buildQuerySelectRowsOnly();
         }
         else if (selectColumns.size() == 0 && measures.size() > 0 && selectRows.size() > 0){
-            return buildQuerySelectRowsAndMeasures();
+            query = buildQuerySelectRowsAndMeasures();
         }
-        return "Error invalid query elements given";
+        else
+            return "Error invalid query elements given";
+        //add order by elements if any are selected
+        if (orderBy.size() > 0){
+            query += " ORDER BY ";
+            for (String s : orderBy){
+                query+=s +",";
+            }
+            query = query.substring(0, query.length() - 1);//last elemment without comma
+        }
+        return query;
     }
 
     private List<GlobalColumnData> getSelectedMeasureCols(List<String> measuresString){
