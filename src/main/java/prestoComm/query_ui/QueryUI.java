@@ -49,6 +49,9 @@ public class QueryUI extends JPanel{
     private JList queryLogList;
     private JButton saveSelectedQueryButton;
     private JButton saveAllQueriesButton;
+    private JButton saveQueryButton;
+    private JButton loadQueryButton;
+    private JButton clearAllFieldsButton;
     private String project;
 
     private StarSchema starSchema;
@@ -56,7 +59,7 @@ public class QueryUI extends JPanel{
 
     private DefaultTreeModel schemaTreeModel;
     private DefaultTreeModel filterTreeModel;
-    private DefaultListModel aggreListModel;
+    private DefaultListModel measuresListModel;
     private DefaultListModel columnListModel;
     private DefaultListModel rowsListModel;
     private DefaultListModel queryLogModel;
@@ -102,14 +105,14 @@ public class QueryUI extends JPanel{
 
             filterTreeModel = null;
 
-            aggreListModel = new DefaultListModel();
+            measuresListModel = new DefaultListModel();
             columnListModel = new DefaultListModel();
             rowsListModel = new DefaultListModel();
             queryLogModel = new DefaultListModel();
             filterTree.setModel(filterTreeModel);
             filterTree.setCellRenderer(new FilterNodeCellRenderer());
             filterTree.addMouseListener(getMouseListenerForFilterTree());
-            measuresList.setModel(aggreListModel);
+            measuresList.setModel(measuresListModel);
             rowsList.setModel(rowsListModel);
             columnsList.setModel(columnListModel);
             queryLogList.setModel(queryLogModel);
@@ -183,6 +186,125 @@ public class QueryUI extends JPanel{
                 saveToFile(false);
             }
         });
+        saveQueryButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                saveQueryState();
+            }
+        });
+
+        loadQueryButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                selectQueryToLoad();
+            }
+        });
+        clearAllFieldsButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                clearAllFieldsAndQueryElements();
+            }
+        });
+    }
+
+    private void clearAllFieldsAndQueryElements(){
+        //clear all fields in ui
+        rowsListModel.clear();
+        columnListModel.clear();
+        measuresListModel.clear();
+        filterTreeModel = null;
+
+        //clear all query elements in structures
+        globalTableQueries.clearAllElements();
+    }
+
+    private void selectQueryToLoad(){
+        List<String> queryNames = metaDataManager.getListOfQueriesByCube(cubeSelectionComboBox.getSelectedItem().toString());
+        new QuerySelector(queryNames, this);
+    }
+
+    public void loadSelectedQuery(String queryName){
+        int cubeID = metaDataManager.getOrcreateCube(cubeSelectionComboBox.getSelectedItem().toString());
+        int queryID = metaDataManager.getQueryID(queryName, cubeID);
+        if (queryID == -1){
+            JOptionPane.showMessageDialog(mainMenu, "Could not load query: does not exist", "Error loading query", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        Map<GlobalTableData, List<GlobalColumnData>> rows = metaDataManager.getQueryRows(queryID);
+        Map<GlobalTableData, List<GlobalColumnData>> cols = metaDataManager.getQueryColumns(queryID);
+        Map<GlobalColumnData, String> measures = metaDataManager.getQueryMeasures(queryID);
+        String filters = metaDataManager.getQueryFilters(queryID);
+
+        //clear all fields in ui
+        clearAllFieldsAndQueryElements();
+
+        //place rows in UI and in data structures and add group by's (if any)
+        for (Map.Entry<GlobalTableData, List<GlobalColumnData>> rowSelect : rows.entrySet()){
+            for (GlobalColumnData c : rowSelect.getValue()){
+                addRowsToList(rowsListModel, c, rowSelect.getKey());
+                if (c.getOrderBy().equalsIgnoreCase("ASC")){
+                    this.addGroupBy(rowsListModel.getSize()-1, true);
+                }
+                else if (c.getOrderBy().equalsIgnoreCase("DESC")){
+                    this.addGroupBy(rowsListModel.getSize()-1, false);
+                }
+            }
+        }
+        //globalTableQueries.setSelectRows(rows);
+
+        //place columns in UI (if any) and in data structures
+        for (Map.Entry<GlobalTableData, List<GlobalColumnData>> colSelect : cols.entrySet()){
+            for (GlobalColumnData c : colSelect.getValue()){
+                addColumnsToList(columnListModel, c, colSelect.getKey());
+            }
+        }
+        //globalTableQueries.setSelectColumns(cols);
+
+        //place measures in UI (if any) and in data structures
+        for (Map.Entry<GlobalColumnData, String> measure : measures.entrySet()) {
+            String measureItem = measure.getValue()+"("+measure.getKey().getName()+")";
+            addMeasure(measuresListModel, measureItem);
+        }
+
+        //place filters in UI (if any) and in data structures
+        if (filters.length() > 0) {
+            String[] filterElements = filters.split("\\s+");
+            addFiltersToTree(filterElements);
+        }
+
+    }
+
+    private void saveQueryState(){
+        //user must name the query
+        JTextField nameTxt = new JTextField();
+        JComponent[] inputs = new JComponent[]{
+                new JLabel("Please, insert a name for this query."),
+                nameTxt};
+        int result = JOptionPane.showConfirmDialog(
+            null,
+            inputs,
+            "Save Query",
+            JOptionPane.PLAIN_MESSAGE);
+        if (nameTxt.getText().length() == 0) {
+            JOptionPane.showConfirmDialog(
+                    null,
+                    "You must name your query to save it.",
+                    "Save Query Error",
+                    JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        //get all select rows:
+        Map<GlobalTableData, List<GlobalColumnData>> rows = globalTableQueries.getSelectRows();
+        //get all select cols:
+        Map<GlobalTableData, List<GlobalColumnData>> columns = globalTableQueries.getSelectColumns();
+        Map<Integer, String> measures = globalTableQueries.getMeasuresWithID();
+        String filters = this.getFilterQuery();
+
+        metaDataManager.insertNewQuerySave(nameTxt.getText(), cubeSelectionComboBox.getSelectedItem().toString(), rows, columns, measures, filters );
+    }
+
+    public void deleteQuery(String queryName){
+        metaDataManager.deleteQuery(queryName, cubeSelectionComboBox.getSelectedItem().toString());
     }
 
     private void saveToFile(boolean multiline){
@@ -227,6 +349,21 @@ public class QueryUI extends JPanel{
                 JOptionPane.showMessageDialog(mainMenu, "Failed to save query log. Select an apropriate folder.", "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
+    }
+
+    private void addFiltersToTree(String[] filters){
+        FilterNode root = new FilterNode("", null, null);
+        for (String filter : filters){
+            FilterNodeType nodeType;
+            if (filter.equalsIgnoreCase("or") || filter.equalsIgnoreCase("and")){
+                nodeType = FilterNodeType.BOOLEAN_OPERATION;
+            }
+            else{
+                nodeType = FilterNodeType.CONDITION;
+            }
+            root.add(new FilterNode(filter, filter, nodeType));
+        }
+        filterTreeModel = new DefaultTreeModel(root);
     }
 
     private boolean saveAllQueriesLog(File file){
@@ -398,19 +535,23 @@ public class QueryUI extends JPanel{
                 else{
                     return;
                 }
-                GlobalTableData table = getTableInColumnIndex(index);
+                GlobalTableData table = getTableInRowIndex(columnListModel, index);
                 boolean success = globalTableQueries.deleteSelectColumnFromTable(table, col);
                 if (success){
-                    columnListModel.remove(index);
-                    if (columnListModel.size()==1){
+                    int indexBefore = index - 1;
+                    int indexAfter = index + 1;
+                    if (columnListModel.size()==2){
                         //remove the table name from the list (if only one table was present and all its columns was deleted)
+                        columnListModel.remove(index);
                         columnListModel.remove(0);
                     }
-                    else if (index < columnListModel.size() && !columnListModel.get(index).toString().contains("    ")){//all columns of a table have been deleted. If there are multiple tables
-                        //index will now be a next table. in that case remove the element index-1 is the table with no columns in the list that must be removed
-                        columnListModel.remove(index-1);
+                    else if (!columnListModel.get(indexBefore).toString().contains("    ") && indexAfter < columnListModel.size()-1 && !columnListModel.get(indexAfter).toString().contains("    ")){
+                        columnListModel.remove(index);
+                        columnListModel.remove(indexBefore);
                     }
-
+                    else{
+                        columnListModel.remove(index);
+                    }
                     columnsList.revalidate();
                 }
             }
@@ -431,7 +572,7 @@ public class QueryUI extends JPanel{
                 else{
                     return;
                 }
-                GlobalTableData table = getTableInRowIndex(index);
+                GlobalTableData table = getTableInRowIndex(rowsListModel, index);
                 boolean success = globalTableQueries.deleteSelectRowFromTable(table, col);
                 if (success){
                     int indexBefore = index - 1;
@@ -448,18 +589,6 @@ public class QueryUI extends JPanel{
                     else{
                         rowsListModel.remove(index);
                     }
-
-                    /*
-                    else if (indexBefore < rowsListModel.size()-1 && !rowsListModel.get(indexBefore).toString().contains("    ")){//all columns of a table have been deleted. If there are multiple tables
-                        //index will now be a next table. in that case remove the element index-1 is the table with no columns in the list that must be removed
-                        //if (index +1 < rowsListModel.size() && rowsListModel.get(indexBefore).toString().contains("    "))//there is a next element and is a table
-                            rowsListModel.remove(indexBefore);
-
-                    }
-                    else if (indexBefore == rowsListModel.size() -1 && !rowsListModel.get(indexBefore).toString().contains("    ")){//all columns of a table have been deleted. If there are multiple tables
-                        //index will now be a next table. in that case remove the element index-1 is the table with no columns in the list that must be removed
-                        rowsListModel.remove(indexBefore);
-                    }*/
                     rowsList.revalidate();
                 }
             }
@@ -470,29 +599,33 @@ public class QueryUI extends JPanel{
         return new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent arg0) {
-                if (index < 0)
-                    return;
-                ListElementWrapper elem = (ListElementWrapper)rowsListModel.get(index);
-                if (elem.getType() != ListElementType.GLOBAL_COLUMN){
-                    return;
-                }
-                String colName = rowsListModel.getElementAt(index).toString();
-                colName.replaceAll("\\s+", "");
-                String tableName = getTableNameOfColumnInList(rowsListModel, index);
-                if (tableName == null)
-                    return;
-                //add to the list (ASC or DESC)
-                String order = "";
-                if (isAsc)
-                    order = "ASC";
-                else
-                    order = "DESC";
-                rowsListModel.setElementAt(rowsListModel.getElementAt(index).toString()+ " ("+order+")", index);//update element with ASC or DESC to signal it will be ordered
-                globalTableQueries.addOrderByRow(tableName+"."+colName+" "+order);
-                rowsList.revalidate();
-                rowsList.updateUI();
+                addGroupBy(index, isAsc);
             }
         };
+    }
+
+    public void addGroupBy(int index, boolean isAsc){
+            if (index < 0)
+                return;
+            ListElementWrapper elem = (ListElementWrapper)rowsListModel.get(index);
+            if (elem.getType() != ListElementType.GLOBAL_COLUMN){
+                return;
+            }
+            String colName = rowsListModel.getElementAt(index).toString();
+            colName.replaceAll("\\s+", "");
+            String tableName = getTableNameOfColumnInList(rowsListModel, index);
+            if (tableName == null)
+                return;
+            //add to the list (ASC or DESC)
+            String order = "";
+            if (isAsc)
+                order = "ASC";
+            else
+                order = "DESC";
+            rowsListModel.setElementAt(rowsListModel.getElementAt(index).toString()+ " ("+order+")", index);//update element with ASC or DESC to signal it will be ordered
+            globalTableQueries.addOrderByRow(tableName+"."+colName+" "+order);
+            rowsList.revalidate();
+            rowsList.updateUI();
     }
 
     private String getTableNameOfColumnInList(DefaultListModel listModel, int colIndex) {//must be either column or row list
@@ -602,9 +735,9 @@ public class QueryUI extends JPanel{
      * @param index
      * @return
      */
-    private GlobalTableData getTableInRowIndex(int index){
+    private GlobalTableData getTableInRowIndex(DefaultListModel model, int index){
         for (int i = index; i >=0; i--){
-            ListElementWrapper elem = (ListElementWrapper) rowsListModel.get(i);
+            ListElementWrapper elem = (ListElementWrapper) model.get(i);
             if (elem.getType() == ListElementType.GLOBAL_TABLE){//first table to appear belongs to this
                 return (GlobalTableData) elem.getObj();
             }
@@ -641,7 +774,7 @@ public class QueryUI extends JPanel{
         if (nChilds <= 0){
             return "";
         }
-        String query = " WHERE ";
+        String query = "";
         for (int i = 0 ; i < nChilds; i++){
             FilterNode filterNode = (FilterNode) root.getChildAt(i);
             query += filterNode.getUserObject().toString() +" ";
@@ -655,13 +788,10 @@ public class QueryUI extends JPanel{
 
         DateTimeFormatter formatter = DateTimeFormat.forPattern("HH:mm:ss");
         DateTime beginTime = new DateTime();
-
+        globalTableQueries.setFilterQuery(getFilterQuery());
         String localQuery = globalTableQueries.buildQuery();//create query with inner query to get local table data
         //get all filters as a string
-        String filterQuery = getFilterQuery();
-        if (filterQuery.length() > 0){
-            localQuery += filterQuery;//add filters to the query (if there are filters). Filters will be applied to the outer query
-        }
+
         System.out.println(localQuery);
         ///mover pro fim da funçlão:
         DateTime endTime = new DateTime();
@@ -821,6 +951,76 @@ public class QueryUI extends JPanel{
                 super.mousePressed(arg0);
             }
         };
+    }
+
+    private void addColumnsToList(DefaultListModel listModel, GlobalColumnData globalCol, GlobalTableData globalTable){
+        String[] s = null;
+        //check if table name of this column exists. If true then inserted here
+        ListElementWrapper elemtTosearch = new ListElementWrapper(globalTable.getTableName(), globalTable, ListElementType.GLOBAL_TABLE);
+        if (listModel.contains(elemtTosearch)){
+            int index = listModel.indexOf(elemtTosearch);
+            index++;
+            //iterate the columns of this tables. insert a new one
+            for (int i = index; i < listModel.getSize(); i++) {
+                if (!String.valueOf(listModel.getElementAt(i)).contains("    ")){
+                    listModel.add(i, new ListElementWrapper("    "+globalCol.getName(), globalCol, ListElementType.GLOBAL_COLUMN));//add column
+                    globalTableQueries.addSelectColumn(globalTable, globalCol);
+                    return;
+                }
+            }
+            //maybe this table is the last one, insert at last position
+            listModel.addElement(new ListElementWrapper("    "+globalCol.getName(), globalCol, ListElementType.GLOBAL_COLUMN));//add column
+            globalTableQueries.addSelectColumn(globalTable, globalCol);
+            return;
+        }
+        else{
+            listModel.addElement(new ListElementWrapper(globalTable.getTableName(), globalTable, ListElementType.GLOBAL_TABLE)); //add table name
+            listModel.addElement(new ListElementWrapper("    "+globalCol.getName(), globalCol, ListElementType.GLOBAL_COLUMN));//add column
+            globalTableQueries.addSelectColumn(globalTable, globalCol);
+        }
+    }
+
+    private void addRowsToList(DefaultListModel listModel, GlobalColumnData globalCol, GlobalTableData globalTable){
+        //check if table name of this column exists. If true then inserted here
+        ListElementWrapper elemtTosearch = new ListElementWrapper(globalTable.getTableName(), globalTable, ListElementType.GLOBAL_TABLE);
+        if (listModel.contains(elemtTosearch)){
+            int index = listModel.indexOf(elemtTosearch);
+            index++;
+            //iterate the columns of this tables. insert a new one
+            for (int i = index; i < listModel.getSize(); i++) {
+                if (!String.valueOf(listModel.getElementAt(i)).contains("    ")){
+                    listModel.add(i, new ListElementWrapper("    "+globalCol.getName(), globalCol, ListElementType.GLOBAL_COLUMN));//add row
+                    globalTableQueries.addSelectRow(globalTable, globalCol);
+                    return;
+                }
+            }
+            //maybe this table is the last one, insert at last position
+            listModel.addElement(new ListElementWrapper("    "+globalCol.getName(), globalCol, ListElementType.GLOBAL_COLUMN));//add row
+            globalTableQueries.addSelectRow(globalTable, globalCol);
+            return;
+        }
+        else{
+            listModel.addElement(new ListElementWrapper(globalTable.getTableName(), globalTable, ListElementType.GLOBAL_TABLE)); //add table name
+            listModel.addElement(new ListElementWrapper("    "+globalCol.getName(), globalCol, ListElementType.GLOBAL_COLUMN));//add row
+            globalTableQueries.addSelectRow(globalTable, globalCol);
+        }
+    }
+
+    private void addMeasure(DefaultListModel listModel, String measureStr){
+        //make sure this measure is not added already
+        String measureName = measureStr.split("[(]")[1]; //in the form "aggr(measureName)"
+        for (int i = 0; i < listModel.size(); i++){
+            if (listModel.get(i).toString().contains(measureName)){
+                JOptionPane.showMessageDialog(mainMenu, "Measure already present. Cannot add repeated Measure.", "Cannot add measure", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+        }
+        listModel.add(listModel.size(), measureStr);
+        globalTableQueries.addMeasure(measureStr);
+    }
+
+    private void removeMeasure(String measureStr){
+        globalTableQueries.removeMeasure(measureStr);
     }
 
     class TreeTransferHandler extends TransferHandler {
@@ -1036,77 +1236,6 @@ public class QueryUI extends JPanel{
             }
             s[1] = elem;
             return s;
-        }
-
-        private void addColumnsToList(DefaultListModel listModel, GlobalColumnData globalCol, GlobalTableData globalTable){
-            String[] s = null;
-            //check if table name of this column exists. If true then inserted here
-            ListElementWrapper elemtTosearch = new ListElementWrapper(globalTable.getTableName(), globalTable, ListElementType.GLOBAL_TABLE);
-            if (listModel.contains(elemtTosearch)){
-                int index = listModel.indexOf(elemtTosearch);
-                index++;
-                //iterate the columns of this tables. insert a new one
-                for (int i = index; i < listModel.getSize(); i++) {
-                    if (!String.valueOf(listModel.getElementAt(i)).contains("    ")){
-                        listModel.add(i, new ListElementWrapper("    "+globalCol.getName(), globalCol, ListElementType.GLOBAL_COLUMN));//add column
-                        globalTableQueries.addSelectColumn(globalTable, globalCol);
-                        return;
-                    }
-                }
-                //maybe this table is the last one, insert at last position
-                listModel.addElement(new ListElementWrapper("    "+globalCol.getName(), globalCol, ListElementType.GLOBAL_COLUMN));//add column
-                globalTableQueries.addSelectColumn(globalTable, globalCol);
-                return;
-            }
-            else{
-                listModel.addElement(new ListElementWrapper(globalTable.getTableName(), globalTable, ListElementType.GLOBAL_TABLE)); //add table name
-                listModel.addElement(new ListElementWrapper("    "+globalCol.getName(), globalCol, ListElementType.GLOBAL_COLUMN));//add column
-                globalTableQueries.addSelectColumn(globalTable, globalCol);
-            }
-        }
-
-        private void addRowsToList(DefaultListModel listModel, GlobalColumnData globalCol, GlobalTableData globalTable){
-            String[] s = null;
-            //check if table name of this column exists. If true then inserted here
-            ListElementWrapper elemtTosearch = new ListElementWrapper(globalTable.getTableName(), globalTable, ListElementType.GLOBAL_TABLE);
-            if (listModel.contains(elemtTosearch)){
-                int index = listModel.indexOf(elemtTosearch);
-                index++;
-                //iterate the columns of this tables. insert a new one
-                for (int i = index; i < listModel.getSize(); i++) {
-                    if (!String.valueOf(listModel.getElementAt(i)).contains("    ")){
-                        listModel.add(i, new ListElementWrapper("    "+globalCol.getName(), globalCol, ListElementType.GLOBAL_COLUMN));//add row
-                        globalTableQueries.addSelectRow(globalTable, globalCol);
-                        return;
-                    }
-                }
-                //maybe this table is the last one, insert at last position
-                listModel.addElement(new ListElementWrapper("    "+globalCol.getName(), globalCol, ListElementType.GLOBAL_COLUMN));//add row
-                globalTableQueries.addSelectRow(globalTable, globalCol);
-                return;
-            }
-            else{
-                listModel.addElement(new ListElementWrapper(globalTable.getTableName(), globalTable, ListElementType.GLOBAL_TABLE)); //add table name
-                listModel.addElement(new ListElementWrapper("    "+globalCol.getName(), globalCol, ListElementType.GLOBAL_COLUMN));//add row
-                globalTableQueries.addSelectRow(globalTable, globalCol);
-            }
-        }
-
-        private void addMeasure(DefaultListModel listModel, String measureStr){
-            //make sure this measure is not added already
-            String measureName = measureStr.split("[(]")[1]; //in the form "aggr(measureName)"
-            for (int i = 0; i < listModel.size(); i++){
-                if (listModel.get(i).toString().contains(measureName)){
-                    JOptionPane.showMessageDialog(mainMenu, "Measure already present. Cannot add repeated Measure.", "Cannot add measure", JOptionPane.WARNING_MESSAGE);
-                    return;
-                }
-            }
-            listModel.add(listModel.size(), measureStr);
-            globalTableQueries.addMeasure(measureStr);
-        }
-
-        private void removeMeasure(String measureStr){
-            globalTableQueries.removeMeasure(measureStr);
         }
 
         public String toString() {

@@ -2,7 +2,7 @@
 <form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="prestoComm.query_ui.QueryUI">
   <grid id="27dc6" binding="mainPanel" layout-manager="GridBagLayout">
     <constraints>
-      <xy x="20" y="20" width="545" height="504"/>
+      <xy x="20" y="20" width="677" height="504"/>
     </constraints>
     <properties>
       <preferredSize width="800" height="740"/>
@@ -11,7 +11,7 @@
     <children>
       <grid id="30951" layout-manager="GridBagLayout">
         <constraints>
-          <grid row="0" column="2" row-span="5" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+          <grid row="0" column="5" row-span="5" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
           <gridbag top="45" left="8" bottom="0" right="0" weightx="1.0" weighty="2.0"/>
         </constraints>
         <properties/>
@@ -141,7 +141,7 @@
       </component>
       <component id="ca426" class="javax.swing.JButton" binding="executeQueryButton" default-binding="true">
         <constraints>
-          <grid row="5" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+          <grid row="5" column="5" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
           <gridbag weightx="1.0" weighty="0.1"/>
         </constraints>
         <properties>
@@ -150,7 +150,7 @@
       </component>
       <scrollpane id="54634">
         <constraints>
-          <grid row="1" column="0" row-span="1" col-span="2" vsize-policy="7" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+          <grid row="1" column="0" row-span="1" col-span="5" vsize-policy="7" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
           <gridbag weightx="2.0" weighty="1.0"/>
         </constraints>
         <properties/>
@@ -175,14 +175,14 @@
       </component>
       <component id="baae9" class="javax.swing.JComboBox" binding="cubeSelectionComboBox">
         <constraints>
-          <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
+          <grid row="0" column="1" row-span="1" col-span="4" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
           <gridbag weightx="1.0" weighty="0.4"/>
         </constraints>
         <properties/>
       </component>
       <tabbedpane id="e97b9" binding="tabbedPane1" default-binding="true">
         <constraints>
-          <grid row="3" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false">
+          <grid row="3" column="0" row-span="1" col-span="5" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false">
             <preferred-size width="200" height="200"/>
           </grid>
           <gridbag top="10" left="0" bottom="0" right="0" weightx="2.0" weighty="2.0"/>
@@ -254,6 +254,33 @@
           </grid>
         </children>
       </tabbedpane>
+      <component id="bb871" class="javax.swing.JButton" binding="saveQueryButton" default-binding="true">
+        <constraints>
+          <grid row="5" column="4" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="1.0" weighty="0.1"/>
+        </constraints>
+        <properties>
+          <text value="Save Query"/>
+        </properties>
+      </component>
+      <component id="a2d70" class="javax.swing.JButton" binding="loadQueryButton" default-binding="true">
+        <constraints>
+          <grid row="5" column="3" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="1.0" weighty="0.1"/>
+        </constraints>
+        <properties>
+          <text value="Load Query"/>
+        </properties>
+      </component>
+      <component id="40a06" class="javax.swing.JButton" binding="clearAllFieldsButton" default-binding="true">
+        <constraints>
+          <grid row="5" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="1.0" weighty="0.1"/>
+        </constraints>
+        <properties>
+          <text value="Clear All Fields"/>
+        </properties>
+      </component>
     </children>
   </grid>
 </form>

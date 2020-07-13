@@ -11,6 +11,7 @@ public class GlobalTableQuery {
     private Map<GlobalTableData, List<GlobalColumnData>> selectColumns;
     private List<String> measures;
     private List<String> orderBy;
+    private String filterQuery;
     private FactsTable factsTable;
     private PrestoMediator presto;
 
@@ -143,7 +144,6 @@ public class GlobalTableQuery {
         for (Map.Entry<GlobalTableData, List<GlobalColumnData>> dimTable : selectRows.entrySet()){
             List<GlobalColumnData> cols = dimTable.getValue();
             GlobalTableData t = dimTable.getKey();
-            boolean primKeyIsSelected = false;
             for (GlobalColumnData c : cols){
                 query+= t.getTableName()+"."+c.getName()+",";
 
@@ -152,7 +152,7 @@ public class GlobalTableQuery {
 
         query = query.substring(0, query.length() - 1);//last elemment without comma
         query+= " FROM ";
-        for (Map.Entry<GlobalTableData, List<GlobalColumnData>> tableSelectRows : selectRows.entrySet()){//TODO: not Correct for multiple Dim tables!
+        for (Map.Entry<GlobalTableData, List<GlobalColumnData>> tableSelectRows : selectRows.entrySet()){
             //for each global table
             GlobalTableData t = tableSelectRows.getKey();
             List<GlobalColumnData> rowsForSelect = tableSelectRows.getValue();
@@ -166,6 +166,10 @@ public class GlobalTableQuery {
             query+= ") AS "+t.getTableName()+",";
         }
         query = query.substring(0, query.length() - 1);//last elemment without comma
+
+        if (filterQuery.length() > 0){
+            query += " WHERE " + filterQuery;//add filters to the query (if there are filters). Filters will be applied to the outer query
+        }
 
         return query;
     }
@@ -255,9 +259,12 @@ public class GlobalTableQuery {
         }
 
         query = query.substring(0, query.length() - "AND ".length());//last column is whithout a comma
-        query+=")"; //close where clase
+        query+=")"; //close where clause
 
         //aditional filters set by user here
+        if (filterQuery.length() > 0){
+            query += " AND ( " + filterQuery +")";//add filters to the query (if there are filters). Filters will be applied to the outer query
+        }
 
         //groupby for each dimension column (only if aggregation operation is made)
         query += " GROUP BY ( ";
@@ -351,6 +358,13 @@ public class GlobalTableQuery {
         //Oder by here if (any)...
         return query;
     }*/
+
+    private String getMeasureName(String measureAndOP){
+        return measureAndOP.split("[()]")[1]; //split on first space to the measure name (its in the form "aggr(measureName)" )
+    }
+    private String getMeasureOP(String measureAndOP){
+        return measureAndOP.split("[\\(]")[0]; //split on first space to the measure name (its in the form "aggr(measureName)" )
+    }
 
     public String buildQuery(){
         String query = "";
@@ -494,6 +508,34 @@ public class GlobalTableQuery {
         return query;
     }
 
+    public void clearAllElements(){
+        selectRows.clear();
+        selectColumns.clear();
+        measures.clear();
+        orderBy.clear();
+    }
+
+    public Map<Integer, String> getMeasuresWithID() {
+        Map<Integer, String> measuresWithOP = new HashMap<>();
+        factsTable.getColumns().keySet();
+        for (String m : measures){
+            String measureName = getMeasureName(m);
+            String measureOP = getMeasureOP(m);
+            int id = getIDofMeasure(measureName);
+            measuresWithOP.put(id, measureOP);
+        }
+        return measuresWithOP;
+    }
+
+    private int getIDofMeasure(String measureName){
+        Set<GlobalColumnData> cols = factsTable.getColumns().keySet();
+        for (GlobalColumnData c : cols){
+            if (c.getName().equals(measureName))
+                return c.getColumnID();
+        }
+        return -1;
+    }
+
     public Map<GlobalTableData, List<GlobalColumnData>> getSelectRows() {
         return this.selectRows;
     }
@@ -508,5 +550,37 @@ public class GlobalTableQuery {
 
     public void setFactsTable(FactsTable factsTable) {
         this.factsTable = factsTable;
+    }
+
+    public Map<GlobalTableData, List<GlobalColumnData>> getSelectColumns() {
+        return this.selectColumns;
+    }
+
+    public void setSelectColumns(Map<GlobalTableData, List<GlobalColumnData>> selectColumns) {
+        this.selectColumns = selectColumns;
+    }
+
+    public List<String> getMeasures() {
+        return this.measures;
+    }
+
+    public void setMeasures(List<String> measures) {
+        this.measures = measures;
+    }
+
+    public List<String> getOrderBy() {
+        return this.orderBy;
+    }
+
+    public void setOrderBy(List<String> orderBy) {
+        this.orderBy = orderBy;
+    }
+
+    public String getFilterQuery() {
+        return filterQuery;
+    }
+
+    public void setFilterQuery(String filterQuery) {
+        this.filterQuery = filterQuery;
     }
 }

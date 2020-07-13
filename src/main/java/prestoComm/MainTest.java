@@ -13,10 +13,9 @@ public class MainTest {
 
     public static void main(String[] args){
 
-        MetaDataManager m = new MetaDataManager("test1");
-        ManagerFacade manager = new ManagerFacade();
-        //register databases
-        List<DBData> dbDataList = new ArrayList<>();
+        MetaDataManager m = new MetaDataManager("salesdb2");
+        m.deleteTablesToSaveQueries();
+        m.createTables();
         //manager.dropTables();
 
         /*manager.createDatabaseAndConnectToPresto();
@@ -38,7 +37,7 @@ public class MainTest {
         //manager.prestoMediator.makeQuery("SHOW CATALOGS");
         dbDataList = manager.buildLocalSchema(dbDataList);*/
 
-        System.out.println("databases registered:");
+        /*System.out.println("databases registered:");
         m.makeQueryAndPrint("SELECT * FROM "+ DB_DATA);
 
         System.out.println("Tables registered:");
@@ -55,7 +54,17 @@ public class MainTest {
 
         System.out.println("--------------- Cubes ------------------");
         System.out.println("Cubes created:");
-        m.makeQueryAndPrint("SELECT * FROM "+ CUBE_TABLE);
+        m.makeQueryAndPrint("SELECT * FROM "+ CUBE_TABLE);*/
+
+        m.makeQueryAndPrint("SELECT \n" +
+                "    name\n" +
+                "FROM \n" +
+                "    sqlite_master \n" +
+                "WHERE \n" +
+                "    type ='table' AND \n" +
+                "    name NOT LIKE 'sqlite_%';");
+
+        m.makeQueryAndPrint("SELECT * FROM "+QUERY_SAVE+";");
 
 
     }

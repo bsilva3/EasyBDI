@@ -99,6 +99,28 @@ public class Constants {
     public static final String MULTIDIM_COL_GLOBAL_COLUMN_ID = "glob_col_id";
     public static final String MULTIDIM_COLUMN_MEASURE = "isMeasure";
 
+    //query save
+    public static final String QUERY_SAVE = "query_save";
+    public static final String QUERY_ID = "query_id";
+    public static final String QUERY_NAME = "query_name";
+    public static final String QUERY_CUBE_ID = "cube_id";
+    //query save: rows
+    public static final String QUERY_ROW = "query_row";
+    public static final String QUERY_GLOBAL_TABLE_ID = "global_table_id";//table the column belongs to
+    public static final String QUERY_GLOBAL_COLUMN_ID = "global_column_id";
+    public static final String QUERY_ORDER_BY = "query_orderby";
+
+    //query save: columns
+    public static final String QUERY_COLS = "query_columns";
+
+    //query save: measures
+    public static final String QUERY_MEASURES = "query_measures";
+    public static final String QUERY_AGGR_OP = "operation";
+
+    //query save: filters
+    public static final String QUERY_FILTERS = "query_filters";
+    public static final String QUERY_FILTERS_STR = "filters_str";
+
     public static final String GLOBAL_TABLE_DATA_MULTI_TYPE_FIELD = "multidimensional_type";
     public static final String CUBE_TABLE = "cube";
     //columns in this table

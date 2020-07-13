@@ -10,6 +10,7 @@ public class GlobalColumnData implements Serializable {
     private String dataType;
     private boolean isPrimaryKey;
     private String foreignKey; //globalTablename.globalColumnName
+    private String orderBy; //just for the query save
 
     public GlobalColumnData(String name, String dataType, boolean isPrimaryKey, Set<ColumnData> localCols) {
         this.name = name;
@@ -104,6 +105,14 @@ public class GlobalColumnData implements Serializable {
         this.foreignKey = foreignKey;
     }
 
+    public String getOrderBy() {
+        return this.orderBy;
+    }
+
+    public void setOrderBy(String orderBy) {
+        this.orderBy = orderBy;
+    }
+
     public Set<TableData> getLocalTables() {
         Set<TableData> tables = new HashSet<>();
         for (ColumnData col : localColumns){
@@ -147,17 +156,17 @@ public class GlobalColumnData implements Serializable {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || this.getClass() != o.getClass()) return false;
+        if (!(o instanceof GlobalColumnData)) return false;
         GlobalColumnData that = (GlobalColumnData) o;
-        return this.columnID == that.columnID &&
-                this.isPrimaryKey == that.isPrimaryKey &&
-                this.name.equals(that.name) &&
-                this.dataType.equals(that.dataType) &&
-                this.foreignKey.equals(that.foreignKey);
+        return getColumnID() == that.getColumnID() &&
+                isPrimaryKey() == that.isPrimaryKey() &&
+                getName().equals(that.getName()) &&
+                getDataType().equals(that.getDataType()) &&
+                Objects.equals(isForeignKey(), that.isForeignKey());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.columnID, this.name, this.dataType, this.isPrimaryKey, this.foreignKey);
+        return Objects.hash(getColumnID(), getName(), getDataType(), isPrimaryKey(), isForeignKey());
     }
 }

@@ -63,7 +63,7 @@ public class DataSourceProjectImporter extends JFrame{
         this.setPreferredSize(new Dimension(450, 800));
         setVisible(true);
         setContentPane(mainPanel);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         this.setTitle("Data source import");
         pack();
         cancelButton.addActionListener(new ActionListener() {

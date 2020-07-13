@@ -216,7 +216,7 @@ public class MetaDataManager {
                 + "    FOREIGN KEY ("+ GLOBAL_TABLE_DATA_ID_FIELD +") REFERENCES "+GLOBAL_COLUMN_DATA+"("+GLOBAL_COLUMN_DATA_ID_FIELD+")); ";
 
         String sql10 = "CREATE TABLE IF NOT EXISTS "+ MULTIDIM_COLUMN +" (\n"
-                + "    "+ CUBE_ID_FIELD +" integer ,\n"
+                + "    "+ CUBE_ID_FIELD +" integer PRIMARY KEY,\n"
                 + "    "+ MULTIDIM_TABLE_ID +" integer ,\n"
                 + "    "+ MULTIDIM_COL_GLOBAL_COLUMN_ID +" integer ,\n"
                 + "    "+ MULTIDIM_COLUMN_MEASURE +" boolean ,\n"
@@ -224,21 +224,76 @@ public class MetaDataManager {
                 + "    FOREIGN KEY ("+ MULTIDIM_TABLE_ID +") REFERENCES "+MULTIDIM_TABLE+"("+MULTIDIM_TABLE_ID+"), "
                 + "    FOREIGN KEY ("+ MULTIDIM_COL_GLOBAL_COLUMN_ID +") REFERENCES "+GLOBAL_COLUMN_DATA+"("+GLOBAL_COLUMN_DATA_ID_FIELD+")); ";
 
-        executeStatements(new String[] {sql1, sql2, sql3, sql4, sql5, sql6, sql7, sql8, sql9, sql10});
+
+        //tables to store queries
+        String sql11 = "CREATE TABLE IF NOT EXISTS "+ QUERY_SAVE +" (\n"
+                + "    "+ QUERY_ID +" integer PRIMARY KEY,\n"
+                + "    "+ QUERY_NAME +" text NOT NULL ,\n"
+                + "    "+ QUERY_CUBE_ID +" integer ,\n"
+                + "    UNIQUE("+ QUERY_NAME +", "+QUERY_CUBE_ID+") ON CONFLICT IGNORE ,\n"
+                + "    FOREIGN KEY ("+ QUERY_CUBE_ID +") REFERENCES "+CUBE_TABLE+"("+CUBE_ID_FIELD+")); ";
+
+        String sql12 = "CREATE TABLE IF NOT EXISTS "+ QUERY_ROW +" (\n"
+                + "    "+ QUERY_ID +" integer,\n"
+                + "    "+ QUERY_ORDER_BY +" text ,\n"
+                + "    "+ QUERY_GLOBAL_TABLE_ID +" integer ,\n"
+                + "    "+ QUERY_GLOBAL_COLUMN_ID +" integer ,\n"
+                + "    "+ "PRIMARY KEY("+ QUERY_ID+", "+QUERY_GLOBAL_TABLE_ID+", "+ QUERY_GLOBAL_COLUMN_ID+") ON CONFLICT IGNORE, \n"
+                + "    FOREIGN KEY ("+ QUERY_GLOBAL_TABLE_ID +") REFERENCES "+GLOBAL_TABLE_DATA+"("+GLOBAL_TABLE_DATA_ID_FIELD+"), "
+                + "    FOREIGN KEY ("+ QUERY_GLOBAL_COLUMN_ID +") REFERENCES "+GLOBAL_COLUMN_DATA+"("+GLOBAL_COLUMN_DATA_TABLE_FIELD+"), "
+                + "    FOREIGN KEY ("+ QUERY_ID +") REFERENCES "+QUERY_SAVE+"("+QUERY_ID+")); ";
+
+        String sql13 = "CREATE TABLE IF NOT EXISTS "+ QUERY_COLS +" (\n"
+                + "    "+ QUERY_ID +" integer,\n"
+                + "    "+ QUERY_GLOBAL_TABLE_ID +" integer ,\n"
+                + "    "+ QUERY_GLOBAL_COLUMN_ID +" integer ,\n"
+                + "    "+ "PRIMARY KEY("+ QUERY_ID+", "+QUERY_GLOBAL_TABLE_ID+", "+ QUERY_GLOBAL_COLUMN_ID+") ON CONFLICT IGNORE, \n"
+                + "    FOREIGN KEY ("+ QUERY_GLOBAL_TABLE_ID +") REFERENCES "+GLOBAL_TABLE_DATA+"("+GLOBAL_TABLE_DATA_ID_FIELD+"), "
+                + "    FOREIGN KEY ("+ QUERY_GLOBAL_COLUMN_ID +") REFERENCES "+GLOBAL_COLUMN_DATA+"("+GLOBAL_COLUMN_DATA_TABLE_FIELD+"), "
+                + "    FOREIGN KEY ("+ QUERY_ID +") REFERENCES "+QUERY_SAVE+"("+QUERY_ID+")); ";
+
+        String sql14 = "CREATE TABLE IF NOT EXISTS "+ QUERY_MEASURES +" (\n"
+                + "    "+ QUERY_ID +" integer,\n"
+                + "    "+ QUERY_GLOBAL_COLUMN_ID +" integer ,\n"
+                + "    "+ QUERY_AGGR_OP +" text ,\n"
+                + "    "+ "PRIMARY KEY("+ QUERY_ID+", "+ QUERY_GLOBAL_COLUMN_ID+") ON CONFLICT IGNORE, \n"
+                + "    FOREIGN KEY ("+ QUERY_GLOBAL_COLUMN_ID +") REFERENCES "+GLOBAL_COLUMN_DATA+"("+GLOBAL_COLUMN_DATA_TABLE_FIELD+"), "
+                + "    FOREIGN KEY ("+ QUERY_ID +") REFERENCES "+QUERY_SAVE+"("+QUERY_ID+")); ";
+
+        String sql15 = "CREATE TABLE IF NOT EXISTS "+ QUERY_FILTERS +" (\n"
+                + "    "+ QUERY_ID +" integer PRIMARY KEY,\n"
+                + "    "+ QUERY_FILTERS_STR +" text ,\n"
+                + "    FOREIGN KEY ("+ QUERY_ID +") REFERENCES "+QUERY_SAVE+"("+QUERY_ID+")); ";
+
+        executeStatements(new String[] {sql1, sql2, sql3, sql4, sql5, sql6, sql7, sql8, sql9, sql10, sql11, sql12, sql13, sql14, sql15});
     }
 
     public void deleteTables(){
-        String sql1 = "DROP TABLE "+ MULTIDIM_COLUMN +";";
-        String sql2 = "DROP TABLE "+ MULTIDIM_TABLE +";";
-        String sql3 = "DROP TABLE "+ CUBE_TABLE +";";
-        String sql4 = "DROP TABLE "+ CORRESPONDENCES_DATA +";";
-        String sql5 = "DROP TABLE "+ COLUMN_DATA +";";
-        String sql6 = "DROP TABLE "+ TABLE_DATA +";";
-        String sql7 = "DROP TABLE "+ DB_DATA +";";
-        String sql8 = "DROP TABLE "+ DB_TYPE_DATA +";";
-        String sql9 = "DROP TABLE "+ GLOBAL_COLUMN_DATA +";";
-        String sql10 = "DROP TABLE "+ GLOBAL_TABLE_DATA +";";
-        executeStatements(new String[] {sql1, sql2, sql3, sql4, sql5, sql6, sql7, sql8, sql9, sql10});
+        String sql1 = "DROP TABLE "+ QUERY_FILTERS +";";
+        String sql2 = "DROP TABLE "+ QUERY_MEASURES +";";
+        String sql3 = "DROP TABLE "+ QUERY_COLS +";";
+        String sql4 = "DROP TABLE "+ QUERY_ROW +";";
+        String sql5 = "DROP TABLE "+ QUERY_SAVE +";";
+        String sql6 = "DROP TABLE "+ MULTIDIM_COLUMN +";";
+        String sql7 = "DROP TABLE "+ MULTIDIM_TABLE +";";
+        String sql8 = "DROP TABLE "+ CUBE_TABLE +";";
+        String sql9 = "DROP TABLE "+ CORRESPONDENCES_DATA +";";
+        String sql10 = "DROP TABLE "+ COLUMN_DATA +";";
+        String sql11 = "DROP TABLE "+ TABLE_DATA +";";
+        String sql12 = "DROP TABLE "+ DB_DATA +";";
+        String sql13 = "DROP TABLE "+ DB_TYPE_DATA +";";
+        String sql14 = "DROP TABLE "+ GLOBAL_COLUMN_DATA +";";
+        String sql15 = "DROP TABLE "+ GLOBAL_TABLE_DATA +";";
+        executeStatements(new String[] {sql1, sql2, sql3, sql4, sql5, sql6, sql7, sql8, sql9, sql10, sql11, sql12, sql13, sql14, sql15});
+    }
+
+    public void deleteTablesToSaveQueries(){
+        String sql1 = "DROP TABLE "+ QUERY_FILTERS +";";
+        String sql2 = "DROP TABLE "+ QUERY_MEASURES +";";
+        String sql3 = "DROP TABLE "+ QUERY_COLS +";";
+        String sql4 = "DROP TABLE "+ QUERY_ROW +";";
+        String sql5 = "DROP TABLE "+ QUERY_SAVE +";";
+        executeStatements(new String[] {sql1, sql2, sql3, sql4, sql5});
     }
 
     private void executeStatements(String[] statements){
@@ -896,7 +951,7 @@ public class MetaDataManager {
         }
     }
 
-    private int getOrcreateCube(String cubeName){
+    public int getOrcreateCube(String cubeName){
         int cubeId = getCubeID(cubeName);
         if (cubeId != -1){
             return cubeId;
@@ -1239,6 +1294,260 @@ public class MetaDataManager {
             System.out.println(e.getMessage());
         }
         return t;
+    }
+
+    public void insertNewQuerySave(String queryName, String cubeName, Map<GlobalTableData, List<GlobalColumnData>> rows,
+                                   Map<GlobalTableData, List<GlobalColumnData>> columns, Map<Integer, String> measures, String filters){
+        int cubeID = getOrcreateCube(cubeName);
+        String sql = "INSERT INTO "+ QUERY_SAVE + "("+QUERY_CUBE_ID+", "+QUERY_NAME+") VALUES(?,?)";
+        int queryID = -1;
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, cubeID);
+            pstmt.setString(2, queryName);
+            pstmt.executeUpdate();
+            //get id of this query
+            ResultSet rs = pstmt.getGeneratedKeys();
+            if(rs.next())
+            {
+                queryID = rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        if (queryID == -1){
+            System.err.println("Query Save: problem inserting in database");
+            return;
+        }
+        //insert rows
+        sql = "INSERT INTO "+ QUERY_ROW + "("+QUERY_ID+", "+QUERY_GLOBAL_TABLE_ID+", "+QUERY_GLOBAL_COLUMN_ID+", "+QUERY_ORDER_BY+") VALUES(?,?,?,?)";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            for (Map.Entry<GlobalTableData, List<GlobalColumnData>> tableSelects : rows.entrySet()){
+                int tableID = tableSelects.getKey().getId();
+                for (GlobalColumnData c : tableSelects.getValue()){
+                    int colID = c.getColumnID();
+
+                    pstmt.setInt(1, queryID);
+                    pstmt.setInt(2, tableID);
+                    pstmt.setInt(3, colID);
+                    pstmt.setString(4, c.getOrderBy());
+                    pstmt.executeUpdate();
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        //insert cols (if any)
+        if (columns != null && columns.size() > 0) {
+            sql = "INSERT INTO " + QUERY_COLS + "(" + QUERY_ID + ", " + QUERY_GLOBAL_TABLE_ID + ", " + QUERY_GLOBAL_COLUMN_ID + ") VALUES(?,?,?)";
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                for (Map.Entry<GlobalTableData, List<GlobalColumnData>> tableSelects : rows.entrySet()) {
+                    int tableID = tableSelects.getKey().getId();
+                    for (GlobalColumnData c : tableSelects.getValue()) {
+                        int colID = c.getColumnID();
+
+                        pstmt.setInt(1, queryID);
+                        pstmt.setInt(2, tableID);
+                        pstmt.setInt(3, colID);
+                        pstmt.executeUpdate();
+                    }
+                }
+            } catch (SQLException e) {
+                System.out.println(e.getMessage());
+            }
+        }
+
+        //insert measures (if any)
+        if (measures != null && measures.size() > 0) {
+            sql = "INSERT INTO " + QUERY_MEASURES + "(" + QUERY_ID + ", " + QUERY_GLOBAL_COLUMN_ID + ", " + QUERY_AGGR_OP + ") VALUES(?,?,?)";
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                for (Map.Entry<Integer, String> measure : measures.entrySet()) {
+                    pstmt.setInt(1, queryID);
+                    pstmt.setInt(2, measure.getKey());
+                    pstmt.setString(3, measure.getValue());
+                    pstmt.executeUpdate();
+                }
+            } catch (SQLException e) {
+                System.out.println(e.getMessage());
+            }
+        }
+
+        //insert filters (if any)
+        if (filters != null && filters.length() > 0) {
+            sql = "INSERT INTO " + QUERY_FILTERS + "(" + QUERY_ID + ", " + QUERY_FILTERS_STR + ") VALUES(?,?)";
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                    pstmt.setInt(1, queryID);
+                    pstmt.setString(2, filters);
+                    pstmt.executeUpdate();
+            } catch (SQLException e) {
+                System.out.println(e.getMessage());
+            }
+        }
+    }
+
+    public void deleteQuery(String queryName, String cubeName){
+        int cubeID = getOrcreateCube(cubeName);
+        int queryID = getQueryID(queryName, cubeID);
+
+        String sql = "DELETE FROM "+QUERY_FILTERS +" WHERE "+QUERY_ID +" = "+queryID+";";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+
+        sql = "DELETE FROM "+QUERY_MEASURES +" WHERE "+QUERY_ID +" = "+queryID+";";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+
+        sql = "DELETE FROM "+QUERY_ROW +" WHERE "+QUERY_ID +" = "+queryID+";";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+
+        sql = "DELETE FROM "+QUERY_COLS +" WHERE "+QUERY_ID +" = "+queryID+";";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+
+        sql = "DELETE FROM "+QUERY_SAVE +" WHERE "+QUERY_ID +" = "+queryID+";";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    public List<String> getListOfQueriesByCube(String cubeName){
+        int cubeID = getOrcreateCube(cubeName);
+        List<String> queryNames = new ArrayList<>();
+
+        try {
+            Statement stmt = conn.createStatement();
+            String sql = "SELECT "+ QUERY_NAME+" FROM " + QUERY_SAVE + " WHERE "+QUERY_CUBE_ID+" = " +cubeID+";";
+            ResultSet rs = stmt.executeQuery(sql);
+            // loop through the result set
+            while (rs.next()) {
+                queryNames.add(rs.getString(QUERY_NAME));
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return queryNames;
+    }
+
+    public int getQueryID(String queryName, int cubeID){
+        try {
+            Statement stmt = conn.createStatement();
+            String sql = "SELECT "+ QUERY_ID+" FROM " + QUERY_SAVE + " WHERE "+QUERY_CUBE_ID+" = " +cubeID+" AND "+QUERY_NAME+" = '"+queryName+"';";
+            ResultSet rs = stmt.executeQuery(sql);
+            // loop through the result set
+            if (rs.next()) {
+                return rs.getInt(QUERY_ID);
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return -1;
+    }
+
+    public Map<GlobalTableData, List<GlobalColumnData>> getQueryRows(int queryID){
+        Map<GlobalTableData, List<GlobalColumnData>> rows = new HashMap<>();
+        try {
+            Statement stmt = conn.createStatement();
+            String sql = "SELECT "+ QUERY_GLOBAL_TABLE_ID +", "+QUERY_GLOBAL_COLUMN_ID+", "+ QUERY_ORDER_BY+" FROM " + QUERY_ROW + " WHERE "+QUERY_ID+" = " +queryID+";";
+            ResultSet rs = stmt.executeQuery(sql);
+            // loop through the result set
+            while (rs.next()) {
+                int tableID = rs.getInt(QUERY_GLOBAL_TABLE_ID);
+                int colID = rs.getInt(QUERY_GLOBAL_COLUMN_ID);
+                GlobalTableData t = this.getGlobalTableFromID(tableID);
+                GlobalColumnData c = this.getGlobalColumnByID(colID);
+                c.setOrderBy(rs.getString(QUERY_GLOBAL_COLUMN_ID));
+                if (rows.containsKey(t)){
+                    List<GlobalColumnData> cols = rows.get(t);
+                    cols.add(c);
+                    rows.put(t, cols);
+                }
+                else{
+                    List<GlobalColumnData> cols = new ArrayList<>();
+                    cols.add(c);
+                    rows.put(t, cols);
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return rows;
+    }
+
+    public Map<GlobalTableData, List<GlobalColumnData>> getQueryColumns(int queryID){
+        Map<GlobalTableData, List<GlobalColumnData>> colums = new HashMap<>();
+        try {
+            Statement stmt = conn.createStatement();
+            String sql = "SELECT "+ QUERY_GLOBAL_TABLE_ID +", "+QUERY_GLOBAL_COLUMN_ID+" FROM " + QUERY_COLS + " WHERE "+QUERY_ID+" = " +queryID+";";
+            ResultSet rs = stmt.executeQuery(sql);
+            // loop through the result set
+            while (rs.next()) {
+                int tableID = rs.getInt(QUERY_GLOBAL_TABLE_ID);
+                int colID = rs.getInt(QUERY_GLOBAL_COLUMN_ID);
+                GlobalTableData t = this.getGlobalTableFromID(tableID);
+                GlobalColumnData c = this.getGlobalColumnByID(colID);
+                if (colums.containsKey(t)){
+                    List<GlobalColumnData> cols = colums.get(t);
+                    cols.add(c);
+                    colums.put(t, cols);
+                }
+                else{
+                    List<GlobalColumnData> cols = new ArrayList<>();
+                    cols.add(c);
+                    colums.put(t, cols);
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return colums;
+    }
+
+    public Map<GlobalColumnData, String> getQueryMeasures(int queryID){
+        Map<GlobalColumnData, String> measures = new HashMap<>();
+        try {
+            Statement stmt = conn.createStatement();
+            String sql = "SELECT "+ QUERY_GLOBAL_COLUMN_ID +", "+QUERY_AGGR_OP+" FROM " + QUERY_MEASURES + " WHERE "+QUERY_ID+" = " +queryID+";";
+            ResultSet rs = stmt.executeQuery(sql);
+            // loop through the result set
+            while (rs.next()) {
+                int colID = rs.getInt(QUERY_GLOBAL_COLUMN_ID);
+                String aggrOp = rs.getString(QUERY_AGGR_OP);
+                GlobalColumnData c = this.getGlobalColumnByID(colID);
+                measures.put(c, aggrOp);
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return measures;
+    }
+
+    public String getQueryFilters(int queryID){
+        try {
+            Statement stmt = conn.createStatement();
+            String sql = "SELECT "+ QUERY_FILTERS_STR+" FROM " + QUERY_FILTERS + " WHERE "+QUERY_ID+" = " +queryID+";";
+            ResultSet rs = stmt.executeQuery(sql);
+            // loop through the result set
+            if (rs.next()) {
+                return rs.getString(QUERY_FILTERS_STR);
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return "";
     }
 
 
