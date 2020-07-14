@@ -242,10 +242,10 @@ public class QueryUI extends JPanel{
         for (Map.Entry<GlobalTableData, List<GlobalColumnData>> rowSelect : rows.entrySet()){
             for (GlobalColumnData c : rowSelect.getValue()){
                 addRowsToList(rowsListModel, c, rowSelect.getKey());
-                if (c.getOrderBy().equalsIgnoreCase("ASC")){
+                if (c.getOrderBy() != null && c.getOrderBy().equalsIgnoreCase("ASC")){
                     this.addGroupBy(rowsListModel.getSize()-1, true);
                 }
-                else if (c.getOrderBy().equalsIgnoreCase("DESC")){
+                else if (c.getOrderBy() != null && c.getOrderBy().equalsIgnoreCase("DESC")){
                     this.addGroupBy(rowsListModel.getSize()-1, false);
                 }
             }
@@ -298,9 +298,32 @@ public class QueryUI extends JPanel{
         //get all select cols:
         Map<GlobalTableData, List<GlobalColumnData>> columns = globalTableQueries.getSelectColumns();
         Map<Integer, String> measures = globalTableQueries.getMeasuresWithID();
+        List<String> orderBy = globalTableQueries.getOrderBy(); //each order by is in the form 'tableName.column (ASC/DESC)'
+        for (Map.Entry<GlobalTableData, List<GlobalColumnData>> r : rows.entrySet()){
+            String tName = r.getKey().getTableName();
+            for (GlobalColumnData c : r.getValue()){
+                String cName = c.getName();
+                for (String s : orderBy){
+                    String [] splitted = s.split(" ");
+                    String name = splitted[0];
+                    String type = splitted[1];
+                    if (name.equals(tName+"."+cName)){
+                        c.setOrderBy(type);
+                        orderBy.remove(s);
+                        break;
+                    }
+                }
+            }
+        }
         String filters = this.getFilterQuery();
 
-        metaDataManager.insertNewQuerySave(nameTxt.getText(), cubeSelectionComboBox.getSelectedItem().toString(), rows, columns, measures, filters );
+        boolean success = metaDataManager.insertNewQuerySave(nameTxt.getText(), cubeSelectionComboBox.getSelectedItem().toString(), rows, columns, measures, filters );
+        if (success){
+            JOptionPane.showMessageDialog(mainMenu, "Query "+nameTxt.getText()+" save successfully!", "Query saved", JOptionPane.PLAIN_MESSAGE);
+        }
+        else{
+            JOptionPane.showMessageDialog(mainMenu, "Query "+nameTxt.getText()+" could not be saved.", "Query not saved", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     public void deleteQuery(String queryName){
@@ -612,7 +635,7 @@ public class QueryUI extends JPanel{
                 return;
             }
             String colName = rowsListModel.getElementAt(index).toString();
-            colName.replaceAll("\\s+", "");
+            colName = colName.replaceAll("\\s+", "");
             String tableName = getTableNameOfColumnInList(rowsListModel, index);
             if (tableName == null)
                 return;
@@ -862,7 +885,6 @@ public class QueryUI extends JPanel{
         return new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent arg0) {
-                System.out.println(SwingUtilities.isRightMouseButton(arg0));
                 //if (SwingUtilities.isRightMouseButton(arg0)){
                 int index = rowsList.locationToIndex(arg0.getPoint());
                 if (!rowsListModel.getElementAt(index).toString().contains("    ")){
@@ -870,8 +892,6 @@ public class QueryUI extends JPanel{
                     return;
                 }
                 rowsList.setSelectedIndex(index);
-                System.out.println(index);
-                System.out.println(arg0.getPoint());
                 JPopupMenu menu = new JPopupMenu();
                 JMenuItem item1 = new JMenuItem("Delete");
                 JMenu subMenu = new JMenu("Order by");

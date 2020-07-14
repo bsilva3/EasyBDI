@@ -1296,7 +1296,7 @@ public class MetaDataManager {
         return t;
     }
 
-    public void insertNewQuerySave(String queryName, String cubeName, Map<GlobalTableData, List<GlobalColumnData>> rows,
+    public boolean insertNewQuerySave(String queryName, String cubeName, Map<GlobalTableData, List<GlobalColumnData>> rows,
                                    Map<GlobalTableData, List<GlobalColumnData>> columns, Map<Integer, String> measures, String filters){
         int cubeID = getOrcreateCube(cubeName);
         String sql = "INSERT INTO "+ QUERY_SAVE + "("+QUERY_CUBE_ID+", "+QUERY_NAME+") VALUES(?,?)";
@@ -1313,10 +1313,11 @@ public class MetaDataManager {
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
+            return false;
         }
         if (queryID == -1){
             System.err.println("Query Save: problem inserting in database");
-            return;
+            return false;
         }
         //insert rows
         sql = "INSERT INTO "+ QUERY_ROW + "("+QUERY_ID+", "+QUERY_GLOBAL_TABLE_ID+", "+QUERY_GLOBAL_COLUMN_ID+", "+QUERY_ORDER_BY+") VALUES(?,?,?,?)";
@@ -1335,6 +1336,7 @@ public class MetaDataManager {
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
+            return false;
         }
         //insert cols (if any)
         if (columns != null && columns.size() > 0) {
@@ -1353,6 +1355,7 @@ public class MetaDataManager {
                 }
             } catch (SQLException e) {
                 System.out.println(e.getMessage());
+                return false;
             }
         }
 
@@ -1368,6 +1371,7 @@ public class MetaDataManager {
                 }
             } catch (SQLException e) {
                 System.out.println(e.getMessage());
+                return false;
             }
         }
 
@@ -1380,8 +1384,10 @@ public class MetaDataManager {
                     pstmt.executeUpdate();
             } catch (SQLException e) {
                 System.out.println(e.getMessage());
+                return false;
             }
         }
+        return true;
     }
 
     public void deleteQuery(String queryName, String cubeName){
@@ -1469,7 +1475,7 @@ public class MetaDataManager {
                 int colID = rs.getInt(QUERY_GLOBAL_COLUMN_ID);
                 GlobalTableData t = this.getGlobalTableFromID(tableID);
                 GlobalColumnData c = this.getGlobalColumnByID(colID);
-                c.setOrderBy(rs.getString(QUERY_GLOBAL_COLUMN_ID));
+                c.setOrderBy(rs.getString(QUERY_ORDER_BY));
                 if (rows.containsKey(t)){
                     List<GlobalColumnData> cols = rows.get(t);
                     cols.add(c);
