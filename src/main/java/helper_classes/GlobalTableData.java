@@ -46,8 +46,21 @@ public class GlobalTableData implements Serializable {
         return tables;
     }
 
-    public Set<TableData> getLocalTablesFromCols(List<GlobalColumnData> columnDataList) {
-        List<ColumnData> localCols = new ArrayList<>();//list with all local columns that match to one of the specified columns
+    public Set<TableData> getLocalTablesFromCols(Set<ColumnData> cols) {
+        Set<TableData> tables = new HashSet<>();
+        for (GlobalColumnData gc : this.globalColumnData){
+            for (ColumnData c : gc.getLocalColumns())
+                for (ColumnData col : cols){
+                    if (c.equals(col))
+                        tables.add(c.getTable());
+                }
+
+        }
+        return tables;
+    }
+
+    public Set<TableData> getAllLocalTablesFromCols(List<GlobalColumnData> columnDataList) {
+        Set<ColumnData> localCols = new HashSet<>();//list with all local columns that match to one of the specified columns
         for (GlobalColumnData globalCol : columnDataList){
             localCols.addAll(globalCol.getLocalColumns());
         }
@@ -57,7 +70,7 @@ public class GlobalTableData implements Serializable {
         for (TableData t : tables) {
             TableData newT = new TableData(t.getTableName(), t.getSchemaName(), t.getDB(), t.getId());
 
-            List<ColumnData> colsSelectInOrder = new ArrayList<>();
+            //List<ColumnData> colsSelectInOrder = new ArrayList<>();
             for (ColumnData localCol : localCols){
                 if (localCol.getTable().getId() == t.getId())
                     newT.addColumn(localCol);
@@ -69,20 +82,28 @@ public class GlobalTableData implements Serializable {
         return tablesUpdate;
     }
 
-    /*public Set<TableData> getLocalTablesFromCols(List<GlobalColumnData> columnDataList) {
+    public Set<TableData> getLocalTablesFromCols_v(List<GlobalColumnData> columnDataList) {
         Set<ColumnData> localCols = new HashSet<>();//list with all local columns that match to one of the specified columns
         for (GlobalColumnData globalCol : columnDataList){
             localCols.addAll(globalCol.getLocalColumns());
         }
-        Set<TableData> tables = getLocalTablesFromCols();
+        Set<TableData> tables = getLocalTablesFromCols(localCols); //only local tables of selected global cols (vertical_partioning)
 
         Set<TableData> tablesUpdate = new HashSet<>();
         for (TableData t : tables) {
-            t.keepOnlySpecifiedColumnsIfExist(localCols);
-            tablesUpdate.add(t);
+            TableData newT = new TableData(t.getTableName(), t.getSchemaName(), t.getDB(), t.getId());
+
+            //List<ColumnData> colsSelectInOrder = new ArrayList<>();
+            for (ColumnData localCol : localCols){
+                if (localCol.getTable().getId() == t.getId())
+                    newT.addColumn(localCol);
+            }
+            //newT.setColumnsList(t.getColumnsList());
+            //newT.keepOnlySpecifiedColumnsIfExist(localCols);
+            tablesUpdate.add(newT);
         }
-        return tables;
-    }*/
+        return tablesUpdate;
+    }
 
     public MappingType getMappingTypeOfMatches(){//same for all matches, therefore, check only a column
         return globalColumnData.get(0).getLocalColumns().iterator().next().getMapping();

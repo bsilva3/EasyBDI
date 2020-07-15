@@ -31,7 +31,7 @@ public class SchemaMatcher {
         List<GlobalTableData> globalTables = schemaMatcher.schemaIntegration(dbs);
         schemaMatcher.printGlobalTables(globalTables);
 
-        GlobalSchemaConfigurationV2 schemaConfigurationV2 = new GlobalSchemaConfigurationV2("my project", schemaMatcher.generateLocalSchema(), globalTables);
+        //GlobalSchemaConfigurationV2 schemaConfigurationV2 = new GlobalSchemaConfigurationV2("my project", schemaMatcher.generateLocalSchema(), globalTables);
     }
 
     public void printGlobalTables(List<GlobalTableData> globalTables){

@@ -33,6 +33,8 @@ public class TableData implements Serializable {
     public void addColumn(ColumnData col){
         if (this.columnsList == null)
             columnsList = new ArrayList<>();
+        if (columnsList.contains(col))
+            return;
         columnsList.add(col);
     }
 

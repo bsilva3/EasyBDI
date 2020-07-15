@@ -216,10 +216,11 @@ public class MetaDataManager {
                 + "    FOREIGN KEY ("+ GLOBAL_TABLE_DATA_ID_FIELD +") REFERENCES "+GLOBAL_COLUMN_DATA+"("+GLOBAL_COLUMN_DATA_ID_FIELD+")); ";
 
         String sql10 = "CREATE TABLE IF NOT EXISTS "+ MULTIDIM_COLUMN +" (\n"
-                + "    "+ CUBE_ID_FIELD +" integer PRIMARY KEY,\n"
+                + "    "+ CUBE_ID_FIELD +" integer,\n"
                 + "    "+ MULTIDIM_TABLE_ID +" integer ,\n"
                 + "    "+ MULTIDIM_COL_GLOBAL_COLUMN_ID +" integer ,\n"
                 + "    "+ MULTIDIM_COLUMN_MEASURE +" boolean ,\n"
+                + "    "+ "PRIMARY KEY("+CUBE_ID_FIELD+", "+MULTIDIM_TABLE_ID +", "+MULTIDIM_COL_GLOBAL_COLUMN_ID+") ON CONFLICT ABORT,\n"
                 + "    FOREIGN KEY ("+ CUBE_ID_FIELD +") REFERENCES "+CUBE_TABLE+"("+CUBE_ID_FIELD+"), "
                 + "    FOREIGN KEY ("+ MULTIDIM_TABLE_ID +") REFERENCES "+MULTIDIM_TABLE+"("+MULTIDIM_TABLE_ID+"), "
                 + "    FOREIGN KEY ("+ MULTIDIM_COL_GLOBAL_COLUMN_ID +") REFERENCES "+GLOBAL_COLUMN_DATA+"("+GLOBAL_COLUMN_DATA_ID_FIELD+")); ";
@@ -846,6 +847,7 @@ public class MetaDataManager {
      * @param starSchema
      */
     public boolean insertStarSchema(StarSchema starSchema){
+
         int cubeId = getOrcreateCube(starSchema.getSchemaName());
         if (cubeId < 1){
             return false;

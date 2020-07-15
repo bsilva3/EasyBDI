@@ -230,7 +230,7 @@ public class MainWizardPanel extends JPanel{
             //new project, or edit of project that does not contain a saved global schema, perform schema match and present a global schema sugestion.
             globalSchema = schemaMatcher.schemaIntegration(dbs);
         }
-        globalSchemaConfigWizzard = new GlobalSchemaConfigurationV2(projectName, dbs, globalSchema);
+        globalSchemaConfigWizzard = new GlobalSchemaConfigurationV2(metaDataManager, dbs, globalSchema);
         addToMainPanel(dbSelection, globalSchemaConfigWizzard);
     }
 

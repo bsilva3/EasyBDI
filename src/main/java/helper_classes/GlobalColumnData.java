@@ -85,6 +85,12 @@ public class GlobalColumnData implements Serializable {
         return dataType;
     }
 
+    public String getDataTypeNoLimit() {
+        String datatypeNoLimit =  dataType.split("\\(")[0];
+        datatypeNoLimit = datatypeNoLimit.replaceAll("\\s+","");
+        return datatypeNoLimit;
+    }
+
     public void setDataType(String dataType) {
         this.dataType = dataType;
     }

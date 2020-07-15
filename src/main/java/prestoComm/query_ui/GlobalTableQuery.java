@@ -418,7 +418,7 @@ public class GlobalTableQuery {
     private String handleSimpleMapping(GlobalTableData t, List<GlobalColumnData> selectCols){
         //for each local table that matches with this global table
         String query = " SELECT ";
-        Set<TableData> localTables = t.getLocalTablesFromCols(selectCols);
+        Set<TableData> localTables = t.getAllLocalTablesFromCols(selectCols);
         for (TableData localTable : localTables){
             List<ColumnData> localCols = localTable.getColumnsList();
             for (int i = 0; i < localCols.size()-1; i++){
@@ -432,7 +432,7 @@ public class GlobalTableQuery {
     private String handleSimpleMapping(GlobalTableData t){
         //for each local table that matches with this global table
         String query = " SELECT * ";
-        Set<TableData> localTables = t.getLocalTablesFromCols(t.getGlobalColumnDataList());
+        Set<TableData> localTables = t.getAllLocalTablesFromCols(t.getGlobalColumnDataList());
         for (TableData localTable : localTables){
             query+= "FROM "+localTable.getCompletePrestoTableName()+" ";
         }
@@ -443,7 +443,7 @@ public class GlobalTableQuery {
         String query ="SELECT ";
         String tableUnionString = "UNION SELECT ";
         //for each local table that matches with this global table
-        Set<TableData> localTables = t.getLocalTablesFromCols(selectCols);
+        Set<TableData> localTables = t.getAllLocalTablesFromCols(selectCols);
         for (TableData localTable : localTables){
             List<ColumnData> localCols = localTable.getColumnsList();
             for (int i = 0; i < localCols.size()-1; i++){
@@ -463,7 +463,7 @@ public class GlobalTableQuery {
         String query ="SELECT * ";
         String tableUnionString = "UNION SELECT ";
         //for each local table that matches with this global table
-        Set<TableData> localTables = t.getLocalTablesFromCols(t.getGlobalColumnDataList());
+        Set<TableData> localTables = t.getAllLocalTablesFromCols(t.getGlobalColumnDataList());
         for (TableData localTable : localTables){
             query+= "FROM "+localTable.getCompletePrestoTableName()+" ";
             query+=tableUnionString;
@@ -477,25 +477,34 @@ public class GlobalTableQuery {
     private String handleVerticalMapping(GlobalTableData t, List<GlobalColumnData> selectCols){
         //for each local table that matches with this global table
         String query = " SELECT ";
-        Set<TableData> localTables = t.getLocalTablesFromCols(selectCols);
         String tableJoinString = "INNER JOIN ";
+
+        Set<TableData> localTables = t.getAllLocalTablesFromCols(t.getGlobalColumnDataList());
         ColumnData primaryKeyCol = null;
         List<ColumnData> foreignKeyCols = new ArrayList<>();
+        //all columns  from local tables (get primary key)
         for (TableData localTable : localTables){
-            List<ColumnData> localCols = localTable.getColumnsList();
-            for (int i = 0; i < localCols.size(); i++){
-                ColumnData col = localCols.get(i);
+            Set<ColumnData> localCols = new HashSet<>(localTable.getColumnsList());
+            for (ColumnData col: localCols){
                 if (col.isPrimaryKey() && !col.hasForeignKey()){
                     primaryKeyCol = col;
                 }
-                else if(col.isPrimaryKey() && col.hasForeignKey()) {//skip, this column is the same as primary key
+                else if (col.isPrimaryKey() && col.hasForeignKey() && localTableHasOneColumnInSelect(selectCols, localTable)) {//the foreign key table must have at least one column in the select clause
                     foreignKeyCols.add(col);
-                    continue;
                 }
+            }
+            //query+=localCols.get(localCols.size()-1).getCompletePrestoColumnName()+" ";//last column is whithout a comma
+            //query+= "FROM "+localTable.getCompletePrestoTableName()+" ";
+        }
+        Set<TableData> localTablesSelectCols = t.getLocalTablesFromCols_v(selectCols);
+        //get all local tables in the selected
+        for (TableData localTable : localTablesSelectCols){
+            Set<ColumnData> localCols = new HashSet<>(localTable.getColumnsList());
+            for (ColumnData col: localCols){
                 query+=col.getCompletePrestoColumnName() +", ";
             }
-            query+=localCols.get(localCols.size()-1).getCompletePrestoColumnName()+" ";//last column is whithout a comma
-            query+= "FROM "+localTable.getCompletePrestoTableName()+" ";
+            //query+=localCols.get(localCols.size()-1).getCompletePrestoColumnName()+" ";//last column is whithout a comma
+            //query+= "FROM "+localTable.getCompletePrestoTableName()+" ";
         }
         if (query.endsWith(", ")) {
             query = query.substring(0, query.length() - ", ".length());//last column is whithout a comma
@@ -506,6 +515,25 @@ public class GlobalTableQuery {
             query+= tableJoinString +" "+col.getTable().getCompletePrestoTableName()+ " ON "+primaryKeyCol.getCompletePrestoColumnName()+ " = "+col.getCompletePrestoColumnName();
         }
         return query;
+    }
+
+    private boolean localTableCorrespondsToOneOfTheGlobalTables(List<GlobalColumnData> globalCols, ColumnData localCol){
+        for (GlobalColumnData c : globalCols){
+            if (c.getLocalColumns().contains(localCol)){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean localTableHasOneColumnInSelect(List<GlobalColumnData> globalCols, TableData localTable){
+        for (GlobalColumnData c : globalCols){
+            for (ColumnData localCol : c.getLocalColumns()){
+                if (localCol.getTable().equals(localTable))
+                    return true;
+            }
+        }
+        return false;
     }
 
     public void clearAllElements(){

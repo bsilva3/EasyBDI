@@ -13,9 +13,9 @@ public class MainTest {
 
     public static void main(String[] args){
 
-        MetaDataManager m = new MetaDataManager("salesdb2");
-        m.deleteTablesToSaveQueries();
-        m.createTables();
+        MetaDataManager m = new MetaDataManager("salesdb3_partitions");
+        //m.deleteTablesToSaveQueries();
+        //m.createTables();
         //manager.dropTables();
 
         /*manager.createDatabaseAndConnectToPresto();
@@ -56,15 +56,17 @@ public class MainTest {
         System.out.println("Cubes created:");
         m.makeQueryAndPrint("SELECT * FROM "+ CUBE_TABLE);*/
 
-        m.makeQueryAndPrint("SELECT \n" +
+        /*m.makeQueryAndPrint("SELECT \n" +
                 "    name\n" +
                 "FROM \n" +
                 "    sqlite_master \n" +
                 "WHERE \n" +
                 "    type ='table' AND \n" +
-                "    name NOT LIKE 'sqlite_%';");
+                "    name NOT LIKE 'sqlite_%';");*/
 
-        m.makeQueryAndPrint("SELECT * FROM "+QUERY_SAVE+";");
+        //m.makeQueryAndPrint("SELECT * FROM "+QUERY_SAVE+";");
+
+        m.makeQueryAndPrint("SELECT * FROM "+ COLUMN_DATA);
 
 
     }
