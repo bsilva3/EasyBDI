@@ -3,6 +3,9 @@ package prestoComm.query_ui;
 import helper_classes.*;
 import prestoComm.PrestoMediator;
 
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
 import java.util.*;
 
 public class GlobalTableQuery {
@@ -176,8 +179,12 @@ public class GlobalTableQuery {
 
     //Creates a 'SELECT XXX FROM ( ) join fatcs with dims foreign keys' with the necessary inner queries to get local schema data and join facts foreign keys with dims. Also
     //performs aggregations on the measures and groups the dimensions rows
-    public String buildQuerySelectRowsAndMeasures() {
-        String query = "SELECT ";
+    public String buildQuerySelectRowsAndMeasures(boolean selectMeasure) {
+        return buildQuerySelectRowsAndMeasures("SELECT ", selectMeasure);
+    }
+
+    public String buildQuerySelectRowsAndMeasures(String queryBegin, boolean selectMeasure) {
+        String query = queryBegin;
         Map<GlobalTableData, List<GlobalColumnData>> tableSelectRowsWithPrimKeys = new HashMap<>();
         //first add to the select the dimensions columns
         for (Map.Entry<GlobalTableData, List<GlobalColumnData>> dimTable : selectRows.entrySet()){
@@ -205,11 +212,14 @@ public class GlobalTableQuery {
         /*for (String s : dimKeysStr){
             query+= s+", ";
         }*/
-        //add to the select the measures with the aggregation operation (in the form 'aggr(measureName)'). This a string taken from the drop are in the interface.
-        for (String measureCol : measures) {
-            String measureName = measureCol.split("[()]")[1]; //split on first space to the measure name (its in the form "aggr(measureName)" )
-            query += measureCol + " AS " + measureName + ",";
+        if (selectMeasure) {
+            //add to the select the measures with the aggregation operation (in the form 'aggr(measureName)'). This a string taken from the drop are in the interface.
+            for (String measureCol : measures) {
+                String measureName = measureCol.split("[()]")[1]; //split on first space to the measure name (its in the form "aggr(measureName)" )
+                query += measureCol + " AS " + measureName + ",";
+            }
         }
+
         query = query.substring(0, query.length() - 1);//last elemment without comma
         query+= " FROM ";
 
@@ -359,6 +369,215 @@ public class GlobalTableQuery {
         return query;
     }*/
 
+    public String buildQuerySelectRowsColsAndMeasures() {
+        Map<String, List<String>> valuesByGlobalCol = new HashMap<>();
+        String query = "SELECT ";
+
+
+
+        //for each column in the columns area get each of their distinct values
+        for (Map.Entry<GlobalTableData, List<GlobalColumnData>> colSelect : selectColumns.entrySet()){
+            GlobalTableData t = colSelect.getKey();
+            List<GlobalColumnData> cols = colSelect.getValue();
+            for (GlobalColumnData c : cols){
+                List<String> values = getAllDifferentValuesOfColumn(t, c);
+                valuesByGlobalCol.put(t.getTableName()+"."+c.getName(), values);
+            }
+        }
+
+        //clauses to create columns
+
+        //for each measure, iterate
+        for (String measure : measures){
+            String measureName = getMeasureName(measure);
+            String measureOP = getMeasureOP(measure);
+            for (Map.Entry<String, List<String>> valuesOfCol : valuesByGlobalCol.entrySet()){//for each list of value of each column
+                List<String> values = valuesOfCol.getValue();
+                String tableColumn = valuesOfCol.getKey();
+                for (String s : values) {
+                    String valueRaw = s.replaceAll("'", "");
+                    if (stringIsNumeric(valueRaw)){
+                        valueRaw = "_"+valueRaw;
+                    }
+                    if (measureOP.equalsIgnoreCase("COUNT")) //inneficient, if running for every row...
+                        query+= " COUNT(CASE WHEN "+ tableColumn + " = " + s + " THEN 1 ELSE 0 END) AS "+valueRaw+", ";
+                    else if (measureOP.equalsIgnoreCase("SUM")) //inneficient, if running for every row...
+                        query+= " SUM(CASE WHEN "+ tableColumn + " = " + s + " THEN "+measureName +" ELSE 0 END) AS "+valueRaw+", ";
+                    else if (measureOP.equalsIgnoreCase("AVG")) //inneficient, if running for every row...
+                        query+= " AVG(CASE WHEN "+ tableColumn + " = " + s + " THEN "+measureName +" ELSE 0 END) AS "+valueRaw+", ";
+                }
+            }
+        }
+
+        /*for (Map.Entry<String, List<String>> valuesOfCol : valuesByGlobalCol.entrySet()){//for each list of value of each column
+            List<String> values = valuesOfCol.getValue();
+            String tableColumn = valuesOfCol.getKey();
+            for (Map.Entry<GlobalTableData, List<GlobalColumnData>> selectRow : selectRows.entrySet()){
+                List<GlobalColumnData> selectRowsCols = selectRow.getValue();
+                for (String s : values) {
+                    for (GlobalColumnData selectRowsCol : selectRowsCols) {//for each rows selected
+                        //create query in the form: MAX(CASE WHEN <column in select cols area> = <value of col> THEN <selectRows area> END)
+                        String valueRaw = s.replaceAll("'", "");
+                        query+= " MAX(CASE WHEN "+ tableColumn + " = " + s + " THEN " +selectRow.getKey().getTableName()+"."+selectRowsCol.getName()+") AS "+valueRaw+", ";
+                    }
+                }
+            }
+        }*/
+        //query = query.substring(0, query.length() - 1);//last elemment without comma
+
+
+        //query = buildQuerySelectRowsAndMeasures(query, false);//complete query with measures aggregations and rows selections
+
+        //add to select atributes in the 'rows' area
+        Map<GlobalTableData, List<GlobalColumnData>> tableSelectRowsWithPrimKeys = new HashMap<>();
+        //first add to the select the dimensions columns
+        for (Map.Entry<GlobalTableData, List<GlobalColumnData>> dimTable : selectRows.entrySet()){
+            List<GlobalColumnData> cols = dimTable.getValue();
+            GlobalTableData t = dimTable.getKey();
+            GlobalTableData newt = new GlobalTableData(t.getTableName());
+            newt.setId(t.getId());
+            List<GlobalColumnData> newCols = new ArrayList<>();
+            boolean primKeyIsSelected = false;
+            for (GlobalColumnData c : cols){
+                query+= t.getTableName()+"."+c.getName()+",";
+                GlobalColumnData newC = new GlobalColumnData(c.getName(), c.getDataType(), c.isPrimaryKey(), c.getLocalColumns());//new references so that the originals are unnaltered
+                newCols.add(newC);
+                if (c.isPrimaryKey()) {
+                    primKeyIsSelected = true;
+                }
+            }
+            if (!primKeyIsSelected){
+                GlobalColumnData cp = dimTable.getKey().getPrimaryKeyColumn(); //primary key column missing
+                newCols.add(new GlobalColumnData(cp.getName(), cp.getDataType(), cp.isPrimaryKey(), cp.getLocalColumns(), cp.getColumnID()));
+            }
+            newt.setGlobalColumnData(newCols);
+            tableSelectRowsWithPrimKeys.put(newt, newCols);
+        }
+
+        query = query.substring(0, query.length() - 1);//last elemment without comma
+        query+= " FROM ";
+
+        for (Map.Entry<GlobalTableData, List<GlobalColumnData>> tableSelectRows : tableSelectRowsWithPrimKeys.entrySet()){
+            //for each global column create inner queries in the 'From' clause
+            GlobalTableData t = tableSelectRows.getKey();
+            List<GlobalColumnData> rowsForSelect = tableSelectRows.getValue();
+            if (selectColumns.containsKey(t)){
+                List<GlobalColumnData> colsForSelect = selectColumns.get(t);
+                for (GlobalColumnData colForSelect : colsForSelect) {
+                    if (!rowsForSelect.contains(colForSelect)) { //in the subqueries, must also fetch the attributes in the 'columns' area
+                        rowsForSelect.add(colForSelect);
+                    }
+                }
+            }
+            //todo must add in the from a inner query to fetch table of atributes in the 'columns' area IF such table is not already in the 'rows area'
+
+            String subQueries = getLocalTableQuery(t, rowsForSelect);
+
+            if(subQueries.contains("Error")){
+                return subQueries;//propagate error
+            }
+            query+="("+subQueries;
+            //Join on facts table
+            query+= ") AS " + t.getTableName()+",";
+        }
+        //get facts table in from clause
+        String subQueries = "("+getLocalTableQuery(factsTable.getGlobalTable());
+        if(subQueries.contains("Error")){
+            return subQueries;//propagate error
+        }
+        query+=subQueries;
+        query+= ") AS "+factsTable.getGlobalTable().getTableName()+" ";
+
+        //perform Where on facts foreign key fields = dimensions referenced primary keys
+        query+= " WHERE (";
+
+        Map<GlobalColumnData, Boolean> factColumns = factsTable.getColumns();
+        //foreign key of facts = prim key of the dimensions
+        for (Map.Entry<GlobalColumnData, Boolean> factColumn : factColumns.entrySet()) {
+            boolean isMeasure = factColumn.getValue();
+            if (!isMeasure) { //it must be a foreign key, check if it references a dim table
+                for (GlobalTableData tableDim : tableSelectRowsWithPrimKeys.keySet()) {
+
+                    GlobalColumnData factsCol = factColumn.getKey();
+                    if (factsCol.hasForeignKey()) {
+                        GlobalColumnData referencedCol = isFactsColReferencingDimTable(factsCol.getForeignKey(), tableDim);
+                        if (referencedCol != null) {
+                            query += tableDim.getTableName() + "." + referencedCol.getName() + " = " + factsTable.getGlobalTable().getTableName() + "." + factsCol.getName();
+                            query += " AND ";
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        query = query.substring(0, query.length() - "AND ".length());//last column is whithout a comma
+        query+=")"; //close where clause
+
+        //aditional filters set by user here
+        if (filterQuery.length() > 0){
+            query += " AND ( " + filterQuery +")";//add filters to the query (if there are filters). Filters will be applied to the outer query
+        }
+
+        //groupby for each dimension column (only if aggregation operation is made)
+        query += " GROUP BY ( ";
+        for (Map.Entry<GlobalTableData, List<GlobalColumnData>> tableSelectRows : selectRows.entrySet()) {
+            //for each global column create inner queries in the 'From' clause
+            GlobalTableData table = tableSelectRows.getKey();
+            List<GlobalColumnData> columns = tableSelectRows.getValue();
+            for (GlobalColumnData col : columns) {
+                query +=table.getTableName()+"."+col.getName()+",";
+            }
+        }
+        query = query.substring(0, query.length() - 1);//last elemment without comma
+        query += ")"; //close group by
+
+        return query;
+    }
+
+    public static boolean stringIsNumeric(String strNum) {
+        if (strNum == null) {
+            return false;
+        }
+        try {
+            double d = Double.parseDouble(strNum);
+        } catch (NumberFormatException nfe) {
+            return false;
+        }
+        return true;
+    }
+
+    public List<String> getAllDifferentValuesOfColumn(GlobalTableData t, GlobalColumnData c){
+        List<String> values = new ArrayList<>();
+        String query = "SELECT DISTINCT " + t.getTableName()+"."+c.getName() + " FROM ";
+        List<GlobalColumnData> cs = new ArrayList<>();
+        cs.add(c);
+        String subQueries = "("+getLocalTableQuery(t, cs);
+        if(subQueries.contains("Error")){
+            return null;
+        }
+        query+=subQueries;
+        query+= ") AS "+t.getTableName()+" ";
+
+        ResultSet results = presto.getLocalTablesQueries(query);
+        //insert column results in JTable
+        try {
+            //results.beforeFirst(); //return to begining
+            while(results.next()){
+                //Fetch each row from the ResultSet, and add to ArrayList of different values
+                // ResultSet column indices start at 1
+                String value = results.getString(1);
+                if (!c.isNumeric())
+                    value = "'"+value+"'";
+                values.add(value);
+            }
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+
+        return values;
+    }
+
     private String getMeasureName(String measureAndOP){
         return measureAndOP.split("[()]")[1]; //split on first space to the measure name (its in the form "aggr(measureName)" )
     }
@@ -372,7 +591,10 @@ public class GlobalTableQuery {
             query = buildQuerySelectRowsOnly();
         }
         else if (selectColumns.size() == 0 && measures.size() > 0 && selectRows.size() > 0){
-            query = buildQuerySelectRowsAndMeasures();
+            query = buildQuerySelectRowsAndMeasures(true);
+        }
+        else if (selectColumns.size() > 0 && measures.size() > 0 && selectRows.size() > 0){
+            query = buildQuerySelectRowsColsAndMeasures();
         }
         else
             return "Error invalid query elements given";
@@ -444,13 +666,22 @@ public class GlobalTableQuery {
         String tableUnionString = "UNION SELECT ";
         //for each local table that matches with this global table
         Set<TableData> localTables = t.getAllLocalTablesFromCols(selectCols);
+        List<ColumnData> localCols = localTables.iterator().next().getColumnsList();
+        List<String> localColNames = new ArrayList<>();
+        for (ColumnData c : localCols){
+            localColNames.add(c.getName());
+        }
         for (TableData localTable : localTables){
-            List<ColumnData> localCols = localTable.getColumnsList();
+            /*List<ColumnData> localCols = localTable.getColumnsList();
             for (int i = 0; i < localCols.size()-1; i++){
                 query+=localCols.get(i).getCompletePrestoColumnName() +", ";
             }
-            query+=localCols.get(localCols.size()-1).getCompletePrestoColumnName()+" ";//last column is whithout a comma
-            query+= "FROM "+localTable.getCompletePrestoTableName()+" ";
+            query+=localCols.get(localCols.size()-1).getCompletePrestoColumnName()+" ";//last column is whithout a comma*/
+            for (String colName : localColNames){
+                query+=localTable.getCompletePrestoTableName()+"."+colName +", ";
+            }
+            query = query.substring(0, query.length() - ", ".length());
+            query+= " FROM "+localTable.getCompletePrestoTableName()+" ";
             query+=tableUnionString;
         }
         if (query.endsWith(tableUnionString)) {

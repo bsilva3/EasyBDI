@@ -19,6 +19,14 @@ public class GlobalColumnData implements Serializable {
         this.localColumns = localCols;
     }
 
+    public GlobalColumnData(String name, String dataType, boolean isPrimaryKey, Set<ColumnData> localCols, int id) {
+        this.name = name;
+        this.dataType = dataType;
+        this.isPrimaryKey = isPrimaryKey;
+        this.localColumns = localCols;
+        this.columnID = id;
+    }
+
     public GlobalColumnData(String name, String dataType, boolean isPrimaryKey, ColumnData localCol) {
         this.name = name;
         this.dataType = dataType;

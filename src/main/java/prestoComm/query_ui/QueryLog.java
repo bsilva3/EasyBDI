@@ -13,16 +13,20 @@ public class QueryLog {
     private int nResultsLines;
     private DateTimeFormatter formatter;
     private DateTimeFormatter formatter2;
+    private boolean queryFailed = false;
 
     public QueryLog(String query, DateTime queryTimeBegin, DateTime queryTimeEnd, int nResultsLines) {
         this.query = query;
         this.queryTimeBegin = queryTimeBegin;
         this.queryTimeEnd = queryTimeEnd;
-        //determine difference
-        DateTime d1 = new DateTime();
-        DateTime d2 = new DateTime();
-        long diffInMillis = d2.getMillis() - d1.getMillis();
-        this.duration = new DateTime(diffInMillis);
+        if (this.queryTimeEnd == null){
+            queryFailed = true;
+        }
+        else {
+            //determine difference
+            long diffInMillis = queryTimeBegin.getMillis() - queryTimeEnd.getMillis();
+            this.duration = new DateTime(diffInMillis);
+        }
         this.nResultsLines = nResultsLines;
         this.formatter = DateTimeFormat.forPattern("HH:mm:ss");
         this.formatter2 = DateTimeFormat.forPattern("mm:ss");
@@ -70,8 +74,12 @@ public class QueryLog {
 
     @Override
     public String toString() {
-        return "Start time: " + formatter.print(queryTimeBegin) +" - Query Time End: " + formatter.print(queryTimeEnd) + " (" + formatter2.print(duration) +") "
-                +"\nNumber of rows: " + nResultsLines
-                +"\nQuery: "+query;
+        if (!queryFailed) {
+            return "Start time: " + formatter.print(queryTimeBegin) + " - Query Time End: " + formatter.print(queryTimeEnd) + " (" + formatter2.print(duration) + ") "
+                    + "\nNumber of rows: " + nResultsLines
+                    + "\nQuery: \n" + query;
+        }
+        return "Start time: " + formatter.print(queryTimeBegin) + " - QUERY FAILED"
+                + "\nQuery: \n" + query;
     }
 }

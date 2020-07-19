@@ -125,6 +125,7 @@ public class QueryUI extends JPanel{
             //jtable
             this.defaultTableModel = new DefaultTableModel();
             this.queryResultsTable.setModel(defaultTableModel);
+            queryResultsTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);//maintain column width
 
             backButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
@@ -806,6 +807,7 @@ public class QueryUI extends JPanel{
     }
 
     public void executeQuery(){
+        //TODO: validate query
         defaultTableModel.setColumnCount(0);
         defaultTableModel.setRowCount(0);//clear any previous results
 
@@ -813,16 +815,13 @@ public class QueryUI extends JPanel{
         DateTime beginTime = new DateTime();
         globalTableQueries.setFilterQuery(getFilterQuery());
         String localQuery = globalTableQueries.buildQuery();//create query with inner query to get local table data
-        //get all filters as a string
+
 
         System.out.println(localQuery);
-        ///mover pro fim da funçlão:
-        DateTime endTime = new DateTime();
-        String log = formatter.print(endTime)+" - "+localQuery;
-        queryLogModel.addElement(new QueryLog(localQuery, beginTime, endTime, 0));
-        //////////
+
         if (localQuery.contains("Error")){
             JOptionPane.showMessageDialog(null, "Could not execute query:\n"+localQuery, "Query Error", JOptionPane.ERROR_MESSAGE);
+            queryLogModel.addElement(new QueryLog(localQuery, beginTime, null, 0));
             return;
         }
         ResultSet results = prestoMediator.getLocalTablesQueries(localQuery);
@@ -852,12 +851,13 @@ public class QueryUI extends JPanel{
                 defaultTableModel.addRow(currentRow);
             }
 
+            DateTime endTime = new DateTime();
+            queryLogModel.addElement(new QueryLog(localQuery, beginTime, endTime, nRows));
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
         queryResultsTable.revalidate();
 
-        //TODO: add end time here
 
     }
 
