@@ -129,6 +129,14 @@ public enum DBModel {
         return false;
     }
 
+    public boolean isSingleServerOneDatabase(){
+        if (this.equals(DBModel.MYSQL)){
+            return true;
+        }
+        //TODO: complete
+        return false;
+    }
+
     public abstract String getBDDataModel();
 
     public abstract String getMetaDataQuery();

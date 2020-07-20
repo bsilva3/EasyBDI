@@ -81,6 +81,8 @@ public class QueryUI extends JPanel{
         this.metaDataManager = new MetaDataManager(projectName);
         this.prestoMediator = new PrestoMediator();
 
+        mainPanel.setSize(mainMenu.getSize());
+
         List<String> starSchemas =  metaDataManager.getStarSchemaNames();
         if (starSchemas.isEmpty()){
             JOptionPane.showMessageDialog(null, "There are no star schemas in this project.", "No Star schemas found", JOptionPane.ERROR_MESSAGE);
@@ -1168,9 +1170,18 @@ public class QueryUI extends JPanel{
                         return true;
                     }
                     FilterNode root = (FilterNode) filterTreeModel.getRoot();
-                    if (root.getChildCount() == 0){//filters added and removed such that jtree is empty
+                    //decide where to drop
+                    JTree.DropLocation dl = (JTree.DropLocation)info.getDropLocation();
+                    TreePath dest = dl.getPath();
+                    FilterNode parent;
+                    if (dest == null)
+                        parent = root;
+                    else
+                        parent = (FilterNode)dest.getLastPathComponent();
+                    /*if (parent.getNodeType() == null && root.getChildCount() == 0){
+                        //dropping on root and filters are empty (previously added but the removed)
                         while (s == null){
-                            s = createFilterStringOperation(column, true);
+                            s = createFilterStringOperation(column, true);//0 - boolean operation if any, 1 - condition
                         }
                         if (s.length == 0)
                             return false;
@@ -1182,15 +1193,62 @@ public class QueryUI extends JPanel{
                         filterTree.revalidate();
                         filterTree.updateUI();
                         return true;
-                    }
+                    }*/
+                    //if (parent.getNodeType() == FilterNodeType.CONDITION){
+                        //dropping on another condition (create inner expressions)
+                        if (parent.getNodeType() == null && parent.getChildCount() == 0){
+                            while (s == null){
+                                s = createFilterStringOperation(column, true);//0 - boolean operation if any, 1 - condition
+                            }
+                            if (s.length == 0)
+                                return false;
+                            //filterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION), parent, parent.getChildCount());
+                            filterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), parent, parent.getChildCount());
+                        }
+                        else if (parent.getNodeType() == null && parent.getChildCount() > 0){
+                            while (s == null){
+                                s = createFilterStringOperation(column, false);//0 - boolean operation if any, 1 - condition
+                            }
+                            if (s.length == 0)
+                                return false;
+                            filterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION), parent, parent.getChildCount());
+                            filterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), parent, parent.getChildCount());
+                        }
+                        /*else if (parent.getNodeType() != null && parent.getChildCount() == 0){
+                            while (s == null){
+                                s = createFilterStringOperation(column, false);//0 - boolean operation if any, 1 - condition
+                            }
+                            if (s.length == 0)
+                                return false;
 
-                    while (s == null){
-                        s = createFilterStringOperation(column, false);
-                    }
-                    if (s.length == 0)
-                        return false;
-                    filterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION), root, root.getChildCount());
-                    filterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), root, root.getChildCount());
+                            filterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION), parent, parent.getChildCount());
+                            filterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), parent, parent.getChildCount());
+                        }*/
+                        else if (parent.getNodeType() == FilterNodeType.CONDITION){
+                            //inside a another condition
+                            while (s == null){
+                                s = createFilterStringOperation(column, false);//0 - boolean operation if any, 1 - condition
+                            }
+                            if (s.length == 0)
+                                return false;
+                            if (parent.getChildCount() == 0) {
+                                //if creating a new expression nested in a codition, add a boolean operator between them
+                                FilterNode parentOfParent = (FilterNode) parent.getParent();
+                                int indexOfParent = parentOfParent.getIndex(parent);
+                                FilterNode booleanNode = new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION);
+                                filterTreeModel.insertNodeInto(booleanNode, parentOfParent, indexOfParent+1);// create this condition between the condition and the inner expression
+                                filterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), booleanNode, booleanNode.getChildCount());//Must be child of the bolean operator
+                                TreePath path = new TreePath(booleanNode.getPath());
+                            }
+                            else{
+                                filterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION), parent, parent.getChildCount());
+                                filterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), parent, parent.getChildCount());
+                            }
+                        }
+                        TreePath path = new TreePath(parent.getPath());
+                        filterTree.expandPath(path);
+                    //}
+
                     filterTree.revalidate();
                     filterTree.updateUI();
                     return true;

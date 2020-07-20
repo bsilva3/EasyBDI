@@ -36,6 +36,7 @@ public class DatabaseConnectionWizardV2 extends JPanel {
     private JLabel stepLabel;
     private JLabel noteLabel;
     private JButton importDataSourceFromButton;
+    private JLabel nameFieldLabel;
     private List<DBData> dbList;
     private List<Boolean> dbConnectionTested;
     private DefaultListModel<String> listModel;
@@ -58,6 +59,7 @@ public class DatabaseConnectionWizardV2 extends JPanel {
         credentialsTxt.setFont(new Font("", Font.PLAIN, 11));
 
         databaseModelSelect.setModel(new DefaultComboBoxModel<DBModel>(DBModel.values()));
+        handleDbFieldsInfo();//to show/hide the name field depending on the selected db model
         dbList = new ArrayList<>();
         dbConnectionTested = new ArrayList<>();
         listModel = new DefaultListModel<>();
@@ -103,6 +105,24 @@ public class DatabaseConnectionWizardV2 extends JPanel {
                 openDBImporter();
             }
         });
+        databaseModelSelect.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                handleDbFieldsInfo();
+            }
+        });
+    }
+
+    private void handleDbFieldsInfo(){
+        DBModel dbModel = DBModel.valueOf(databaseModelSelect.getSelectedItem().toString());
+        if (dbModel.isSingleServerOneDatabase()){
+            nameText.setVisible(true);
+            nameFieldLabel.setVisible(true);
+        }
+        else{
+            nameText.setVisible(false);
+            nameFieldLabel.setVisible(false);
+        }
     }
 
     public DatabaseConnectionWizardV2(PrestoMediator prestoMediator, MetaDataManager metaDataManager, boolean isEdit){
@@ -132,7 +152,7 @@ public class DatabaseConnectionWizardV2 extends JPanel {
 
     private void addDatabase(String name, DBModel model, String url, String user, String pass){
         DBData db = new DBData(url, model, name, user, pass);
-        String s = name+" in "+url+" ("+model+")";
+        String s = db.getDbName()+" in "+url+" ("+model+")";
         dbList.add(db);
         listModel.addElement(s);
         dbConnectionTested.add(null);

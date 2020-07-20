@@ -27,6 +27,8 @@ public class MainMenu extends JFrame{
 
     private String currentProjectSelected;
 
+    private Dimension windowSize;
+
     public MainMenu(){
         try {
             queryBtnImage = ImageIO.read(new File(Constants.IMAGES_DIR+"query_icon.jpg"));
@@ -47,7 +49,9 @@ public class MainMenu extends JFrame{
         currentProjectSelected = projectsComboBox.getSelectedItem().toString();
         setListeners();
 
-        this.setPreferredSize(new Dimension(950, 800));
+        windowSize = new Dimension(1050, 850);
+        this.setPreferredSize(windowSize);
+        this.setLayout(new BorderLayout());
         setContentPane(mainPanel);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setTitle("Data source configuration wizard");

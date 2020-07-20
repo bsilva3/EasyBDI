@@ -18,15 +18,22 @@ public class DBData implements Serializable {
     List<TableData> tableList;
 
     public DBData(String url, DBModel dbModel, String dbName) {
+        if (dbName == null || dbName.length() == 0){
+            String[] modelSplit = url.split("/");
+            this.dbName = modelSplit[modelSplit.length-1];
+        }
+        else{
+            this.dbName = dbName.replaceAll("/", "");//replaceFirst?
+        }
+
         this.dbModel = dbModel;
-        this.url = url;
+        //this.url = url;
         //url validations
         this.url = url.replaceFirst("http://", ""); //http:// not needed
-        //remove unncessary '/'
+        //remove unncessary '/' at the end if any
         if (!this.url.isEmpty() && this.url.charAt(this.url.length() - 1) == '/'){
             this.url = this.url.substring(0, this.url.length()-1);
         }
-        this.dbName = dbName.replaceAll("/", "");//replaceFirst?
         this.catalogName = dbModel+"_"+this.url+"_"+this.dbName;
         this.catalogName = this.catalogName.toLowerCase().replaceAll("[\\:\\-\\.()]", "_");
     }
