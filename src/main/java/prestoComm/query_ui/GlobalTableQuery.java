@@ -4,7 +4,6 @@ import helper_classes.*;
 import prestoComm.PrestoMediator;
 
 import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.*;
 
@@ -385,49 +384,6 @@ public class GlobalTableQuery {
             }
         }
 
-        //clauses to create columns
-
-        //for each measure, iterate
-        for (String measure : measures){
-            String measureName = getMeasureName(measure);
-            String measureOP = getMeasureOP(measure);
-            for (Map.Entry<String, List<String>> valuesOfCol : valuesByGlobalCol.entrySet()){//for each list of value of each column
-                List<String> values = valuesOfCol.getValue();
-                String tableColumn = valuesOfCol.getKey();
-                for (String s : values) {
-                    String valueRaw = s.replaceAll("'", "");
-                    if (stringIsNumeric(valueRaw)){
-                        valueRaw = "_"+valueRaw;
-                    }
-                    if (measureOP.equalsIgnoreCase("COUNT")) //inneficient, if running for every row...
-                        query+= " COUNT(CASE WHEN "+ tableColumn + " = " + s + " THEN 1 ELSE 0 END) AS "+valueRaw+", ";
-                    else if (measureOP.equalsIgnoreCase("SUM")) //inneficient, if running for every row...
-                        query+= " SUM(CASE WHEN "+ tableColumn + " = " + s + " THEN "+measureName +" ELSE 0 END) AS "+valueRaw+", ";
-                    else if (measureOP.equalsIgnoreCase("AVG")) //inneficient, if running for every row...
-                        query+= " AVG(CASE WHEN "+ tableColumn + " = " + s + " THEN "+measureName +" ELSE 0 END) AS "+valueRaw+", ";
-                }
-            }
-        }
-
-        /*for (Map.Entry<String, List<String>> valuesOfCol : valuesByGlobalCol.entrySet()){//for each list of value of each column
-            List<String> values = valuesOfCol.getValue();
-            String tableColumn = valuesOfCol.getKey();
-            for (Map.Entry<GlobalTableData, List<GlobalColumnData>> selectRow : selectRows.entrySet()){
-                List<GlobalColumnData> selectRowsCols = selectRow.getValue();
-                for (String s : values) {
-                    for (GlobalColumnData selectRowsCol : selectRowsCols) {//for each rows selected
-                        //create query in the form: MAX(CASE WHEN <column in select cols area> = <value of col> THEN <selectRows area> END)
-                        String valueRaw = s.replaceAll("'", "");
-                        query+= " MAX(CASE WHEN "+ tableColumn + " = " + s + " THEN " +selectRow.getKey().getTableName()+"."+selectRowsCol.getName()+") AS "+valueRaw+", ";
-                    }
-                }
-            }
-        }*/
-        //query = query.substring(0, query.length() - 1);//last elemment without comma
-
-
-        //query = buildQuerySelectRowsAndMeasures(query, false);//complete query with measures aggregations and rows selections
-
         //add to select atributes in the 'rows' area
         Map<GlobalTableData, List<GlobalColumnData>> tableSelectRowsWithPrimKeys = new HashMap<>();
         //first add to the select the dimensions columns
@@ -454,7 +410,32 @@ public class GlobalTableQuery {
             tableSelectRowsWithPrimKeys.put(newt, newCols);
         }
 
-        query = query.substring(0, query.length() - 1);//last elemment without comma
+        //clauses to create columns
+        //for each measure, iterate
+        for (String measure : measures){
+            String measureName = getMeasureName(measure);
+            String measureOP = getMeasureOP(measure);
+            for (Map.Entry<String, List<String>> valuesOfCol : valuesByGlobalCol.entrySet()){//for each list of value of each column
+                List<String> values = valuesOfCol.getValue();
+                String tableColumn = valuesOfCol.getKey();
+                for (String s : values) {
+                    String valueRaw = s.replaceAll("'", "");
+                    if (valueRaw.isEmpty())
+                        continue;
+                    if (stringIsNumericOrBoolean(valueRaw)){
+                        valueRaw = "_"+valueRaw;
+                    }
+                    if (measureOP.equalsIgnoreCase("COUNT")) //inneficient, if running for every row...
+                        query+= " SUM(CASE WHEN "+ tableColumn + " = " + s + " THEN 1 ELSE 0 END) AS "+valueRaw+", ";
+                    else if (measureOP.equalsIgnoreCase("SUM")) //inneficient, if running for every row...
+                        query+= " SUM(CASE WHEN "+ tableColumn + " = " + s + " THEN "+measureName +" ELSE 0 END) AS "+valueRaw+", ";
+                    else if (measureOP.equalsIgnoreCase("AVG")) //inneficient, if running for every row...
+                        query+= " AVG(CASE WHEN "+ tableColumn + " = " + s + " THEN "+measureName +" ELSE NULL END) AS "+valueRaw+", ";
+                }
+            }
+        }
+
+        query = query.substring(0, query.length() - ", ".length());//last elemment without comma
         query+= " FROM ";
 
         for (Map.Entry<GlobalTableData, List<GlobalColumnData>> tableSelectRows : tableSelectRowsWithPrimKeys.entrySet()){
@@ -535,10 +516,12 @@ public class GlobalTableQuery {
         return query;
     }
 
-    public static boolean stringIsNumeric(String strNum) {
+    public static boolean stringIsNumericOrBoolean(String strNum) {
         if (strNum == null) {
             return false;
         }
+        else if (strNum.equalsIgnoreCase("true") || strNum.equalsIgnoreCase("false"))
+            return true;
         try {
             double d = Double.parseDouble(strNum);
         } catch (NumberFormatException nfe) {

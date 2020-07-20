@@ -804,7 +804,20 @@ public class QueryUI extends JPanel{
         for (int i = 0 ; i < nChilds; i++){
             FilterNode filterNode = (FilterNode) root.getChildAt(i);
             query += filterNode.getUserObject().toString() +" ";
+            if (filterNode.getChildCount() > 0){
+                query +="(";
+                for (int j = 0 ; j < filterNode.getChildCount(); j++){
+                    FilterNode innerFilterNode = (FilterNode) filterNode.getChildAt(j);
+                    String c = innerFilterNode.getUserObject().toString();
+                    if (innerFilterNode.getNodeType() == FilterNodeType.CONDITION && !GlobalTableQuery.stringIsNumericOrBoolean(c)){
+                        c = "'"+c+"'";
+                    }
+                    query += c +" ";
+                }
+                query +=")";
+            }
         }
+        System.out.println("Filter query: "+query);
         return query;
     }
 
@@ -1196,58 +1209,54 @@ public class QueryUI extends JPanel{
                     }*/
                     //if (parent.getNodeType() == FilterNodeType.CONDITION){
                         //dropping on another condition (create inner expressions)
-                        if (parent.getNodeType() == null && parent.getChildCount() == 0){
-                            while (s == null){
-                                s = createFilterStringOperation(column, true);//0 - boolean operation if any, 1 - condition
-                            }
-                            if (s.length == 0)
-                                return false;
-                            //filterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION), parent, parent.getChildCount());
-                            filterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), parent, parent.getChildCount());
+                    TreePath path = null;
+                    if (parent.getNodeType() == null && parent.getChildCount() == 0){
+                        while (s == null){
+                            s = createFilterStringOperation(column, true);//0 - boolean operation if any, 1 - condition
                         }
-                        else if (parent.getNodeType() == null && parent.getChildCount() > 0){
-                            while (s == null){
-                                s = createFilterStringOperation(column, false);//0 - boolean operation if any, 1 - condition
-                            }
-                            if (s.length == 0)
-                                return false;
-                            filterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION), parent, parent.getChildCount());
-                            filterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), parent, parent.getChildCount());
+                        if (s.length == 0)
+                            return false;
+                        //filterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION), parent, parent.getChildCount());
+                        filterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), parent, parent.getChildCount());
+                        path = new TreePath(parent.getPath());
+                    }
+                    else if (parent.getNodeType() == null && parent.getChildCount() > 0){
+                        while (s == null){
+                            s = createFilterStringOperation(column, false);//0 - boolean operation if any, 1 - condition
                         }
-                        /*else if (parent.getNodeType() != null && parent.getChildCount() == 0){
-                            while (s == null){
-                                s = createFilterStringOperation(column, false);//0 - boolean operation if any, 1 - condition
-                            }
-                            if (s.length == 0)
-                                return false;
+                        if (s.length == 0)
+                            return false;
+                        filterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION), parent, parent.getChildCount());
+                        filterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), parent, parent.getChildCount());
+                        path = new TreePath(parent.getPath());
+                    }
+                    else if (parent.getNodeType() == FilterNodeType.CONDITION){
+                        //inside a another condition
+                        while (s == null){
+                            s = createFilterStringOperation(column, false);//0 - boolean operation if any, 1 - condition
+                        }
+                        if (s.length == 0)
+                            return false;
+                        //get the boolean operator next to it and checj if it has childs
+                        FilterNode boleanNodeParent = (FilterNode) parent.getNextNode();
 
-                            filterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION), parent, parent.getChildCount());
-                            filterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), parent, parent.getChildCount());
-                        }*/
-                        else if (parent.getNodeType() == FilterNodeType.CONDITION){
-                            //inside a another condition
-                            while (s == null){
-                                s = createFilterStringOperation(column, false);//0 - boolean operation if any, 1 - condition
-                            }
-                            if (s.length == 0)
-                                return false;
-                            if (parent.getChildCount() == 0) {
-                                //if creating a new expression nested in a codition, add a boolean operator between them
-                                FilterNode parentOfParent = (FilterNode) parent.getParent();
-                                int indexOfParent = parentOfParent.getIndex(parent);
-                                FilterNode booleanNode = new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION);
-                                filterTreeModel.insertNodeInto(booleanNode, parentOfParent, indexOfParent+1);// create this condition between the condition and the inner expression
-                                filterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), booleanNode, booleanNode.getChildCount());//Must be child of the bolean operator
-                                TreePath path = new TreePath(booleanNode.getPath());
-                            }
-                            else{
-                                filterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION), parent, parent.getChildCount());
-                                filterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), parent, parent.getChildCount());
-                            }
+                        if (boleanNodeParent == null){
+                            //if creating a new expression nested in a codition, add a boolean operator between them
+                            FilterNode parentOfParent = (FilterNode) parent.getParent();
+                            int indexOfParent = parentOfParent.getIndex(parent);
+                            FilterNode booleanNode = new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION);
+                            filterTreeModel.insertNodeInto(booleanNode, parentOfParent, indexOfParent+1);// create this condition between the condition and the inner expression
+                            filterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), booleanNode, booleanNode.getChildCount());//Must be child of the bolean operator
+                            path = new TreePath(booleanNode.getPath());
                         }
-                        TreePath path = new TreePath(parent.getPath());
-                        filterTree.expandPath(path);
-                    //}
+                        else{
+                            //inserting on an already existent inner expression. Make it son of the boolean operator node
+                            filterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION), boleanNodeParent, boleanNodeParent.getChildCount());
+                            filterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), boleanNodeParent, boleanNodeParent.getChildCount());
+                            path = new TreePath(boleanNodeParent.getPath());
+                        }
+                    }
+                    filterTree.expandPath(path);
 
                     filterTree.revalidate();
                     filterTree.updateUI();
