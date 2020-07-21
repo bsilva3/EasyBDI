@@ -697,6 +697,27 @@ public class QueryUI extends JPanel{
         };
     }
 
+    private ActionListener getAddNOTActionListener(FilterNode node) {
+        return new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent arg0) {
+                if(node != null){
+                    //remove node
+                    FilterNode parent = (FilterNode) node.getParent();
+                    int index = parent.getIndex(node);
+                    parent.remove(node);
+                    FilterNode notNode = new FilterNode("NOT", "NOT", FilterNodeType.BOOLEAN_OPERATION);
+                    notNode.add(node);
+                    parent.insert(notNode, index);
+                    filterTree.repaint();
+                    filterTree.updateUI();
+                }
+            }
+        };
+    }
+
+
     private ActionListener getRemoveFilterNodActionListener(FilterNode node) {
         return new ActionListener() {
 
@@ -965,9 +986,12 @@ public class QueryUI extends JPanel{
                             //menu for a condition
                             JPopupMenu menu = new JPopupMenu();
                             JMenuItem item1 = new JMenuItem("Delete");
+                            JMenuItem item2 = new JMenuItem("NOT");
                             item1.addActionListener(getRemoveFilterNodActionListener(selectedNode));
+                            item2.addActionListener(getAddNOTActionListener(selectedNode));
                             //item1.addActionListener(getRemoveActionListener());
                             menu.add(item1);
+                            menu.add(item2);
                             filterTree.setComponentPopupMenu(menu);
                         }
                         else if (selectedNode.getNodeType() == FilterNodeType.BOOLEAN_OPERATION){

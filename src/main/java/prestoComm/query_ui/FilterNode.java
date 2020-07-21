@@ -63,7 +63,7 @@ public class FilterNode extends DefaultMutableTreeNode implements Serializable {
                     fileName = "or_icon.png";
                 }
                 else if (userObject.toString().equalsIgnoreCase("NOT")){
-                    fileName = "not_icon.png";
+                    fileName = "not_icon.jpg";
                 }
                 break;
             case CONDITION: //database
