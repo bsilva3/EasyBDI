@@ -3,10 +3,13 @@
   <component name="ChangeListManager">
     <list default="true" id="4372070e-ade1-4e3a-bab8-4e40966e7856" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/helper_classes/GlobalColumnData.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/helper_classes/GlobalColumnData.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/prestoComm/query_ui/FilterNodeType.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/prestoComm/query_ui/FilterNodeType.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/prestoComm/query_ui/QueryUI.form" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/prestoComm/query_ui/QueryUI.form" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/prestoComm/query_ui/QueryUI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/prestoComm/query_ui/QueryUI.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/helper_classes/MappingType.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/helper_classes/MappingType.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/prestoComm/MainWizardPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/prestoComm/MainWizardPanel.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/prestoComm/ManagerFacade.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/prestoComm/ManagerFacade.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/prestoComm/SchemaMatcher.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/prestoComm/SchemaMatcher.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/wizards/global_schema_config/ForeignKeySelector.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/wizards/global_schema_config/ForeignKeySelector.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/wizards/global_schema_config/GlobalSchemaConfigurationV2.form" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/wizards/global_schema_config/GlobalSchemaConfiguration.form" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/wizards/global_schema_config/GlobalSchemaConfigurationV2.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/wizards/global_schema_config/GlobalSchemaConfiguration.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -409,12 +412,18 @@
       <option name="project" value="LOCAL" />
       <updated>1595333684196</updated>
     </task>
-    <option name="localTasksCounter" value="38" />
+    <task id="LOCAL-00038" summary="Query UI changes to be more intuitive.&#10;Query Filters ui fixes">
+      <created>1595526737703</created>
+      <option name="number" value="00038" />
+      <option name="presentableId" value="LOCAL-00038" />
+      <option name="project" value="LOCAL" />
+      <updated>1595526737703</updated>
+    </task>
+    <option name="localTasksCounter" value="39" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
-    <MESSAGE value="interface improvements" />
     <MESSAGE value="interface of wizards improved" />
     <MESSAGE value="schema matching of columns improved" />
     <MESSAGE value="Mapping type added" />
@@ -439,7 +448,8 @@
     <MESSAGE value="Added option to save queries e reuse them by reloading in the ui the options that make the query possible. Delete saved queries is also possible. Added additional validations on query check and fixed minor bugs" />
     <MESSAGE value="bug fixes on vertical partioning queries (more efficient construction of queries, as tables that do not have a column are not used) and on global schema construction" />
     <MESSAGE value="not implementation on filters" />
-    <option name="LAST_COMMIT_MESSAGE" value="not implementation on filters" />
+    <MESSAGE value="Query UI changes to be more intuitive.&#10;Query Filters ui fixes" />
+    <option name="LAST_COMMIT_MESSAGE" value="Query UI changes to be more intuitive.&#10;Query Filters ui fixes" />
   </component>
   <component name="WindowStateProjectService">
     <state x="552" y="178" key="#Inspections" timestamp="1587567330579">
@@ -474,10 +484,10 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="676" y="238" key="#com.intellij.refactoring.move.moveMembers.MoveMembersDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1593099118654" />
-    <state x="287" y="0" width="1336" height="1038" key="#com.intellij.refactoring.rename.AutomaticRenamingDialog" timestamp="1594854023162">
+    <state x="287" y="0" width="1336" height="1038" key="#com.intellij.refactoring.rename.AutomaticRenamingDialog" timestamp="1595530634635">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="287" y="0" width="1336" height="1038" key="#com.intellij.refactoring.rename.AutomaticRenamingDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1594854023162" />
+    <state x="287" y="0" width="1336" height="1038" key="#com.intellij.refactoring.rename.AutomaticRenamingDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1595530634635" />
     <state x="693" y="268" width="524" height="499" key="#com.intellij.refactoring.typeMigration.ui.FailedConversionsDialog" timestamp="1594837206931">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -494,10 +504,10 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="1047" y="186" width="748" height="509" key="#xdebugger.evaluate/0.0.1920.1040@0.0.1920.1040" timestamp="1595264479617" />
-    <state x="607" y="116" width="747" height="803" key="CommitChangelistDialog2" timestamp="1595333683707">
+    <state x="607" y="116" width="747" height="803" key="CommitChangelistDialog2" timestamp="1595526737105">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="607" y="116" width="747" height="803" key="CommitChangelistDialog2/0.0.1920.1040@0.0.1920.1040" timestamp="1595333683707" />
+    <state x="607" y="116" width="747" height="803" key="CommitChangelistDialog2/0.0.1920.1040@0.0.1920.1040" timestamp="1595526737105" />
     <state x="740" y="275" key="FileChooserDialogImpl" timestamp="1593295497358">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -558,10 +568,10 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="839" y="314" key="UIDesigner.ListEditorDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1591014590450" />
-    <state x="555" y="255" width="800" height="526" key="Vcs.Push.Dialog.v2" timestamp="1595333697045">
+    <state x="555" y="255" width="800" height="526" key="Vcs.Push.Dialog.v2" timestamp="1595526739104">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="555" y="255" width="800" height="526" key="Vcs.Push.Dialog.v2/0.0.1920.1040@0.0.1920.1040" timestamp="1595333697045" />
+    <state x="555" y="255" width="800" height="526" key="Vcs.Push.Dialog.v2/0.0.1920.1040@0.0.1920.1040" timestamp="1595526739104" />
     <state width="968" height="528" key="XDebugger.FullValuePopup" timestamp="1594830447574">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -599,17 +609,17 @@
           <option name="timeStamp" value="14" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-method">
-          <url>file://$PROJECT_DIR$/src/main/java/wizards/global_schema_config/GlobalSchemaConfigurationV2.java</url>
+          <url>file://$PROJECT_DIR$/src/main/java/wizards/global_schema_config/GlobalSchemaConfiguration.java</url>
           <line>298</line>
-          <properties class="wizards.global_schema_config.GlobalSchemaConfigurationV2" method="restoreExpandedState">
+          <properties class="wizards.global_schema_config.GlobalSchemaConfiguration" method="restoreExpandedState">
             <option name="EMULATED" value="true" />
           </properties>
           <option name="timeStamp" value="119" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-method">
-          <url>file://$PROJECT_DIR$/src/main/java/wizards/global_schema_config/GlobalSchemaConfigurationV2.java</url>
+          <url>file://$PROJECT_DIR$/src/main/java/wizards/global_schema_config/GlobalSchemaConfiguration.java</url>
           <line>274</line>
-          <properties class="wizards.global_schema_config.GlobalSchemaConfigurationV2" method="createFilteredTree">
+          <properties class="wizards.global_schema_config.GlobalSchemaConfiguration" method="createFilteredTree">
             <option name="EMULATED" value="true" />
           </properties>
           <option name="timeStamp" value="120" />
@@ -623,9 +633,9 @@
           <option name="timeStamp" value="135" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-method">
-          <url>file://$PROJECT_DIR$/src/main/java/wizards/global_schema_config/GlobalSchemaConfigurationV2.java</url>
+          <url>file://$PROJECT_DIR$/src/main/java/wizards/global_schema_config/GlobalSchemaConfiguration.java</url>
           <line>1357</line>
-          <properties class="wizards.global_schema_config.GlobalSchemaConfigurationV2.TreeTransferHandler">
+          <properties class="wizards.global_schema_config.GlobalSchemaConfiguration.TreeTransferHandler">
             <option name="EMULATED" value="true" />
           </properties>
           <option name="timeStamp" value="168" />
@@ -696,16 +706,16 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/prestoComm/SchemaMatcher.java</url>
-          <line>31</line>
+          <line>30</line>
           <option name="timeStamp" value="81" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/prestoComm/SchemaMatcher.java</url>
-          <line>34</line>
+          <line>33</line>
           <option name="timeStamp" value="86" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/wizards/global_schema_config/GlobalSchemaConfigurationV2.java</url>
+          <url>file://$PROJECT_DIR$/src/main/java/wizards/global_schema_config/GlobalSchemaConfiguration.java</url>
           <line>399</line>
           <option name="timeStamp" value="94" />
         </line-breakpoint>
@@ -716,41 +726,41 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/prestoComm/SchemaMatcher.java</url>
-          <line>25</line>
+          <line>24</line>
           <option name="timeStamp" value="137" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/wizards/global_schema_config/GlobalSchemaConfigurationV2.java</url>
+          <url>file://$PROJECT_DIR$/src/main/java/wizards/global_schema_config/GlobalSchemaConfiguration.java</url>
           <line>1271</line>
           <option name="timeStamp" value="141" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/wizards/global_schema_config/GlobalSchemaConfigurationV2.java</url>
+          <url>file://$PROJECT_DIR$/src/main/java/wizards/global_schema_config/GlobalSchemaConfiguration.java</url>
           <line>1327</line>
           <option name="timeStamp" value="144" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/wizards/global_schema_config/GlobalSchemaConfigurationV2.java</url>
+          <url>file://$PROJECT_DIR$/src/main/java/wizards/global_schema_config/GlobalSchemaConfiguration.java</url>
           <line>1310</line>
           <option name="timeStamp" value="153" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/wizards/global_schema_config/GlobalSchemaConfigurationV2.java</url>
+          <url>file://$PROJECT_DIR$/src/main/java/wizards/global_schema_config/GlobalSchemaConfiguration.java</url>
           <line>1313</line>
           <option name="timeStamp" value="154" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/wizards/global_schema_config/GlobalSchemaConfigurationV2.java</url>
+          <url>file://$PROJECT_DIR$/src/main/java/wizards/global_schema_config/GlobalSchemaConfiguration.java</url>
           <line>1315</line>
           <option name="timeStamp" value="156" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/wizards/global_schema_config/GlobalSchemaConfigurationV2.java</url>
+          <url>file://$PROJECT_DIR$/src/main/java/wizards/global_schema_config/GlobalSchemaConfiguration.java</url>
           <line>1312</line>
           <option name="timeStamp" value="157" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/wizards/global_schema_config/GlobalSchemaConfigurationV2.java</url>
+          <url>file://$PROJECT_DIR$/src/main/java/wizards/global_schema_config/GlobalSchemaConfiguration.java</url>
           <line>1365</line>
           <option name="timeStamp" value="169" />
         </line-breakpoint>
@@ -845,12 +855,12 @@
           <option name="timeStamp" value="353" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/wizards/global_schema_config/GlobalSchemaConfigurationV2.java</url>
+          <url>file://$PROJECT_DIR$/src/main/java/wizards/global_schema_config/GlobalSchemaConfiguration.java</url>
           <line>832</line>
           <option name="timeStamp" value="357" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/wizards/global_schema_config/GlobalSchemaConfigurationV2.java</url>
+          <url>file://$PROJECT_DIR$/src/main/java/wizards/global_schema_config/GlobalSchemaConfiguration.java</url>
           <line>1311</line>
           <option name="timeStamp" value="364" />
         </line-breakpoint>

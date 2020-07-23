@@ -19,7 +19,7 @@ import java.io.File;
 import java.util.*;
 import java.util.List;
 
-public class GlobalSchemaConfigurationV2 extends JPanel {
+public class GlobalSchemaConfiguration extends JPanel {
     private JTree globalSchemaTree;
     private JTree localSchemaTree;
     private JTextField searchGlobalField;
@@ -43,7 +43,7 @@ public class GlobalSchemaConfigurationV2 extends JPanel {
     private boolean isEdit;
     private Map<GlobalColumnData, String> referencedCols;
 
-    public GlobalSchemaConfigurationV2(MetaDataManager metaDataManager, List<DBData> dbs, List<GlobalTableData> globalTables){
+    public GlobalSchemaConfiguration(MetaDataManager metaDataManager, List<DBData> dbs, List<GlobalTableData> globalTables){
         this.metaDataManager = metaDataManager;
         referencedCols = new HashMap<>();
 
@@ -709,7 +709,7 @@ public class GlobalSchemaConfigurationV2 extends JPanel {
                     //get global table
                     CustomTreeNode globalTableNode = (CustomTreeNode) selNode.getParent();
                     GlobalTableData t = (GlobalTableData) globalTableNode.getObj();
-                    new ForeignKeySelector(GlobalSchemaConfigurationV2.this, getGlobalTablesWithPrimKeys(t));//Open window to select a primary key to be referenced
+                    new ForeignKeySelector(GlobalSchemaConfiguration.this, getGlobalTablesWithPrimKeys(t));//Open window to select a primary key to be referenced
                 }
             }
         };
@@ -922,10 +922,17 @@ public class GlobalSchemaConfigurationV2 extends JPanel {
                         //node with <db.table>
                         CustomTreeNode dbTableNode = (CustomTreeNode)node.getChildAt(c);
                         for (int z = 0; z < dbTableNode.getChildCount(); z++){
+                            //node with local column
                             CustomTreeNode columnMatch = (CustomTreeNode)dbTableNode.getChildAt(z);
 
-                            if (columnMatch.getNodeType() == NodeType.COLUMN_MATCHES_TYPE)
+                            if (columnMatch.getNodeType() == NodeType.COLUMN_MATCHES_TYPE) {
+                                MappingType type = (MappingType) columnMatch.getObj();
+                                /*if (type == MappingType.Undefined){
+
+                                    return null;
+                                }*/
                                 continue;
+                            }
                             //column
                             matches.add((ColumnData)columnMatch.getObj());
                         }
@@ -948,7 +955,7 @@ public class GlobalSchemaConfigurationV2 extends JPanel {
      */
     private GlobalTableData defineDistributionType(GlobalTableData globalTable){
         //test if its a simple mapping 1 - 1 and only 1 local table
-        MappingType mappingType = MappingType.Simple;
+        MappingType mappingType = MappingType.Undefined;
         if (isSimpleMapping(globalTable)){
             mappingType = MappingType.Simple;
         }
@@ -973,24 +980,14 @@ public class GlobalSchemaConfigurationV2 extends JPanel {
 
     /**
      * GIven  a global table, and the local tables that have correspondences, check to see if there is a simple mapping between them.
-     * A simple mapping means that the local table is constituted by one unique local table, whose attributes (columns) are the same in the local and global tables
+     * A simple mapping means that the local table is constituted by one unique local table, whose attributes (columns) are the same or less then in the local table
      * @param globalTable
      * @return
      */
     private boolean isSimpleMapping(GlobalTableData globalTable) {
         Set<TableData> completeLocalTables = globalTable.getLocalTablesFromCols();
         if (completeLocalTables.size() == 1) {
-            boolean allTableSimilar = true;
-            for (GlobalColumnData gc : globalTable.getGlobalColumnDataList()) {
-                Set<ColumnData> localCols = gc.getLocalColumns();
-                //check to see if all local tables have the same datatype and name. If they have, each local table have a simple mapping to the global table (1 - 1, no replication)
-                for (ColumnData c : localCols) {
-                    if (!(c.getName().equals(gc.getName()) && c.getDataTypeNoLimit().equals(gc.getDataType()))) {
-                        allTableSimilar = false;
-                    }
-                }
-            }
-            return allTableSimilar;
+           return true;
         }
         return false;
     }

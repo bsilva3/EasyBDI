@@ -1,7 +1,7 @@
 package helper_classes;
 
 public enum MappingType {
-    Simple(0), Vertical(1), Horizontal(2);
+    Simple(0), Vertical(1), Horizontal(2), Undefined(3);
 
     private int number;
 
@@ -21,6 +21,8 @@ public enum MappingType {
                 return MappingType.Vertical;
             case 2:
                 return MappingType.Horizontal;
+            case 3:
+                return MappingType.Undefined;
         }
         return null;
     }

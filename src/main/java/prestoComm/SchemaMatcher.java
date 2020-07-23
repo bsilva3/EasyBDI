@@ -2,7 +2,6 @@ package prestoComm;
 
 import helper_classes.*;
 import org.apache.commons.text.similarity.LevenshteinDistance;
-import wizards.global_schema_config.GlobalSchemaConfigurationV2;
 
 import java.io.BufferedReader;
 import java.io.FileReader;

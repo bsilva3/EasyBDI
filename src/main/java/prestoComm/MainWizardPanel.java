@@ -4,7 +4,7 @@ import helper_classes.*;
 import wizards.CubeConfiguration;
 import wizards.DBConfig.DatabaseConnectionWizardV2;
 import wizards.DBConfig.DatabaseSelection;
-import wizards.global_schema_config.GlobalSchemaConfigurationV2;
+import wizards.global_schema_config.GlobalSchemaConfiguration;
 
 import javax.swing.*;
 import java.awt.*;
@@ -22,7 +22,7 @@ public class MainWizardPanel extends JPanel{
     private JPanel contentPanel;
     //wizards;
     private DatabaseConnectionWizardV2 dbConnWizzard;
-    private GlobalSchemaConfigurationV2 globalSchemaConfigWizzard;
+    private GlobalSchemaConfiguration globalSchemaConfigWizzard;
     private DatabaseSelection dbSelection;
     private CubeConfiguration cubeConfigWizzard;
 
@@ -230,7 +230,7 @@ public class MainWizardPanel extends JPanel{
             //new project, or edit of project that does not contain a saved global schema, perform schema match and present a global schema sugestion.
             globalSchema = schemaMatcher.schemaIntegration(dbs);
         }
-        globalSchemaConfigWizzard = new GlobalSchemaConfigurationV2(metaDataManager, dbs, globalSchema);
+        globalSchemaConfigWizzard = new GlobalSchemaConfiguration(metaDataManager, dbs, globalSchema);
         addToMainPanel(dbSelection, globalSchemaConfigWizzard);
     }
 

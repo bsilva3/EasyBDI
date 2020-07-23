@@ -17,9 +17,9 @@ public class ForeignKeySelector extends JFrame{
     private DefaultComboBoxModel colModel;
     private JButton confirmButton;
     private List<GlobalTableData> globalTabs;
-    private GlobalSchemaConfigurationV2 schemaConfig;
+    private GlobalSchemaConfiguration schemaConfig;
 
-    public ForeignKeySelector(GlobalSchemaConfigurationV2 schemaConfig, List<GlobalTableData> globalTabs){
+    public ForeignKeySelector(GlobalSchemaConfiguration schemaConfig, List<GlobalTableData> globalTabs){
         this.schemaConfig = schemaConfig;
         this.globalTabs = globalTabs;
         fillTablesComboBox();
