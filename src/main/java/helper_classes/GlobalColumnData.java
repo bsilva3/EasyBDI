@@ -11,6 +11,7 @@ public class GlobalColumnData implements Serializable {
     private boolean isPrimaryKey;
     private String foreignKey; //globalTablename.globalColumnName
     private String orderBy; //just for the query save
+    private String fullName; //table.column
 
     public GlobalColumnData(String name, String dataType, boolean isPrimaryKey, Set<ColumnData> localCols) {
         this.name = name;
@@ -147,6 +148,14 @@ public class GlobalColumnData implements Serializable {
         if (this.localColumns.contains(col))
             return true;
         return false;
+    }
+
+    public String getFullName() {
+        return fullName;
+    }
+
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
     }
 
     public boolean hasForeignKey(){

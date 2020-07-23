@@ -715,6 +715,7 @@ public class QueryUI extends JPanel{
                     node.add(notNode);
                     for (FilterNode n : childNodes)
                         notNode.add(n);
+                    filterTree.expandPath(new TreePath(notNode.getPath()));
                     filterTree.repaint();
                     filterTree.updateUI();
                 }
@@ -735,6 +736,7 @@ public class QueryUI extends JPanel{
                     FilterNode notNode = new FilterNode("NOT", "NOT", FilterNodeType.BOOLEAN_OPERATION);
                     notNode.add(node);
                     parent.insert(notNode, index);
+                    filterTree.expandPath(new TreePath(notNode.getPath()));
                     filterTree.repaint();
                     filterTree.updateUI();
                 }
@@ -861,22 +863,31 @@ public class QueryUI extends JPanel{
         for (int i = 0 ; i < nChilds; i++){
             FilterNode filterNode = (FilterNode) root.getChildAt(i);
             query += filterNode.getUserObject().toString() +" ";
-            if (filterNode.getChildCount() > 0){
-                query +="(";
-                for (int j = 0 ; j < filterNode.getChildCount(); j++){
-                    FilterNode innerFilterNode = (FilterNode) filterNode.getChildAt(j);
-                    String c = innerFilterNode.getUserObject().toString();
-                    if (innerFilterNode.getNodeType() == FilterNodeType.CONDITION && !GlobalTableQuery.stringIsNumericOrBoolean(c)){
-                        c = "'"+c+"'";
-                    }
-                    query += c +" ";
-                }
-                query +=")";
-            }
+            query += processInnerExpressions(filterNode);
         }
         System.out.println("Filter query: "+query);
         return query;
     }
+
+    private String processInnerExpressions(FilterNode filterNode){
+        String query = "";
+        if (filterNode.getChildCount() > 0){
+            query +="(";
+            for (int j = 0 ; j < filterNode.getChildCount(); j++){
+                FilterNode innerFilterNode = (FilterNode) filterNode.getChildAt(j);
+                String c = innerFilterNode.getUserObject().toString();
+                if (innerFilterNode.getNodeType() == FilterNodeType.CONDITION && !GlobalTableQuery.stringIsNumericOrBoolean(c)){
+                    c = "'"+c+"'";
+                }
+                query += c +" ";
+                query += processInnerExpressions(innerFilterNode);
+            }
+            query +=")";
+        }
+        return query;
+    }
+
+
 
     public void executeQuery(){
         //TODO: validate query
@@ -959,6 +970,8 @@ public class QueryUI extends JPanel{
             public void mousePressed(MouseEvent arg0) {
                 //if (SwingUtilities.isRightMouseButton(arg0)){
                 int index = rowsList.locationToIndex(arg0.getPoint());
+                if (index < 0)
+                    return;
                 if (!rowsListModel.getElementAt(index).toString().contains("    ")){
                     rowsList.setComponentPopupMenu(null);
                     return;
@@ -1192,6 +1205,9 @@ public class QueryUI extends JPanel{
                 return false;
             }
             GlobalColumnData column = (GlobalColumnData) data.getObj();
+            CustomTreeNode globalTable = (CustomTreeNode) data.getParent();
+            GlobalTableData gt = (GlobalTableData) globalTable.getObj();
+            column.setFullName(gt.getTableName()+"."+column.getName());
 
             if (info.getComponent() instanceof JList){
                 JList list = (JList) info.getComponent();
@@ -1254,24 +1270,7 @@ public class QueryUI extends JPanel{
                         parent = root;
                     else
                         parent = (FilterNode)dest.getLastPathComponent();
-                    /*if (parent.getNodeType() == null && root.getChildCount() == 0){
-                        //dropping on root and filters are empty (previously added but the removed)
-                        while (s == null){
-                            s = createFilterStringOperation(column, true);//0 - boolean operation if any, 1 - condition
-                        }
-                        if (s.length == 0)
-                            return false;
-                        //no filters added
-                        root.add(new FilterNode(s[1], column, FilterNodeType.CONDITION));
-                        filterTreeModel = new DefaultTreeModel(root);
-                        filterTree.setModel(filterTreeModel);
-                        filterTree.setRootVisible(false);
-                        filterTree.revalidate();
-                        filterTree.updateUI();
-                        return true;
-                    }*/
-                    //if (parent.getNodeType() == FilterNodeType.CONDITION){
-                        //dropping on another condition (create inner expressions)
+
                     TreePath path = null;
                     if (parent.getNodeType() == null && parent.getChildCount() == 0){
                         while (s == null){
@@ -1293,18 +1292,18 @@ public class QueryUI extends JPanel{
                         filterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), parent, parent.getChildCount());
                         path = new TreePath(parent.getPath());
                     }
-                    else if (parent.getNodeType() == FilterNodeType.CONDITION){
-                        //inside a another condition
+                    else if (parent.getNodeType() == FilterNodeType.CONDITION ){
+                        //user wants to create an inner expression OR to add content to inner expression and dragg it to a condition
                         while (s == null){
                             s = createFilterStringOperation(column, false);//0 - boolean operation if any, 1 - condition
                         }
                         if (s.length == 0)
                             return false;
-                        //get the boolean operator next to it and checj if it has childs
+                        //get the boolean operator next to it and check if it has childs
                         FilterNode boleanNodeParent = (FilterNode) parent.getNextNode();
 
-                        if (boleanNodeParent == null){
-                            //if creating a new expression nested in a codition, add a boolean operator between them
+                        if (boleanNodeParent == null || boleanNodeParent.getChildCount() == 0){ //no boolean operator, create it and add child
+                            //if creating a new expression nested in a codition, add a boolean operator between the condition and a boolean operator. Make the inner expression child of the boolean operator
                             FilterNode parentOfParent = (FilterNode) parent.getParent();
                             int indexOfParent = parentOfParent.getIndex(parent);
                             FilterNode booleanNode = new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION);
@@ -1312,12 +1311,24 @@ public class QueryUI extends JPanel{
                             filterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), booleanNode, booleanNode.getChildCount());//Must be child of the bolean operator
                             path = new TreePath(booleanNode.getPath());
                         }
-                        else{
-                            //inserting on an already existent inner expression. Make it son of the boolean operator node
+                        else {
+                            //inserting on an already existent boolean node with inner expr. IF it has an inner expr, add the operator and cond, else only the cond as childs
                             filterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION), boleanNodeParent, boleanNodeParent.getChildCount());
                             filterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), boleanNodeParent, boleanNodeParent.getChildCount());
                             path = new TreePath(boleanNodeParent.getPath());
                         }
+                    }
+                    else if (parent.getNodeType() == FilterNodeType.BOOLEAN_OPERATION && parent.getChildCount()>0){
+                        //user wants to add content to inner expression and dragg it to the outer boolean operator
+                        while (s == null){
+                            s = createFilterStringOperation(column, false);//0 - boolean operation if any, 1 - condition
+                        }
+                        if (s.length == 0)
+                            return false;
+                        //get the boolean operator next to it and check if it has childs
+                        filterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION), parent, parent.getChildCount());
+                        filterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), parent, parent.getChildCount());
+                        path = new TreePath(parent.getPath());
                     }
                     filterTree.expandPath(path);
 
@@ -1331,7 +1342,7 @@ public class QueryUI extends JPanel{
 
         private String[] createFilterStringOperation(GlobalColumnData droppedCol, boolean isFirst){
             String s[] = new String [2];
-            String elem = droppedCol.getName();
+            String elem = droppedCol.getFullName();
             //filter operations depende on data type (<, >, <= only for numeric OR date)
             String[] filterOps;
             if (droppedCol.isNumeric()) //TODO: also accept date time datatypes
