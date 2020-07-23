@@ -32,6 +32,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.List;
+import java.util.logging.Filter;
 
 public class QueryUI extends JPanel{
     private JTable queryResultsTable;
@@ -697,6 +698,30 @@ public class QueryUI extends JPanel{
         };
     }
 
+    private ActionListener getAddNOTActionListenerOnNestedExprssion(FilterNode node) {
+        return new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent arg0) {
+                if(node != null){
+                    //remove node
+                    FilterNode parent = (FilterNode) node.getParent();
+                    int index = parent.getIndex(node);
+                    FilterNode notNode = new FilterNode("NOT", "NOT", FilterNodeType.BOOLEAN_OPERATION);
+                    List <FilterNode> childNodes = getAllChildNodes(node);
+                    //remove all childs, make a new child called not and have all childs be child of not node
+                    for (FilterNode n : childNodes)
+                        node.remove(n);
+                    node.add(notNode);
+                    for (FilterNode n : childNodes)
+                        notNode.add(n);
+                    filterTree.repaint();
+                    filterTree.updateUI();
+                }
+            }
+        };
+    }
+
     private ActionListener getAddNOTActionListener(FilterNode node) {
         return new ActionListener() {
 
@@ -777,7 +802,18 @@ public class QueryUI extends JPanel{
         return null;
     }
 
-    /**
+    private List<FilterNode> getAllChildNodes(FilterNode node){
+        List<FilterNode> nodes = new ArrayList<>();
+        int nChilds = node.getChildCount();
+        for (int i = 0; i < nChilds; i++){
+            FilterNode child = (FilterNode) node.getChildAt(i);
+            nodes.add(child);
+        }
+
+        return nodes;
+    }
+
+                                              /**
      * In the list of rows, returns the table name that contains the column with the index specified
      * @param index
      * @return
@@ -976,7 +1012,7 @@ public class QueryUI extends JPanel{
 
             @Override
             public void mousePressed(MouseEvent arg0) {
-                if (SwingUtilities.isRightMouseButton(arg0)){
+                //if (SwingUtilities.isRightMouseButton(arg0)){
                     TreePath pathForLocation = filterTree.getPathForLocation(arg0.getPoint().x, arg0.getPoint().y);
                     filterTree.setSelectionPath(pathForLocation);
                     FilterNode selectedNode = null;
@@ -989,7 +1025,6 @@ public class QueryUI extends JPanel{
                             JMenuItem item2 = new JMenuItem("NOT");
                             item1.addActionListener(getRemoveFilterNodActionListener(selectedNode));
                             item2.addActionListener(getAddNOTActionListener(selectedNode));
-                            //item1.addActionListener(getRemoveActionListener());
                             menu.add(item1);
                             menu.add(item2);
                             filterTree.setComponentPopupMenu(menu);
@@ -999,14 +1034,18 @@ public class QueryUI extends JPanel{
                             JPopupMenu menu = new JPopupMenu();
                             JMenuItem item1 = new JMenuItem("AND");
                             JMenuItem item2 = new JMenuItem("OR");
+                            JMenuItem item3 = new JMenuItem("NOT on nested expression");
                             item1.addActionListener(changeBooleanOperation("AND", selectedNode));
                             item2.addActionListener(changeBooleanOperation("OR", selectedNode));
+                            item3.addActionListener(getAddNOTActionListenerOnNestedExprssion(selectedNode));
                             menu.add(item1);
                             menu.add(item2);
+                            if (selectedNode.getChildCount()>0)
+                                menu.add(item3);
                             filterTree.setComponentPopupMenu(menu);
                         }
                     }
-                }
+                //}
                 super.mousePressed(arg0);
             }
         };
