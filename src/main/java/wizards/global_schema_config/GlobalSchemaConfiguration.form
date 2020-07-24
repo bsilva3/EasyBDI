@@ -4,7 +4,9 @@
     <constraints>
       <xy x="20" y="20" width="1159" height="444"/>
     </constraints>
-    <properties/>
+    <properties>
+      <preferredSize width="1000" height="800"/>
+    </properties>
     <border type="none"/>
     <children>
       <scrollpane id="5dacf">

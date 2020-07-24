@@ -85,7 +85,15 @@ public class MainWizardPanel extends JPanel{
             public void actionPerformed(ActionEvent e)
             {
                 if (!isEdit){
-                    int dialogResult = JOptionPane.showConfirmDialog (null, "Would You Like to Save all configurations currently made to this project?","Warning",JOptionPane.YES_NO_OPTION);
+                    String configs = "";
+                    if (metaDataManager.getDatabaseCount() == 0)
+                        configs+="\n -Local Schema";
+                    if (globalSchema == null)
+                        configs+="\n -Global Schema";
+                    if (starSchema == null)
+                        configs+="\n -Star Schema";
+                    int dialogResult = JOptionPane.showConfirmDialog (null, "Would You Like to Save all configurations currently made to this project?\n" +
+                            "Note that until this point the following was not configured and saved for this project: "+configs,"Warning",JOptionPane.YES_NO_OPTION);
                     if(dialogResult == JOptionPane.YES_OPTION){
 
                     }
@@ -141,7 +149,7 @@ public class MainWizardPanel extends JPanel{
             case(DB_CONN_CONFIG):
                 addToMainPanel(dbSelection, dbConnWizzard);//return to DB Connection config wizard interface
             case(DB_SELECTION):
-                addToMainPanel(globalSchemaConfigWizzard, dbSelection);//return to DB Connection config wizard interface
+                addToMainPanel(globalSchemaConfigWizzard, dbSelection);//return to DB filter config wizard interface
             case(GLOBAL_SCHEMA_CONFIG):
                 addToMainPanel(cubeConfigWizzard, globalSchemaConfigWizzard);//return to to global schema wizard interface
                 break;
@@ -172,10 +180,16 @@ public class MainWizardPanel extends JPanel{
     }
 
     private void finnish(){
-        if (this.globalSchema == null)
-            return ; //TODO: handle error
+        if (this.globalSchema == null || globalSchema.size() == 0) {
+            JOptionPane.showMessageDialog(mainMenu, "Global Schema is invalid and could not be saved. Please verify the Global Schema.", "Error Saving Schema", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
         metaDataManager.insertGlobalSchemaData(globalSchema);
         StarSchema starSchema = cubeConfigWizzard.getMultiDimSchema();
+        if (starSchema == null) {
+            JOptionPane.showMessageDialog(mainMenu, "Star Schema is invalid and could not be saved. Please verify the star schema.", "Error Saving Schema", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
         metaDataManager.insertStarSchema(starSchema);
         this.mainMenu.returnToMainMenu();
     }
@@ -237,6 +251,10 @@ public class MainWizardPanel extends JPanel{
     private void handleCubeConfig(){
         // receive global schema from global schema config window
         this.globalSchema = globalSchemaConfigWizzard.getGlobalSchemaFromTree();
+        if (globalSchema == null || globalSchema.size() == 0){
+            --currentStepNumber;//undo step increment
+            return;
+        }
         cubeConfigWizzard = new CubeConfiguration(globalSchema, metaDataManager);
         addToMainPanel(globalSchemaConfigWizzard, cubeConfigWizzard);
     }

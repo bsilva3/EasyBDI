@@ -59,6 +59,7 @@ public class GlobalTableData implements Serializable {
         return tables;
     }
 
+
     public Set<TableData> getAllLocalTablesFromCols(List<GlobalColumnData> columnDataList) {
         Set<ColumnData> localCols = new HashSet<>();//list with all local columns that match to one of the specified columns
         for (GlobalColumnData globalCol : columnDataList){
@@ -105,8 +106,16 @@ public class GlobalTableData implements Serializable {
         return tablesUpdate;
     }
 
-    public MappingType getMappingTypeOfMatches(){//same for all matches, therefore, check only a column
+    public MappingType getMappingType(){//same for all matches, therefore, check only a column
         return globalColumnData.get(0).getLocalColumns().iterator().next().getMapping();
+    }
+
+    public void setMappingType(MappingType m){
+        for (GlobalColumnData gc : globalColumnData){
+            for (ColumnData c : gc.getLocalColumns()){
+                c.setMapping(m);
+            }
+        }
     }
 
     /**

@@ -166,7 +166,6 @@ public class MetaDataManager {
                 + "    " + COLUMN_DATA_TYPE_FIELD +" text NOT NULL,\n"
                 + "    " + COLUMN_DATA_IS_PRIMARY_KEY_FIELD +" boolean NOT NULL,\n"
                 + "    " + COLUMN_DATA_FOREIGN_KEY_FIELD + " text,\n"
-                + "    " + COLUMN_DATA_TABLE_RELATION_FIELD + " text,\n"
                 + "    " + COLUMN_DATA_TABLE_FIELD + " integer,\n"
                 + "    UNIQUE("+ COLUMN_DATA_NAME_FIELD +", " + COLUMN_DATA_TABLE_FIELD +") ON CONFLICT IGNORE,\n"
                 + "    FOREIGN KEY (" + COLUMN_DATA_TABLE_FIELD + ") REFERENCES "+DB_DATA+"(id));";
@@ -408,7 +407,7 @@ public class MetaDataManager {
 
     public List<TableData> insertColumnData(List<TableData> columnsInTables){
         String sql = "INSERT INTO "+ COLUMN_DATA + "("+COLUMN_DATA_NAME_FIELD+", "+COLUMN_DATA_TYPE_FIELD+", "+COLUMN_DATA_IS_PRIMARY_KEY_FIELD+", "+COLUMN_DATA_FOREIGN_KEY_FIELD+", "
-                +COLUMN_DATA_TABLE_RELATION_FIELD+", "+ COLUMN_DATA_TABLE_FIELD +") VALUES(?,?,?,?,?,?)";
+                + COLUMN_DATA_TABLE_FIELD +") VALUES(?,?,?,?,?)";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             for (int j = 0; j < columnsInTables.size(); j++) {
                 List<ColumnData> columns = columnsInTables.get(j).getColumnsList();
@@ -425,8 +424,7 @@ public class MetaDataManager {
                     pstmt.setString(2, columns.get(i).getDataType());
                     pstmt.setBoolean(3, columns.get(i).isPrimaryKey());
                     pstmt.setString(4, columns.get(i).getForeignKey());
-                    pstmt.setString(5, columns.get(i).getTableRelation());
-                    pstmt.setInt(6, columnsInTables.get(j).getId());
+                    pstmt.setInt(5, columnsInTables.get(j).getId());
                     pstmt.executeUpdate();
 
                     ResultSet rs = pstmt.getGeneratedKeys();

@@ -47,10 +47,11 @@ public class GlobalSchemaConfiguration extends JPanel {
         this.metaDataManager = metaDataManager;
         referencedCols = new HashMap<>();
 
-        helpLabel.setText("<html>Verify the proposed schema matching and Global Schema and make the necessary adjustments. "
-                +"<br/> You can drag and drop columns or tables from the local schema to the global schema to add new items or to create correlations. " +
-                "<br/> You can also add elements to the global schema by right clicking or by using the form on the bottom.</html>");
-        stepLabel.setText("Step 2/4");
+        helpLabel.setText("<html>Verify the proposed Global Schema and make the necessary adjustments."
+                +"<br/> You can drag and drop columns or tables from the Local to the Global schema to add new correspondences or to create new items (global table or global columns). " +
+                "<br/> You can edit key constraints by right clicking on a Global Column and select the appropriate option. You can also remove or edit elements in this menu."+
+                "<br/> Please note that in order to validate the global schema, no global table must have an 'Undefined' mapping towards the local schema correspondences.<html>");
+        stepLabel.setText("Step 3/4");
         stepLabel.setFont(new Font("", Font.PLAIN, 18));
 
         //global schema tree set up
@@ -462,7 +463,7 @@ public class GlobalSchemaConfiguration extends JPanel {
                     for (ColumnData localCol : col.getLocalColumns()) {
                         if (localCol.getTable().equals(t) && col.getLocalColumns().contains(localCol)) {
                             localTableTree.add(new CustomTreeNode(localCol.getName(), localCol, NodeType.COLUMN_MATCHES));
-                            localTableTree.add(new CustomTreeNode("Mapping Type: "+localCol.getMapping(), null, NodeType.COLUMN_MATCHES_TYPE));
+                            //localTableTree.add(new CustomTreeNode("Mapping Type: "+localCol.getMapping(), null, NodeType.COLUMN_MATCHES_TYPE));
                             hasMatches = true;
                         }
                     }
@@ -472,6 +473,7 @@ public class GlobalSchemaConfiguration extends JPanel {
                 column.add(corrs);
                 tables.add(column);
             }
+            tables.add(new CustomTreeNode("Mapping Type: "+gt.getMappingType(), gt.getMappingType(), NodeType.COLUMN_MATCHES_TYPE));
             data.add(tables);
         }
         return new DefaultTreeModel(data);
@@ -886,9 +888,21 @@ public class GlobalSchemaConfiguration extends JPanel {
             //for each global table, create a new object
             CustomTreeNode globalTableNode = (CustomTreeNode)globalTablesRoot.getChildAt(i);
             GlobalTableData globalTable = getGlobalTableFromNode(globalTableNode);
+            if (isGlobalTableMappingTypeUndefined(globalTable)){
+                JOptionPane.showMessageDialog(null, "At least one global table contains undefined mappings.\nPlease create " +
+                        "valid correspondences such that one mapping type \n(simple, horizontal or vertical) is created.", "Invalid mappings", JOptionPane.ERROR_MESSAGE);
+                return null;
+            }
             globalTables.add(globalTable);
         }
         return globalTables;
+    }
+
+    private boolean isGlobalTableMappingTypeUndefined(GlobalTableData g){
+        MappingType m = g.getGlobalColumnDataList().get(0).getMappingType();//the same for all columns
+        if (m == MappingType.Undefined)
+            return true;
+        return false;
     }
 
     /**
@@ -902,8 +916,8 @@ public class GlobalSchemaConfiguration extends JPanel {
         GlobalTableData globalTable = (GlobalTableData) globalTableNode.getObj();
         List<GlobalColumnData> cols = new ArrayList<>();
         //get its global columns
-        for (int j = 0; j < globalTableNode.getChildCount(); j++){
-            CustomTreeNode globalColumnNode = (CustomTreeNode)globalTableNode.getChildAt(j);
+        for (int j = 0; j < globalTableNode.getChildCount()-1; j++){
+            CustomTreeNode globalColumnNode = (CustomTreeNode)globalTableNode.getChildAt(j);//All tables have their mappings updated
             GlobalColumnData globalCol = (GlobalColumnData) globalColumnNode.getObj();
             globalCol.setPrimaryKey(false);//if it is primary key, will be updated
             CustomTreeNode dataTypeNode = (CustomTreeNode)globalColumnNode.getChildAt(0);
@@ -925,14 +939,9 @@ public class GlobalSchemaConfiguration extends JPanel {
                             //node with local column
                             CustomTreeNode columnMatch = (CustomTreeNode)dbTableNode.getChildAt(z);
 
-                            if (columnMatch.getNodeType() == NodeType.COLUMN_MATCHES_TYPE) {
-                                MappingType type = (MappingType) columnMatch.getObj();
-                                /*if (type == MappingType.Undefined){
-
-                                    return null;
-                                }*/
+                            /*if (columnMatch.getNodeType() == NodeType.COLUMN_MATCHES_TYPE) {
                                 continue;
-                            }
+                            }*/
                             //column
                             matches.add((ColumnData)columnMatch.getObj());
                         }
@@ -944,6 +953,8 @@ public class GlobalSchemaConfiguration extends JPanel {
             cols.add(globalCol);
         }
         globalTable.setGlobalColumnData(cols);
+        CustomTreeNode mappingTypeNode = (CustomTreeNode) globalTableNode.getChildAt(globalTableNode.getChildCount()-1);
+        globalTable.setMappingType((MappingType) mappingTypeNode.getObj());
         return globalTable;
     }
 
@@ -1049,6 +1060,13 @@ public class GlobalSchemaConfiguration extends JPanel {
     }
 
     private CustomTreeNode updateMappingsOnNodes(CustomTreeNode globalTableNode, GlobalTableData globalTable){
+        MappingType m = globalTable.getMappingType();
+        globalTableNode.remove(globalTableNode.getChildCount()-1);//remove last node (mapping type)
+        globalTableNode.add(new CustomTreeNode("Mapping Type: "+m, m, NodeType.COLUMN_MATCHES_TYPE));
+        return globalTableNode;
+    }
+
+    /*private CustomTreeNode updateMappingsOnNodes(CustomTreeNode globalTableNode, GlobalTableData globalTable){
         int nChilds = globalTableNode.getChildCount();
         for (int i = 0; i < nChilds; i++){
             CustomTreeNode globalColNode = (CustomTreeNode) globalTableNode.getChildAt(i);
@@ -1070,7 +1088,7 @@ public class GlobalSchemaConfiguration extends JPanel {
             }
         }
         return globalTableNode;
-    }
+    }*/
 
     // --------- custom transfer handler to move tree nodes
     //adapted from: https://coderanch.com/t/346509/java/JTree-drag-drop-tree-Java
@@ -1158,6 +1176,7 @@ public class GlobalSchemaConfiguration extends JPanel {
                 TableData table = (TableData)node.getObj();
                 GlobalTableData gloTab = new GlobalTableData(table.getTableName());
                 CustomTreeNode newNode = new CustomTreeNode(table.getTableName(), gloTab, NodeType.GLOBAL_TABLE);
+
                 for (int i = 0; i < nChilds; i++){
                     CustomTreeNode col = (CustomTreeNode)node.getChildAt(i);
                     CustomTreeNode matchNode = new CustomTreeNode("Matches", NodeType.MATCHES);
@@ -1167,14 +1186,15 @@ public class GlobalSchemaConfiguration extends JPanel {
                     //new global column node
                     CustomTreeNode globalColNode = new CustomTreeNode(column.getName(), globalCol, NodeType.GLOBAL_COLUMN);
                     CustomTreeNode colMatch = new CustomTreeNode(globalCol.getName(), globalCol, NodeType.COLUMN_MATCHES);
-                    CustomTreeNode mapType = new CustomTreeNode(MappingType.Simple, MappingType.Simple, NodeType.COLUMN_MATCHES_TYPE);//by default, when creating a new global table by draggin a local table, the mapping is simple
+                    //CustomTreeNode mapType = new CustomTreeNode(MappingType.Simple, MappingType.Simple, NodeType.COLUMN_MATCHES_TYPE);//by default, when creating a new global table by draggin a local table, the mapping is simple
                     tableMatch.add(colMatch);
-                    tableMatch.add(mapType);
+                    //tableMatch.add(mapType);
                     matchNode.add(tableMatch);
                     globalColNode.add(new CustomTreeNode(globalCol.getDataType(), null, NodeType.COLUMN_INFO));//datatype in global column
                     globalColNode.add(matchNode);
                     newNode.add(globalColNode);
                 }
+                newNode.add(new CustomTreeNode(MappingType.Simple, MappingType.Simple, NodeType.COLUMN_MATCHES_TYPE));
                 node = newNode;
             }
             else if (node.getNodeType() == NodeType.COLUMN && (parent.getNodeType() == NodeType.MATCHES || parent.getNodeType() == NodeType.GLOBAL_COLUMN)){
@@ -1231,16 +1251,17 @@ public class GlobalSchemaConfiguration extends JPanel {
                         CustomTreeNode dbTableNode = (CustomTreeNode) parent.getChildAt(i);
                         //exists add there the  col match
                         if (dbTableNode.getUserObject().toString().equals(localCol.getTable().getDB().getDbName()+"."+localCol.getTable().getTableName())){
-                            parent.remove(i);
-                            CustomTreeNode mappType = (CustomTreeNode) dbTableNode.getChildAt(dbTableNode.getChildCount()-1);
-                            if (mappType.getNodeType() == NodeType.COLUMN_MATCHES_TYPE){
+                            //parent.remove(i);
+                            //CustomTreeNode mappType = (CustomTreeNode) dbTableNode.getChildAt(dbTableNode.getChildCount()-1);
+                            /*if (mappType.getNodeType() == NodeType.COLUMN_MATCHES_TYPE){
                                 dbTableNode.remove(dbTableNode.getChildCount()-1);
                                 dbTableNode.add(new CustomTreeNode(localCol.getName(), localCol, NodeType.COLUMN_MATCHES));
                                 dbTableNode.add(mappType);//redundant.. its going to be updated..
                             }
-                            else
-                                dbTableNode.add(new CustomTreeNode(localCol.getName(), localCol, NodeType.COLUMN_MATCHES));
-                            parent.insert(dbTableNode, i);
+                            else*/
+                            dbTableNode.add(new CustomTreeNode(localCol.getName(), localCol, NodeType.COLUMN_MATCHES));
+                            globalSchemaModel.nodeChanged(dbTableNode);
+                            //parent.insert(dbTableNode, i);
                             bdTableexists = true;
                             break;
                         }
@@ -1287,7 +1308,7 @@ public class GlobalSchemaConfiguration extends JPanel {
                 CustomTreeNode matches = new CustomTreeNode("Matches", null, NodeType.MATCHES);
                 CustomTreeNode dbTableLocalNode = new CustomTreeNode(localCol.getTable().getDB().getDbName()+"."+localCol.getTable().getTableName(), null, NodeType.TABLE_MATCHES);
                 dbTableLocalNode.add(new CustomTreeNode(localCol.getName(), localCol, NodeType.COLUMN_MATCHES));
-                dbTableLocalNode.add(new CustomTreeNode("Mapping Type: "+MappingType.Simple, MappingType.Simple, NodeType.COLUMN_MATCHES_TYPE));
+                //dbTableLocalNode.add(new CustomTreeNode("Mapping Type: "+MappingType.Undefined, MappingType.Undefined, NodeType.COLUMN_MATCHES_TYPE));
                 matches.add(dbTableLocalNode);
                 newNode.add(matches);
                 node = newNode;

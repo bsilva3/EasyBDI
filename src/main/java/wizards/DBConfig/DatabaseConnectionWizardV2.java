@@ -76,7 +76,7 @@ public class DatabaseConnectionWizardV2 extends JPanel {
         addDatabaseButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                addDatabase(nameText.getText(), (DBModel) databaseModelSelect.getSelectedItem(), urlText.getText(), userText.getText(), String.valueOf(passText.getPassword()));
+                addDatabase(nameText.getText(), (DBModel) databaseModelSelect.getSelectedItem(), urlText.getText(), userText.getText(), String.valueOf(passText.getPassword()), false);
             }
         });
 
@@ -131,7 +131,7 @@ public class DatabaseConnectionWizardV2 extends JPanel {
         if (isEdit) {
             List<DBData> dbs = metaDataManager.getDatabases();
             for (DBData db : dbs) {
-                addDatabase(db.getDbName(), db.getDbModel(), db.getUrl(), db.getUser(), db.getPass());
+                addDatabase(db.getDbName(), db.getDbModel(), db.getUrl(), db.getUser(), db.getPass(), true);
             }
             databaseList.revalidate();
             databaseList.updateUI();
@@ -140,7 +140,7 @@ public class DatabaseConnectionWizardV2 extends JPanel {
 
     public void addImportedDatabases(List<SimpleDBData> importedDBs){
         for (SimpleDBData db : importedDBs) {
-            addDatabase(db.getDbName(), db.getDbModel(), db.getUrl(), db.getUser(), db.getPass());
+            addDatabase(db.getDbName(), db.getDbModel(), db.getUrl(), db.getUser(), db.getPass(), false);
         }
         databaseList.revalidate();
         databaseList.updateUI();
@@ -150,13 +150,19 @@ public class DatabaseConnectionWizardV2 extends JPanel {
         new DataSourceProjectImporter(this);
     }
 
-    private void addDatabase(String name, DBModel model, String url, String user, String pass){
+    private void addDatabase(String name, DBModel model, String url, String user, String pass, boolean validate){
         DBData db = new DBData(url, model, name, user, pass);
         String s = db.getDbName()+" in "+url+" ("+model+")";
         dbList.add(db);
         listModel.addElement(s);
-        dbConnectionTested.add(null);
-        connListModel.addElement(" ---- ");
+        if (validate){
+            dbConnectionTested.add(true);
+            connListModel.addElement("Success");
+        }
+        else {
+            dbConnectionTested.add(null);
+            connListModel.addElement(" ---- ");
+        }
         databaseList.updateUI();
         connectionTestList.updateUI();
     }

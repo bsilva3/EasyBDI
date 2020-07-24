@@ -13,7 +13,6 @@ public class ColumnData implements Serializable {
     private boolean isPrimaryKey;
     private TableData table;
     private String foreignKey; //in the type "catalogName.schemaName.TableName.ColumnName"
-    private String tableRelation;
     private int tableID;
     private MappingType mapping;
 
@@ -150,14 +149,6 @@ public class ColumnData implements Serializable {
         this.foreignKey = foreignKey;
     }
 
-    public String getTableRelation() {
-        return tableRelation;
-    }
-
-    public void setTableRelation(String tableRelation) {
-        this.tableRelation = tableRelation;
-    }
-
     public int getTableID() {
         return getTable().getId();
     }
@@ -210,7 +201,6 @@ public class ColumnData implements Serializable {
                 ", isPrimaryKey=" + isPrimaryKey +
                 //", table=" + table +
                 ", foreignKey='" + foreignKey + '\'' +
-                ", tableRelation='" + tableRelation + '\'' +
                 '}';
     }
 

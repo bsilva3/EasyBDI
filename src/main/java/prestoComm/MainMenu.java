@@ -19,6 +19,7 @@ public class MainMenu extends JFrame{
     private JPanel mainPanel;
     private JComboBox projectsComboBox;
     private JButton deleteSelectedProjectButton;
+    private JLabel warningsLabel;
     //button icons
     private Image queryBtnImage;
     private Image newProjectBtnImage;
@@ -47,6 +48,7 @@ public class MainMenu extends JFrame{
         refreshProjectsInComboBox();
         projectsComboBox.setSelectedIndex(0);
         currentProjectSelected = projectsComboBox.getSelectedItem().toString();
+        checkProject();
         setListeners();
 
         windowSize = new Dimension(1050, 850);
@@ -112,12 +114,38 @@ public class MainMenu extends JFrame{
         projectsComboBox.addActionListener (new ActionListener () {
             public void actionPerformed(ActionEvent e) {
                 currentProjectSelected = projectsComboBox.getSelectedItem().toString();
+                checkProject();
             }
         });
     }
 
+    private void checkProject(){
+        MetaDataManager m = new MetaDataManager(currentProjectSelected);
+        if (m.getDatabaseCount() <= 0){
+            warningsLabel.setText("<html>This project does not have a Local Schema. Please create one by using the 'Edit Project' button and adding data sources to the project.</html>");
+            createStarSchemaBtn.setEnabled(false);
+            queryExecutionBtn.setEnabled(false);
+        }
+        if (m.getGlobalTablesCount() <= 0){
+            warningsLabel.setText("<html>This project does not have a Global Schema. Please create one by using the 'Edit Project' button and moving on to the 'Global Schema Configuration Window'.</html>");
+            createStarSchemaBtn.setEnabled(false);
+            queryExecutionBtn.setEnabled(false);
+        }
+        else if(m.getStarSchemaNames().size() <=0){
+            warningsLabel.setText("<html>This project does not have any Star Schemas. At least one is required to execute analytical queries. Used the 'Create Star Schema' button to create a new one.</html>");
+            createStarSchemaBtn.setEnabled(false);
+            queryExecutionBtn.setEnabled(false);
+        }
+        else{
+            warningsLabel.setText("<html>This project is ready to be used for analytical queries (Local schema, Global schema and at least one Star schema are configured).</html>");
+            createStarSchemaBtn.setEnabled(true);
+            queryExecutionBtn.setEnabled(true);
+        }
+        m.close();
+    }
+
     private void deleteProject(){
-        String projectName = projectsComboBox.getSelectedItem().toString();
+        String projectName = currentProjectSelected;
         int dialogResult = JOptionPane.showConfirmDialog (null, "Are you sure? The project will be permanently deleted.","Warning",JOptionPane.YES_NO_OPTION);
         if(dialogResult == JOptionPane.YES_OPTION){
             boolean success = MetaDataManager.deleteProject(projectName);
@@ -133,11 +161,11 @@ public class MainMenu extends JFrame{
     }
 
     private void openQueryUI(){
-        placePanelInFrame(new QueryUI(projectsComboBox.getSelectedItem().toString(), this));
+        placePanelInFrame(new QueryUI(currentProjectSelected, this));
     }
 
     private void createNewStarSchema(){
-        placePanelInFrame(new CubeConfiguration(projectsComboBox.getSelectedItem().toString(), this));
+        placePanelInFrame(new CubeConfiguration(currentProjectSelected, this));
     }
 
 
@@ -165,7 +193,7 @@ public class MainMenu extends JFrame{
     }
 
     private void editCurrentProject(){
-        placePanelInFrame(new MainWizardPanel(this, projectsComboBox.getSelectedItem().toString(), true));
+        placePanelInFrame(new MainWizardPanel(this, currentProjectSelected, true));
     }
 
 
@@ -177,6 +205,7 @@ public class MainMenu extends JFrame{
     public void returnToMainMenu(){
         placePanelInFrame(mainPanel);
         refreshProjectsInComboBox();
+        checkProject();
     }
 
     private void refreshProjectsInComboBox(){

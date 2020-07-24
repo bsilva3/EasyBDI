@@ -21,10 +21,15 @@ public class DatabaseSelection extends JPanel{
     private JPanel mainPanel;
     private JCheckBoxTree checkBoxTree;
     private JScrollPane scrollPane;
+    private JLabel helpLabel;
+    private JLabel stepLabel;
     private DefaultTreeModel treeModel;
     private List<DBData> dbs;
 
     public DatabaseSelection (List<DBData> dbs){
+        helpLabel.setText("<html>Select which elements in each database to use for the local schema construction by checking the boxes next to them.<html>");
+        stepLabel.setText("Step 2/4");
+        stepLabel.setFont(new Font("", Font.PLAIN, 18));
         this.dbs = dbs;
         setDbsInJtree();
         add(mainPanel);

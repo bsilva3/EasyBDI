@@ -115,7 +115,7 @@ public class GlobalTableQuery {
     }*/
 
     public String getLocalTableQuery(GlobalTableData t, List<GlobalColumnData> selectCols){
-        MappingType mapping = t.getMappingTypeOfMatches();
+        MappingType mapping = t.getMappingType();
         if (mapping == MappingType.Simple)
             return handleSimpleMapping(t, selectCols);
         else if (mapping == MappingType.Horizontal)
@@ -127,7 +127,7 @@ public class GlobalTableQuery {
     }
 
     public String getLocalTableQuery(GlobalTableData t){
-        MappingType mapping = t.getMappingTypeOfMatches();
+        MappingType mapping = t.getMappingType();
         if (mapping == MappingType.Simple)
             return handleSimpleMapping(t);
         else if (mapping == MappingType.Horizontal)

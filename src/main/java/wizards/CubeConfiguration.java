@@ -56,7 +56,7 @@ public class CubeConfiguration extends JPanel{
         helpLabel.setText("<html>Create a star schema from the previously created Global Schema. "
                 +"<br/> Select dimensions, facts and measurements.</html>");
         if (isWizard) {
-            stepLabel.setText("Step 3/4");
+            stepLabel.setText("Step 4/4");
             stepLabel.setFont(new Font("", Font.PLAIN, 18));
         }
         String[] tableNames = new String[globalTables.size()];
