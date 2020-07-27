@@ -14,6 +14,7 @@ import wizards.global_schema_config.NodeType;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
@@ -68,17 +69,14 @@ public class QueryUI extends JPanel{
 
     private MetaDataManager metaDataManager;
     private PrestoMediator prestoMediator;
-    private String projectName;
-    private final String[] aggregations = { "count", "sum", "average", "min", "max"};
+    private final String[] aggregations = { "count", "sum", "average"};
     private final String[] numberOperations = { "=", "!=", ">", "=>", "<", "<="};
     private final String[] stringOperations = { "=", "!=", "like"};
-    //TODO: checkbox disntinct?
 
     private MainMenu mainMenu;
 
     public QueryUI(String projectName, final MainMenu mainMenu){
         this.mainMenu = mainMenu;
-        this.projectName = projectName;
         this.metaDataManager = new MetaDataManager(projectName);
         this.prestoMediator = new PrestoMediator();
 
@@ -148,6 +146,9 @@ public class QueryUI extends JPanel{
 
             cubeSelectionComboBox.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
+                    if (cubeSelectionComboBox.getSelectedItem().toString().equalsIgnoreCase(starSchema.getSchemaName()))//user selected same project
+                        return;
+                    clearAllFieldsAndQueryElements();//new project selected, clear all ui and data structures
                     starSchema = metaDataManager.getStarSchema(cubeSelectionComboBox.getSelectedItem().toString());
                     schemaTreeModel = setStarSchemaTree();
                     schemaTree.setModel(schemaTreeModel);
@@ -218,6 +219,15 @@ public class QueryUI extends JPanel{
         measuresListModel.clear();
         filterTreeModel = null;
 
+        rowsList.revalidate();
+        rowsList.updateUI();
+        columnsList.revalidate();
+        columnsList.updateUI();
+        measuresList.revalidate();
+        measuresList.updateUI();
+        filterTree.revalidate();
+        filterTree.updateUI();
+
         //clear all query elements in structures
         globalTableQueries.clearAllElements();
     }
@@ -237,8 +247,6 @@ public class QueryUI extends JPanel{
         Map<GlobalTableData, List<GlobalColumnData>> rows = metaDataManager.getQueryRows(queryID);
         Map<GlobalTableData, List<GlobalColumnData>> cols = metaDataManager.getQueryColumns(queryID);
         Map<GlobalColumnData, String> measures = metaDataManager.getQueryMeasures(queryID);
-        String filters = metaDataManager.getQueryFilters(queryID);
-
         //clear all fields in ui
         clearAllFieldsAndQueryElements();
 
@@ -254,7 +262,6 @@ public class QueryUI extends JPanel{
                 }
             }
         }
-        //globalTableQueries.setSelectRows(rows);
 
         //place columns in UI (if any) and in data structures
         for (Map.Entry<GlobalTableData, List<GlobalColumnData>> colSelect : cols.entrySet()){
@@ -262,7 +269,6 @@ public class QueryUI extends JPanel{
                 addColumnsToList(columnListModel, c, colSelect.getKey());
             }
         }
-        //globalTableQueries.setSelectColumns(cols);
 
         //place measures in UI (if any) and in data structures
         for (Map.Entry<GlobalColumnData, String> measure : measures.entrySet()) {
@@ -270,11 +276,8 @@ public class QueryUI extends JPanel{
             addMeasure(measuresListModel, measureItem);
         }
 
-        //place filters in UI (if any) and in data structures
-        if (filters.length() > 0) {
-            String[] filterElements = filters.split("\\s+");
-            addFiltersToTree(filterElements);
-        }
+        this.filterTreeModel = new DefaultTreeModel(metaDataManager.getQueryFilters(queryID));
+        this.filterTree.setModel(filterTreeModel);
 
     }
 
@@ -319,9 +322,7 @@ public class QueryUI extends JPanel{
                 }
             }
         }
-        String filters = this.getFilterQuery();
-
-        boolean success = metaDataManager.insertNewQuerySave(nameTxt.getText(), cubeSelectionComboBox.getSelectedItem().toString(), rows, columns, measures, filters );
+        boolean success = metaDataManager.insertNewQuerySave(nameTxt.getText(), cubeSelectionComboBox.getSelectedItem().toString(), rows, columns, measures, (FilterNode) filterTreeModel.getRoot() );
         if (success){
             JOptionPane.showMessageDialog(mainMenu, "Query "+nameTxt.getText()+" save successfully!", "Query saved", JOptionPane.PLAIN_MESSAGE);
         }
@@ -376,21 +377,6 @@ public class QueryUI extends JPanel{
                 JOptionPane.showMessageDialog(mainMenu, "Failed to save query log. Select an apropriate folder.", "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
-    }
-
-    private void addFiltersToTree(String[] filters){
-        FilterNode root = new FilterNode("", null, null);
-        for (String filter : filters){
-            FilterNodeType nodeType;
-            if (filter.equalsIgnoreCase("or") || filter.equalsIgnoreCase("and")){
-                nodeType = FilterNodeType.BOOLEAN_OPERATION;
-            }
-            else{
-                nodeType = FilterNodeType.CONDITION;
-            }
-            root.add(new FilterNode(filter, filter, nodeType));
-        }
-        filterTreeModel = new DefaultTreeModel(root);
     }
 
     private boolean saveAllQueriesLog(File file){
@@ -519,7 +505,7 @@ public class QueryUI extends JPanel{
             return null;
         FactsTable facts = starSchema.getFactsTable();
         CustomTreeNode root = new CustomTreeNode("root", NodeType.GLOBAL_TABLES);
-        CustomTreeNode factsNode = new CustomTreeNode("Measures of "+facts.getGlobalTable().getTableName(), NodeType.FACTS_TABLE);
+        CustomTreeNode factsNode = new CustomTreeNode("Measures of "+facts.getGlobalTable().getTableName(),facts.getGlobalTable(), NodeType.FACTS_TABLE);
         //set columns that are measures ONLY
         Map<GlobalColumnData, Boolean> cols = facts.getColumns();
         for (Map.Entry<GlobalColumnData, Boolean> col : cols.entrySet()){
@@ -876,7 +862,7 @@ public class QueryUI extends JPanel{
             for (int j = 0 ; j < filterNode.getChildCount(); j++){
                 FilterNode innerFilterNode = (FilterNode) filterNode.getChildAt(j);
                 String c = innerFilterNode.getUserObject().toString();
-                if (innerFilterNode.getNodeType() == FilterNodeType.CONDITION && !GlobalTableQuery.stringIsNumericOrBoolean(c)){
+                if (innerFilterNode.getNodeType() == FilterNodeType.CONDITION && !Utils.stringIsNumericOrBoolean(c)){
                     c = "'"+c+"'";
                 }
                 query += c +" ";
@@ -890,7 +876,6 @@ public class QueryUI extends JPanel{
 
 
     public void executeQuery(){
-        //TODO: validate query
         defaultTableModel.setColumnCount(0);
         defaultTableModel.setRowCount(0);//clear any previous results
 
@@ -898,7 +883,6 @@ public class QueryUI extends JPanel{
         DateTime beginTime = new DateTime();
         globalTableQueries.setFilterQuery(getFilterQuery());
         String localQuery = globalTableQueries.buildQuery();//create query with inner query to get local table data
-
 
         System.out.println(localQuery);
 
@@ -910,35 +894,42 @@ public class QueryUI extends JPanel{
         ResultSet results = prestoMediator.getLocalTablesQueries(localQuery);
         String[] cols = null;
         //insert column results in JTable
+        int nRows = 0;
         try {
             ResultSetMetaData rsmd = results.getMetaData();
-            int columnCount = rsmd.getColumnCount();
+            int columnCount = rsmd.getColumnCount()+1;//+1 for line col
             cols = new String[columnCount];
-            for (int i = 1; i <= columnCount; i++ ) {
+            cols[0] = " ";
+            for (int i = 1; i < columnCount; i++ ) {
                 String name = rsmd.getColumnName(i);
-                cols[i - 1] = name;
+                cols[i] = name;
             }
             defaultTableModel.setColumnIdentifiers(cols);
 
             //place rows
             //results.beforeFirst(); //return to begining
-            int nRows = 0;
             while(results.next()){
-                nRows++;
                 //Fetch each row from the ResultSet, and add to ArrayList of rows
                 String[] currentRow = new String[columnCount];
-                for(int i = 0; i < columnCount; i++){
+                nRows++;
+                currentRow[0] = (nRows)+"";
+                for(int i = 0; i < columnCount-1; i++){
                     //Again, note that ResultSet column indices start at 1
-                    currentRow[i] = results.getString(i+1);
+                    currentRow[i+1] = results.getString(i+1);
                 }
+
                 defaultTableModel.addRow(currentRow);
             }
 
-            DateTime endTime = new DateTime();
-            queryLogModel.addElement(new QueryLog(localQuery, beginTime, endTime, nRows));
+            DefaultTableCellRenderer rendar1 = new DefaultTableCellRenderer();
+            rendar1.setBackground(new Color(238, 238, 238));//same color on line rows as header
+            queryResultsTable.getColumnModel().getColumn(0).setCellRenderer(rendar1);
+
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
+        DateTime endTime = new DateTime();
+        queryLogModel.addElement(new QueryLog(localQuery, beginTime, endTime, nRows));
         queryResultsTable.revalidate();
 
 
@@ -1142,7 +1133,7 @@ public class QueryUI extends JPanel{
         private int addCount = 0;  //Number of items added.
 
         public TreeTransferHandler() {
-            nodesFlavor = new DataFlavor(CustomTreeNode.class, "custom node");//TODO!! CustomTreeNode
+            nodesFlavor = new DataFlavor(CustomTreeNode.class, "custom node");
             flavors[0] = nodesFlavor;
         }
 
@@ -1196,9 +1187,9 @@ public class QueryUI extends JPanel{
             try {
                 data = (CustomTreeNode) t.getTransferData(nodesFlavor);
             } catch (Exception e) {
+                e.printStackTrace();
                 return false;
             }
-
             if (data.getNodeType() != NodeType.GLOBAL_COLUMN && data.getNodeType() != NodeType.MEASURE){
                 JOptionPane.showMessageDialog(null, "You can only drag and drop columns.",
                         "Operation Failed", JOptionPane.ERROR_MESSAGE);
@@ -1385,7 +1376,7 @@ public class QueryUI extends JPanel{
                             "Operation Failed", JOptionPane.ERROR_MESSAGE);
                     return null;
                 }
-                elem+= filter.getSelectedItem().toString() + filterValue;
+                elem+= " "+filter.getSelectedItem().toString() +" "+ filterValue;
             }
             else{
                 JOptionPane.showMessageDialog(null, "Please select a filter operation and insert a filter value with same data type",

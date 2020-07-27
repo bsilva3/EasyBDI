@@ -964,7 +964,7 @@ public class GlobalSchemaConfiguration extends JPanel {
      * @param globalTable
      * @return
      */
-    private GlobalTableData defineDistributionType(GlobalTableData globalTable){
+    public GlobalTableData defineDistributionType(GlobalTableData globalTable){
         //test if its a simple mapping 1 - 1 and only 1 local table
         MappingType mappingType = MappingType.Undefined;
         if (isSimpleMapping(globalTable)){
@@ -1014,22 +1014,27 @@ public class GlobalSchemaConfiguration extends JPanel {
     private boolean isVerticalMapping(GlobalTableData globalTable) {
         Set<TableData> completeLocalTables = globalTable.getLocalTablesFromCols();
         if (completeLocalTables.size() > 1) {
-            ColumnData referencedColumn = null;
-            List<ColumnData> fullLocalCols = globalTable.getFullListColumnsCorrespondences();
+            ColumnData primKeyOriginalTable = null;
+            //get the original prim key that other foreign keys prim keys reference
+            Set<ColumnData> primCols = globalTable.getPrimaryKeyColumn().getLocalColumns();
+            for (ColumnData c : primCols){
+                if (c.isPrimaryKey() && !c.hasForeignKey()){
+                    primKeyOriginalTable = c;
+                    completeLocalTables.remove(c.getTable());
+                    break;
+                }
+            }
             for (TableData  localTable : completeLocalTables) {
                 for (ColumnData localColumn : localTable.getColumnsList()){
                     //check for columns that are both primary and foreign keys
                     if (localColumn.isPrimaryKey() && localColumn.hasForeignKey()){
-                        if (referencedColumn == null)
-                            referencedColumn = localColumn.getForeignKeyColumn(metaDataManager);
-                        //this column references the same column as foreign key, check if all its columns exist in the list of references tables
-                        if (!fullLocalCols.contains(referencedColumn)){
+                        ColumnData referencedCol = localColumn.getForeignKeyColumn(metaDataManager);
+                        if (referencedCol != null && !referencedCol.equals(primKeyOriginalTable))
                             return false;
-                        }
-                        return true;
                     }
                 }
             }
+            return true;
         }
         return false;
     }

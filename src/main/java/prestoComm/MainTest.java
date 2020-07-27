@@ -13,7 +13,7 @@ public class MainTest {
 
     public static void main(String[] args){
 
-        MetaDataManager m = new MetaDataManager("salesdb3_partitions");
+        MetaDataManager m = new MetaDataManager("salesdb2");
         //m.deleteTablesToSaveQueries();
         //m.createTables();
         //manager.dropTables();
@@ -66,7 +66,7 @@ public class MainTest {
 
         //m.makeQueryAndPrint("SELECT * FROM "+QUERY_SAVE+";");
 
-        m.makeQueryAndPrint("SELECT * FROM "+ COLUMN_DATA);
+        m.makeQueryAndPrint("SELECT * FROM "+ QUERY_FILTERS);
 
 
     }

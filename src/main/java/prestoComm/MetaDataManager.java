@@ -1,10 +1,13 @@
 package prestoComm;
 
 import helper_classes.*;
+import prestoComm.query_ui.FilterNode;
 
-import java.io.File;
+import javax.swing.tree.DefaultTreeModel;
+import java.io.*;
 import java.sql.*;
 import java.util.*;
+import java.util.logging.Filter;
 
 import static prestoComm.Constants.*;
 
@@ -262,7 +265,7 @@ public class MetaDataManager {
 
         String sql15 = "CREATE TABLE IF NOT EXISTS "+ QUERY_FILTERS +" (\n"
                 + "    "+ QUERY_ID +" integer PRIMARY KEY,\n"
-                + "    "+ QUERY_FILTERS_STR +" text ,\n"
+                + "    "+ QUERY_FILTERS_STR +" blob ,\n"
                 + "    FOREIGN KEY ("+ QUERY_ID +") REFERENCES "+QUERY_SAVE+"("+QUERY_ID+")); ";
 
         executeStatements(new String[] {sql1, sql2, sql3, sql4, sql5, sql6, sql7, sql8, sql9, sql10, sql11, sql12, sql13, sql14, sql15});
@@ -1297,7 +1300,7 @@ public class MetaDataManager {
     }
 
     public boolean insertNewQuerySave(String queryName, String cubeName, Map<GlobalTableData, List<GlobalColumnData>> rows,
-                                   Map<GlobalTableData, List<GlobalColumnData>> columns, Map<Integer, String> measures, String filters){
+                                   Map<GlobalTableData, List<GlobalColumnData>> columns, Map<Integer, String> measures, FilterNode filters){
         int cubeID = getOrcreateCube(cubeName);
         String sql = "INSERT INTO "+ QUERY_SAVE + "("+QUERY_CUBE_ID+", "+QUERY_NAME+") VALUES(?,?)";
         int queryID = -1;
@@ -1342,7 +1345,7 @@ public class MetaDataManager {
         if (columns != null && columns.size() > 0) {
             sql = "INSERT INTO " + QUERY_COLS + "(" + QUERY_ID + ", " + QUERY_GLOBAL_TABLE_ID + ", " + QUERY_GLOBAL_COLUMN_ID + ") VALUES(?,?,?)";
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-                for (Map.Entry<GlobalTableData, List<GlobalColumnData>> tableSelects : rows.entrySet()) {
+                for (Map.Entry<GlobalTableData, List<GlobalColumnData>> tableSelects : columns.entrySet()) {
                     int tableID = tableSelects.getKey().getId();
                     for (GlobalColumnData c : tableSelects.getValue()) {
                         int colID = c.getColumnID();
@@ -1376,11 +1379,12 @@ public class MetaDataManager {
         }
 
         //insert filters (if any)
-        if (filters != null && filters.length() > 0) {
+        byte[] filtersByte = makebyteFromTreeModel(filters);
+        if (filters != null) {
             sql = "INSERT INTO " + QUERY_FILTERS + "(" + QUERY_ID + ", " + QUERY_FILTERS_STR + ") VALUES(?,?)";
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                     pstmt.setInt(1, queryID);
-                    pstmt.setString(2, filters);
+                    pstmt.setBytes(2, filtersByte);
                     pstmt.executeUpdate();
             } catch (SQLException e) {
                 System.out.println(e.getMessage());
@@ -1541,19 +1545,52 @@ public class MetaDataManager {
         return measures;
     }
 
-    public String getQueryFilters(int queryID){
+    public FilterNode getQueryFilters(int queryID){
         try {
             Statement stmt = conn.createStatement();
             String sql = "SELECT "+ QUERY_FILTERS_STR+" FROM " + QUERY_FILTERS + " WHERE "+QUERY_ID+" = " +queryID+";";
             ResultSet rs = stmt.executeQuery(sql);
             // loop through the result set
             if (rs.next()) {
-                return rs.getString(QUERY_FILTERS_STR);
+                return readTreeModel(rs.getBytes(QUERY_FILTERS_STR));
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
-        return "";
+        return null;
+    }
+
+    //adapted from https://stackoverflow.com/a/55487151
+    private byte[] makebyteFromTreeModel(FilterNode modeldata) {
+        try {
+
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ObjectOutputStream oos = new ObjectOutputStream(baos);
+            oos.writeObject(modeldata);
+            byte[] bytes = baos.toByteArray();
+            //ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
+            return bytes;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    //adpated from: https://stackoverflow.com/a/55487151
+    public FilterNode readTreeModel(byte[] data) {
+        try {
+            ByteArrayInputStream baip = new ByteArrayInputStream(data);
+            ObjectInputStream ois = new ObjectInputStream(baip);
+            FilterNode filterNode = (FilterNode ) ois.readObject();
+            return filterNode ;
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
 

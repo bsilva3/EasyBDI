@@ -1,6 +1,5 @@
 package wizards.global_schema_config;
 
-import helper_classes.DBData;
 import prestoComm.Constants;
 import prestoComm.DBModel;
 

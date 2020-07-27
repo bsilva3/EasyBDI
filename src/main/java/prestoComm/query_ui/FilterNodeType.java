@@ -1,6 +1,8 @@
 package prestoComm.query_ui;
 
-public enum FilterNodeType {
+import java.io.Serializable;
 
-    CONDITION, BOOLEAN_OPERATION, NOT
+public enum FilterNodeType implements Serializable {
+
+    CONDITION, BOOLEAN_OPERATION
 }

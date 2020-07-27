@@ -17,9 +17,9 @@ public class FilterNode extends DefaultMutableTreeNode implements Serializable {
      */
     private ImageIcon icon;
     private FilterNodeType nodeType;
-    private Object obj;
+    private Serializable obj;
 
-    public FilterNode(Object userObject, Object obj, FilterNodeType nodeType) {
+    public FilterNode(String userObject, Serializable obj, FilterNodeType nodeType) {
         super(userObject);
         this.obj = obj;
         this.nodeType = nodeType;
@@ -42,11 +42,11 @@ public class FilterNode extends DefaultMutableTreeNode implements Serializable {
         this.nodeType = nodeType;
     }
 
-    public Object getObj() {
+    public Serializable getObj() {
         return this.obj;
     }
 
-    public void setObj(Object obj) {
+    public void setObj(Serializable obj) {
         this.obj = obj;
     }
 

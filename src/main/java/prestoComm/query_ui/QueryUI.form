@@ -84,7 +84,7 @@
                 <properties/>
                 <border type="none"/>
                 <children>
-                  <component id="21da8" class="javax.swing.JTable" binding="queryResultsTable">
+                  <component id="618ef" class="javax.swing.JTable" binding="queryResultsTable">
                     <constraints/>
                     <properties/>
                   </component>

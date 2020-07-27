@@ -4,6 +4,7 @@ import helper_classes.*;
 import prestoComm.PrestoMediator;
 
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.*;
 
@@ -16,6 +17,8 @@ public class GlobalTableQuery {
     private String filterQuery;
     private FactsTable factsTable;
     private PrestoMediator presto;
+
+    private final static int LIMIT_NUMBER = 50000;
 
     public GlobalTableQuery(PrestoMediator presto, FactsTable factsTable) {
         this.presto = presto;
@@ -369,20 +372,22 @@ public class GlobalTableQuery {
     }*/
 
     public String buildQuerySelectRowsColsAndMeasures() {
-        Map<String, List<String>> valuesByGlobalCol = new HashMap<>();
+        //Map<String, List<String>> valuesByGlobalCol = new HashMap<>();
         String query = "SELECT ";
 
 
 
         //for each column in the columns area get each of their distinct values
-        for (Map.Entry<GlobalTableData, List<GlobalColumnData>> colSelect : selectColumns.entrySet()){
+        /*for (Map.Entry<GlobalTableData, List<GlobalColumnData>> colSelect : selectColumns.entrySet()){
             GlobalTableData t = colSelect.getKey();
             List<GlobalColumnData> cols = colSelect.getValue();
             for (GlobalColumnData c : cols){
                 List<String> values = getAllDifferentValuesOfColumn(t, c);
                 valuesByGlobalCol.put(t.getTableName()+"."+c.getName(), values);
             }
-        }
+        }*/
+        //get distinct values of columns. If multiple columns, get all distinct combinations
+        List<List<String>> valuesByGlobalCol = getAllDifferentValuesOfColumn();
 
         //add to select atributes in the 'rows' area
         Map<GlobalTableData, List<GlobalColumnData>> tableSelectRowsWithPrimKeys = new HashMap<>();
@@ -409,29 +414,52 @@ public class GlobalTableQuery {
             newt.setGlobalColumnData(newCols);
             tableSelectRowsWithPrimKeys.put(newt, newCols);
         }
+        query+=" ";
+        //get ordered list of columns's fullnames:
 
+        List<String> colNames = new ArrayList<>();
+        for (Map.Entry<GlobalTableData, List<GlobalColumnData>> colSelect : selectColumns.entrySet()){
+            GlobalTableData t = colSelect.getKey();
+            List<GlobalColumnData> cs = colSelect.getValue();
+            for (GlobalColumnData c : cs){
+                colNames.add(t.getTableName()+"."+c.getName());
+            }
+        }
+        if (colNames.size() != valuesByGlobalCol.get(0).size()){//list of columns of values must be same length as list of values of columns
+            return "Error";
+        }
         //clauses to create columns
         //for each measure, iterate
         for (String measure : measures){
             String measureName = getMeasureName(measure);
             String measureOP = getMeasureOP(measure);
-            for (Map.Entry<String, List<String>> valuesOfCol : valuesByGlobalCol.entrySet()){//for each list of value of each column
-                List<String> values = valuesOfCol.getValue();
-                String tableColumn = valuesOfCol.getKey();
-                for (String s : values) {
-                    String valueRaw = s.replaceAll("'", "");
+            for (List<String> pairs : valuesByGlobalCol){//for each list of value of each column
+                String valueColEnumeration = ""; //colName = value AND ColName = value etc...
+                String valueAlias = ""; //as aliasName
+                for (int i = 0; i < pairs.size(); i++) {//v is already escaped with ''
+                    String v = pairs.get(i);
+                    String valueRaw = v.replaceAll("'", "");
                     if (valueRaw.isEmpty())
-                        continue;
-                    if (stringIsNumericOrBoolean(valueRaw)){
-                        valueRaw = "_"+valueRaw;
-                    }
-                    if (measureOP.equalsIgnoreCase("COUNT")) //inneficient, if running for every row...
-                        query+= " SUM(CASE WHEN "+ tableColumn + " = " + s + " THEN 1 ELSE 0 END) AS "+valueRaw+", ";
-                    else if (measureOP.equalsIgnoreCase("SUM")) //inneficient, if running for every row...
-                        query+= " SUM(CASE WHEN "+ tableColumn + " = " + s + " THEN "+measureName +" ELSE 0 END) AS "+valueRaw+", ";
-                    else if (measureOP.equalsIgnoreCase("AVG")) //inneficient, if running for every row...
-                        query+= " AVG(CASE WHEN "+ tableColumn + " = " + s + " THEN "+measureName +" ELSE NULL END) AS "+valueRaw+", ";
+                        valueRaw ="''";
+                    valueColEnumeration += colNames.get(i) + " = "+v+" AND ";//building a colName = value AND ColName = value etc...
+                    valueAlias += valueRaw + "_";
                 }
+                //remove last AND from enumerations and last _ from alias
+                valueColEnumeration = valueColEnumeration.substring(0, valueColEnumeration.length() - " AND ".length());//remove last AND from enumeration
+                valueAlias = valueAlias.substring(0, valueAlias.length() - "_".length());//remove last _ from alias
+                if (Utils.stringIsNumericOrBoolean(valueAlias)) {
+                    valueAlias = "_" + valueAlias; //boolean or numerics are not accepted as column names
+                }
+                if (valueAlias.trim().isEmpty()){//empty alias name, add a new name
+                    valueAlias="empty";
+                }
+                valueAlias = "\""+valueAlias+"\"";//space between chars in alias is not allowed, add double quotes
+                if (measureOP.equalsIgnoreCase("COUNT")) //inneficient, if running for every row...
+                    query+= " SUM(CASE WHEN "+ valueColEnumeration + " THEN 1 ELSE 0 END) AS "+valueAlias+", ";
+                else if (measureOP.equalsIgnoreCase("SUM")) //inneficient, if running for every row...
+                    query+= " SUM(CASE WHEN "+ valueColEnumeration + " THEN "+measureName +" ELSE 0 END) AS "+valueAlias+", ";
+                else if (measureOP.equalsIgnoreCase("AVG")) //inneficient, if running for every row...
+                    query+= " AVG(CASE WHEN "+ valueColEnumeration + " THEN "+measureName +" ELSE NULL END) AS "+valueAlias+", ";
             }
         }
 
@@ -516,18 +544,75 @@ public class GlobalTableQuery {
         return query;
     }
 
-    public static boolean stringIsNumericOrBoolean(String strNum) {
-        if (strNum == null) {
-            return false;
+
+    public List<List<String>>  getAllDifferentValuesOfColumn(){
+        List<GlobalColumnData> allCols = new ArrayList<>();
+        List<GlobalTableData> allTables = new ArrayList<>();
+        for (Map.Entry<GlobalTableData, List<GlobalColumnData>> colSelect : selectColumns.entrySet()){
+            GlobalTableData t = colSelect.getKey();
+            allTables.add(t);
+            List<GlobalColumnData> cs = colSelect.getValue();
+            for (GlobalColumnData c : cs){
+                c.setFullName(t.getTableName()+"."+c.getName());
+                allCols.add(c);
+            }
         }
-        else if (strNum.equalsIgnoreCase("true") || strNum.equalsIgnoreCase("false"))
-            return true;
+        String query = "SELECT DISTINCT (";
+        for (GlobalColumnData c : allCols){
+            query+=c.getFullName()+",";
+        }
+        query = query.substring(0, query.length() - 1);//last elemment without comma
+        query+=") FROM ";
+        for (GlobalTableData t : allTables){
+            String subQueries = getLocalTableQuery(t, selectColumns.get(t));
+
+            if(subQueries.contains("Error")){
+                return null;//propagate error
+            }
+            query+="("+subQueries;
+            //Join on facts table
+            query+= ") AS " + t.getTableName()+",";
+        }
+        query = query.substring(0, query.length() - 1);//last elemment without comma
+        query+=" ORDER BY (";
+        for (GlobalColumnData c : allCols){
+            query+=c.getFullName()+",";
+        }
+        query = query.substring(0, query.length() - 1);//last elemment without comma
+        query+=")";
+        System.out.println("value query: "+query);
+        ResultSet results = presto.getLocalTablesQueries(query);
+        List<List<String>> values = new ArrayList<>();//tablename.columnname; List of values
         try {
-            double d = Double.parseDouble(strNum);
-        } catch (NumberFormatException nfe) {
-            return false;
+            //results.beforeFirst(); //return to begining
+            ResultSetMetaData rsmd = results.getMetaData();
+            while(results.next()){
+                //Fetch each rows from the ResultSet, and add to ArrayList of different values
+                // ResultSet column indices start at 1
+                List<String> valuePairs = new ArrayList<>();
+                if (allCols.size() == 1) {
+                    String value = results.getString(1);
+                    if (!Utils.stringIsNumericOrBoolean(value))
+                        value = "'" + value.replaceAll("'", "''") + "'";//2 single quotes to escape any single quotes in the string ('Women's dress' -> ''Women''s dress'
+                    valuePairs.add(value);
+                    values.add(valuePairs);//add list of values
+                }
+                else if (allCols.size() > 1){
+                    Map<String, String> valueFields = (Map<String, String>) results.getObject(1);//returns only one columns with a map with fieldx=value, fieldy=value...
+                    for (Map.Entry<String, String> valueField : valueFields.entrySet()){//mapp with key=fieldName, value=value from select
+                        String value = valueField.getValue();
+                        if (!Utils.stringIsNumericOrBoolean(value))
+                            value = "'"+value.replaceAll("'", "''")+"'";//2 single quotes to escape any single quotes in the string ('Women's dress' -> ''Women''s dress'
+                        valuePairs.add(value);
+                    }
+                    values.add(valuePairs);//add the list of pair values.
+                }
+            }
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
         }
-        return true;
+
+        return values;
     }
 
     public List<String> getAllDifferentValuesOfColumn(GlobalTableData t, GlobalColumnData c){
@@ -543,7 +628,6 @@ public class GlobalTableQuery {
         query+= ") AS "+t.getTableName()+" ";
 
         ResultSet results = presto.getLocalTablesQueries(query);
-        //insert column results in JTable
         try {
             //results.beforeFirst(); //return to begining
             while(results.next()){
@@ -589,6 +673,8 @@ public class GlobalTableQuery {
             }
             query = query.substring(0, query.length() - 1);//last elemment without comma
         }
+        //Add limit of max lines
+        query += " LIMIT "+LIMIT_NUMBER;
         return query;
     }
 

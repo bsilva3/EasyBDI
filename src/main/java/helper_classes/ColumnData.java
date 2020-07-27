@@ -15,6 +15,7 @@ public class ColumnData implements Serializable {
     private String foreignKey; //in the type "catalogName.schemaName.TableName.ColumnName"
     private int tableID;
     private MappingType mapping;
+    private ColumnData fk;
 
     public static class Builder {
         private int columnID;
@@ -95,6 +96,16 @@ public class ColumnData implements Serializable {
 
     private ColumnData() {
     }
+
+    public ColumnData getfk() {
+        return fk;
+    }
+
+    public void setfk(ColumnData fk) {
+        this.fk = fk;
+    }
+
+
     public String getName() {
         return name;
     }
@@ -180,6 +191,12 @@ public class ColumnData implements Serializable {
         String[] foreignKeySplit = this.getForeignKey().split("\\."); //"catalogName.schemaName.TableName.ColumnName"
         ColumnData c = m.getColumn(this.getTable().getDB(), foreignKeySplit[1], foreignKeySplit[2], foreignKeySplit[3]); //need schemaname, table name and column as well as the dbID
         return c;
+    }
+
+    public ColumnData getForeignKeyColumn(){
+        if (!hasForeignKey())
+            return null;
+        return fk;
     }
 
     public boolean hasForeignKey(){

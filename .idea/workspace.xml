@@ -2,21 +2,19 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="4372070e-ade1-4e3a-bab8-4e40966e7856" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/metadata/af" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/metadata/s&lt;f" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/helper_classes/Utils.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/prestoComm/Tests.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/metadata/salesdb2" beforeDir="false" afterPath="$PROJECT_DIR$/metadata/salesdb2" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/helper_classes/ColumnData.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/helper_classes/ColumnData.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/helper_classes/GlobalTableData.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/helper_classes/GlobalTableData.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/prestoComm/MainMenu.form" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/prestoComm/MainMenu.form" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/prestoComm/MainMenu.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/prestoComm/MainMenu.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/prestoComm/MainWizardPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/prestoComm/MainWizardPanel.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/prestoComm/MainTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/prestoComm/MainTest.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/prestoComm/MetaDataManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/prestoComm/MetaDataManager.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/prestoComm/query_ui/FilterNode.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/prestoComm/query_ui/FilterNode.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/prestoComm/query_ui/FilterNodeType.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/prestoComm/query_ui/FilterNodeType.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/prestoComm/query_ui/GlobalTableQuery.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/prestoComm/query_ui/GlobalTableQuery.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/wizards/CubeConfiguration.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/wizards/CubeConfiguration.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/wizards/DBConfig/DatabaseConnectionWizardV2.form" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/wizards/DBConfig/DatabaseConnectionWizardV2.form" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/wizards/DBConfig/DatabaseConnectionWizardV2.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/wizards/DBConfig/DatabaseConnectionWizardV2.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/wizards/DBConfig/DatabaseSelection.form" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/wizards/DBConfig/DatabaseSelection.form" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/wizards/DBConfig/DatabaseSelection.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/wizards/DBConfig/DatabaseSelection.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/prestoComm/query_ui/QueryUI.form" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/prestoComm/query_ui/QueryUI.form" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/prestoComm/query_ui/QueryUI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/prestoComm/query_ui/QueryUI.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/wizards/global_schema_config/CustomTreeNode.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/wizards/global_schema_config/CustomTreeNode.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/wizards/global_schema_config/GlobalSchemaConfiguration.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/wizards/global_schema_config/GlobalSchemaConfiguration.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -67,7 +65,7 @@
       <recent name="C:\Users\bsilva\IdeaProjects\prestoConnector\src\main\java\wizards\global_schema_config" />
     </key>
   </component>
-  <component name="RunManager" selected="Application.MainMenu">
+  <component name="RunManager" selected="Application.Tests">
     <configuration name="MainMenu" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="prestoComm.MainMenu" />
       <module name="EasyBDI" />
@@ -94,19 +92,6 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="MainWizardPanel" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="prestoComm.MainWizardPanel" />
-      <module name="EasyBDI" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="prestoComm.query_ui.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
     <configuration name="PrestoMediator" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="prestoComm.PrestoMediator" />
       <module name="EasyBDI" />
@@ -120,8 +105,8 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="QueryUI" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="prestoComm.QueryUI" />
+    <configuration name="RowNumberTable" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="prestoComm.query_ui.RowNumberTable" />
       <module name="EasyBDI" />
       <extension name="coverage">
         <pattern>
@@ -133,20 +118,33 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <configuration name="Tests" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="prestoComm.Tests" />
+      <module name="EasyBDI" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="prestoComm.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <list>
       <item itemvalue="Application.MainMenu" />
       <item itemvalue="Application.MainTest" />
-      <item itemvalue="Application.MainWizardPanel" />
       <item itemvalue="Application.PrestoMediator" />
-      <item itemvalue="Application.QueryUI" />
+      <item itemvalue="Application.RowNumberTable" />
+      <item itemvalue="Application.Tests" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Application.Tests" />
         <item itemvalue="Application.MainMenu" />
+        <item itemvalue="Application.RowNumberTable" />
         <item itemvalue="Application.MainTest" />
         <item itemvalue="Application.PrestoMediator" />
-        <item itemvalue="Application.QueryUI" />
-        <item itemvalue="Application.MainWizardPanel" />
       </list>
     </recent_temporary>
   </component>
@@ -427,12 +425,18 @@
       <option name="project" value="LOCAL" />
       <updated>1595526737703</updated>
     </task>
-    <option name="localTasksCounter" value="39" />
+    <task id="LOCAL-00039" summary="Edit projects has been stabilized. Ui changes and improvements to size of some elements. Bug fixes in project creation and global schema change in the 'mapping type' node location to be son of the global table.">
+      <created>1595631740588</created>
+      <option name="number" value="00039" />
+      <option name="presentableId" value="LOCAL-00039" />
+      <option name="project" value="LOCAL" />
+      <updated>1595631740588</updated>
+    </task>
+    <option name="localTasksCounter" value="40" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
-    <MESSAGE value="interface of wizards improved" />
     <MESSAGE value="schema matching of columns improved" />
     <MESSAGE value="Mapping type added" />
     <MESSAGE value="fixes for partition type and presto connection" />
@@ -457,7 +461,8 @@
     <MESSAGE value="bug fixes on vertical partioning queries (more efficient construction of queries, as tables that do not have a column are not used) and on global schema construction" />
     <MESSAGE value="not implementation on filters" />
     <MESSAGE value="Query UI changes to be more intuitive.&#10;Query Filters ui fixes" />
-    <option name="LAST_COMMIT_MESSAGE" value="Query UI changes to be more intuitive.&#10;Query Filters ui fixes" />
+    <MESSAGE value="Edit projects has been stabilized. Ui changes and improvements to size of some elements. Bug fixes in project creation and global schema change in the 'mapping type' node location to be son of the global table." />
+    <option name="LAST_COMMIT_MESSAGE" value="Edit projects has been stabilized. Ui changes and improvements to size of some elements. Bug fixes in project creation and global schema change in the 'mapping type' node location to be son of the global table." />
   </component>
   <component name="WindowStateProjectService">
     <state x="552" y="178" key="#Inspections" timestamp="1587567330579">
@@ -480,10 +485,10 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="690" y="299" key="#com.intellij.ide.util.PackageChooserDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1587988040434" />
-    <state x="689" y="304" key="#com.intellij.ide.util.TreeClassChooserDialog" timestamp="1593603433966">
+    <state x="689" y="304" width="525" height="413" key="#com.intellij.ide.util.TreeClassChooserDialog" timestamp="1595784365336">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="689" y="304" key="#com.intellij.ide.util.TreeClassChooserDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1593603433966" />
+    <state x="689" y="304" width="525" height="413" key="#com.intellij.ide.util.TreeClassChooserDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1595784365336" />
     <state x="748" y="379" width="423" height="287" key="#com.intellij.refactoring.move.moveClassesOrPackages.MoveClassesOrPackagesDialog.classes" timestamp="1587988072846">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -500,58 +505,58 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="693" y="268" width="524" height="499" key="#com.intellij.refactoring.typeMigration.ui.FailedConversionsDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1594837206931" />
-    <state x="741" y="308" key="#com.intellij.uiDesigner.palette.ComponentItemDialog" timestamp="1593603441088">
+    <state x="741" y="308" width="432" height="445" key="#com.intellij.uiDesigner.palette.ComponentItemDialog" timestamp="1595785007796">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="820" y="407" key="#com.intellij.uiDesigner.palette.ComponentItemDialog.OneOff" timestamp="1587925827169">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="820" y="407" key="#com.intellij.uiDesigner.palette.ComponentItemDialog.OneOff/0.0.1920.1040@0.0.1920.1040" timestamp="1587925827169" />
-    <state x="741" y="308" key="#com.intellij.uiDesigner.palette.ComponentItemDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1593603441088" />
-    <state x="1047" y="186" width="748" height="509" key="#xdebugger.evaluate" timestamp="1595613830774">
+    <state x="741" y="308" width="432" height="445" key="#com.intellij.uiDesigner.palette.ComponentItemDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1595785007796" />
+    <state x="1047" y="186" width="748" height="509" key="#xdebugger.evaluate" timestamp="1595704254518">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="1047" y="186" width="748" height="509" key="#xdebugger.evaluate/0.0.1920.1040@0.0.1920.1040" timestamp="1595613830774" />
-    <state x="607" y="116" width="747" height="803" key="CommitChangelistDialog2" timestamp="1595526737105">
+    <state x="1047" y="186" width="748" height="509" key="#xdebugger.evaluate/0.0.1920.1040@0.0.1920.1040" timestamp="1595704254518" />
+    <state x="607" y="116" width="747" height="803" key="CommitChangelistDialog2" timestamp="1595631740409">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="607" y="116" width="747" height="803" key="CommitChangelistDialog2/0.0.1920.1040@0.0.1920.1040" timestamp="1595526737105" />
+    <state x="607" y="116" width="747" height="803" key="CommitChangelistDialog2/0.0.1920.1040@0.0.1920.1040" timestamp="1595631740409" />
     <state x="740" y="275" key="FileChooserDialogImpl" timestamp="1593295497358">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="740" y="275" key="FileChooserDialogImpl/0.0.1920.1040@0.0.1920.1040" timestamp="1593295497358" />
-    <state width="1874" height="200" key="GridCell.Tab.0.bottom" timestamp="1595631342028">
+    <state width="1874" height="200" key="GridCell.Tab.0.bottom" timestamp="1595870185747">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1874" height="200" key="GridCell.Tab.0.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1595631342028" />
-    <state width="1874" height="200" key="GridCell.Tab.0.center" timestamp="1595631342028">
+    <state width="1874" height="200" key="GridCell.Tab.0.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1595870185747" />
+    <state width="1874" height="200" key="GridCell.Tab.0.center" timestamp="1595870185747">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1874" height="200" key="GridCell.Tab.0.center/0.0.1920.1040@0.0.1920.1040" timestamp="1595631342028" />
-    <state width="1874" height="200" key="GridCell.Tab.0.left" timestamp="1595631342027">
+    <state width="1874" height="200" key="GridCell.Tab.0.center/0.0.1920.1040@0.0.1920.1040" timestamp="1595870185747" />
+    <state width="1874" height="200" key="GridCell.Tab.0.left" timestamp="1595870185747">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1874" height="200" key="GridCell.Tab.0.left/0.0.1920.1040@0.0.1920.1040" timestamp="1595631342027" />
-    <state width="1874" height="200" key="GridCell.Tab.0.right" timestamp="1595631342028">
+    <state width="1874" height="200" key="GridCell.Tab.0.left/0.0.1920.1040@0.0.1920.1040" timestamp="1595870185747" />
+    <state width="1874" height="200" key="GridCell.Tab.0.right" timestamp="1595870185747">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1874" height="200" key="GridCell.Tab.0.right/0.0.1920.1040@0.0.1920.1040" timestamp="1595631342028" />
-    <state width="1874" height="237" key="GridCell.Tab.1.bottom" timestamp="1595628115087">
+    <state width="1874" height="200" key="GridCell.Tab.0.right/0.0.1920.1040@0.0.1920.1040" timestamp="1595870185747" />
+    <state width="1874" height="237" key="GridCell.Tab.1.bottom" timestamp="1595778990550">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1874" height="237" key="GridCell.Tab.1.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1595628115087" />
-    <state width="1874" height="237" key="GridCell.Tab.1.center" timestamp="1595628115087">
+    <state width="1874" height="237" key="GridCell.Tab.1.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1595778990550" />
+    <state width="1874" height="237" key="GridCell.Tab.1.center" timestamp="1595778990550">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1874" height="237" key="GridCell.Tab.1.center/0.0.1920.1040@0.0.1920.1040" timestamp="1595628115087" />
-    <state width="1874" height="237" key="GridCell.Tab.1.left" timestamp="1595628115087">
+    <state width="1874" height="237" key="GridCell.Tab.1.center/0.0.1920.1040@0.0.1920.1040" timestamp="1595778990550" />
+    <state width="1874" height="237" key="GridCell.Tab.1.left" timestamp="1595778990550">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1874" height="237" key="GridCell.Tab.1.left/0.0.1920.1040@0.0.1920.1040" timestamp="1595628115087" />
-    <state width="1874" height="237" key="GridCell.Tab.1.right" timestamp="1595628115087">
+    <state width="1874" height="237" key="GridCell.Tab.1.left/0.0.1920.1040@0.0.1920.1040" timestamp="1595778990550" />
+    <state width="1874" height="237" key="GridCell.Tab.1.right" timestamp="1595778990550">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1874" height="237" key="GridCell.Tab.1.right/0.0.1920.1040@0.0.1920.1040" timestamp="1595628115087" />
+    <state width="1874" height="237" key="GridCell.Tab.1.right/0.0.1920.1040@0.0.1920.1040" timestamp="1595778990550" />
     <state x="490" y="175" key="Maven.ArtifactSearchDialog" timestamp="1593282948757">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -576,10 +581,10 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="839" y="314" key="UIDesigner.ListEditorDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1591014590450" />
-    <state x="555" y="255" width="800" height="526" key="Vcs.Push.Dialog.v2" timestamp="1595526739104">
+    <state x="555" y="255" width="800" height="526" key="Vcs.Push.Dialog.v2" timestamp="1595631741980">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="555" y="255" width="800" height="526" key="Vcs.Push.Dialog.v2/0.0.1920.1040@0.0.1920.1040" timestamp="1595526739104" />
+    <state x="555" y="255" width="800" height="526" key="Vcs.Push.Dialog.v2/0.0.1920.1040@0.0.1920.1040" timestamp="1595631741980" />
     <state width="968" height="528" key="XDebugger.FullValuePopup" timestamp="1594830447574">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -638,7 +643,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-method">
           <url>file://$PROJECT_DIR$/src/main/java/wizards/global_schema_config/GlobalSchemaConfiguration.java</url>
-          <line>1378</line>
+          <line>1383</line>
           <properties class="wizards.global_schema_config.GlobalSchemaConfiguration.TreeTransferHandler">
             <option name="EMULATED" value="true" />
           </properties>
@@ -646,7 +651,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-method">
           <url>file://$PROJECT_DIR$/src/main/java/prestoComm/MetaDataManager.java</url>
-          <line>846</line>
+          <line>849</line>
           <properties class="prestoComm.MetaDataManager" method="insertStarSchema">
             <option name="EMULATED" value="true" />
           </properties>
@@ -654,7 +659,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-method">
           <url>file://$PROJECT_DIR$/src/main/java/prestoComm/MetaDataManager.java</url>
-          <line>860</line>
+          <line>863</line>
           <properties class="prestoComm.MetaDataManager" method="insertFactsTable">
             <option name="EMULATED" value="true" />
           </properties>
@@ -662,7 +667,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-method">
           <url>file://$PROJECT_DIR$/src/main/java/prestoComm/query_ui/GlobalTableQuery.java</url>
-          <line>131</line>
+          <line>134</line>
           <properties class="prestoComm.query_ui.GlobalTableQuery">
             <option name="EMULATED" value="true" />
           </properties>
@@ -678,7 +683,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-method">
           <url>file://$PROJECT_DIR$/src/main/java/prestoComm/query_ui/QueryUI.java</url>
-          <line>670</line>
+          <line>656</line>
           <properties method="actionPerformed">
             <option name="EMULATED" value="true" />
           </properties>
@@ -686,7 +691,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-method">
           <url>file://$PROJECT_DIR$/src/main/java/prestoComm/MetaDataManager.java</url>
-          <line>1543</line>
+          <line>1547</line>
           <properties class="prestoComm.MetaDataManager" method="getQueryFilters">
             <option name="EMULATED" value="true" />
           </properties>
@@ -694,7 +699,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-method">
           <url>file://$PROJECT_DIR$/src/main/java/prestoComm/MetaDataManager.java</url>
-          <line>1298</line>
+          <line>1301</line>
           <properties class="prestoComm.MetaDataManager" method="insertNewQuerySave">
             <option name="EMULATED" value="true" />
           </properties>
@@ -702,7 +707,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-method">
           <url>file://$PROJECT_DIR$/src/main/java/prestoComm/MetaDataManager.java</url>
-          <line>747</line>
+          <line>750</line>
           <properties class="prestoComm.MetaDataManager" method="insertGlobalSchemaData">
             <option name="EMULATED" value="true" />
           </properties>
@@ -735,42 +740,42 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/wizards/global_schema_config/GlobalSchemaConfiguration.java</url>
-          <line>1292</line>
+          <line>1297</line>
           <option name="timeStamp" value="141" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/wizards/global_schema_config/GlobalSchemaConfiguration.java</url>
-          <line>1348</line>
+          <line>1353</line>
           <option name="timeStamp" value="144" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/wizards/global_schema_config/GlobalSchemaConfiguration.java</url>
-          <line>1331</line>
+          <line>1336</line>
           <option name="timeStamp" value="153" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/wizards/global_schema_config/GlobalSchemaConfiguration.java</url>
-          <line>1334</line>
+          <line>1339</line>
           <option name="timeStamp" value="154" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/wizards/global_schema_config/GlobalSchemaConfiguration.java</url>
-          <line>1336</line>
+          <line>1341</line>
           <option name="timeStamp" value="156" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/wizards/global_schema_config/GlobalSchemaConfiguration.java</url>
-          <line>1333</line>
+          <line>1338</line>
           <option name="timeStamp" value="157" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/wizards/global_schema_config/GlobalSchemaConfiguration.java</url>
-          <line>1386</line>
+          <line>1391</line>
           <option name="timeStamp" value="169" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/prestoComm/query_ui/GlobalTableQuery.java</url>
-          <line>135</line>
+          <line>138</line>
           <option name="timeStamp" value="198" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
@@ -800,12 +805,12 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/prestoComm/query_ui/GlobalTableQuery.java</url>
-          <line>339</line>
+          <line>342</line>
           <option name="timeStamp" value="303" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/prestoComm/query_ui/GlobalTableQuery.java</url>
-          <line>341</line>
+          <line>344</line>
           <option name="timeStamp" value="304" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
@@ -815,47 +820,42 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/prestoComm/query_ui/QueryUI.java</url>
-          <line>323</line>
+          <line>324</line>
           <option name="timeStamp" value="332" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/prestoComm/MetaDataManager.java</url>
-          <line>304</line>
+          <line>307</line>
           <option name="timeStamp" value="334" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/prestoComm/query_ui/QueryUI.java</url>
-          <line>861</line>
+          <line>847</line>
           <option name="timeStamp" value="337" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/prestoComm/MetaDataManager.java</url>
-          <line>1323</line>
+          <line>1326</line>
           <option name="timeStamp" value="341" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/prestoComm/MetaDataManager.java</url>
-          <line>1477</line>
-          <option name="timeStamp" value="342" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/prestoComm/query_ui/QueryUI.java</url>
-          <line>311</line>
+          <line>314</line>
           <option name="timeStamp" value="345" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/prestoComm/query_ui/QueryUI.java</url>
-          <line>317</line>
+          <line>320</line>
           <option name="timeStamp" value="349" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/prestoComm/query_ui/GlobalTableQuery.java</url>
-          <line>725</line>
+          <line>811</line>
           <option name="timeStamp" value="351" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/prestoComm/query_ui/GlobalTableQuery.java</url>
-          <line>682</line>
+          <line>768</line>
           <option name="timeStamp" value="353" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
@@ -865,72 +865,72 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/wizards/global_schema_config/GlobalSchemaConfiguration.java</url>
-          <line>1332</line>
+          <line>1337</line>
           <option name="timeStamp" value="364" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/prestoComm/query_ui/GlobalTableQuery.java</url>
-          <line>727</line>
+          <line>813</line>
           <option name="timeStamp" value="372" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/prestoComm/query_ui/GlobalTableQuery.java</url>
-          <line>187</line>
+          <line>190</line>
           <option name="timeStamp" value="382" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/prestoComm/query_ui/GlobalTableQuery.java</url>
-          <line>185</line>
+          <line>188</line>
           <option name="timeStamp" value="384" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/prestoComm/query_ui/GlobalTableQuery.java</url>
-          <line>446</line>
+          <line>474</line>
           <option name="timeStamp" value="389" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/prestoComm/query_ui/GlobalTableQuery.java</url>
-          <line>444</line>
+          <line>472</line>
           <option name="timeStamp" value="390" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/prestoComm/query_ui/GlobalTableQuery.java</url>
-          <line>443</line>
+          <line>471</line>
           <option name="timeStamp" value="391" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/prestoComm/query_ui/QueryUI.java</url>
-          <line>1274</line>
+          <line>1265</line>
           <option name="timeStamp" value="394" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/prestoComm/query_ui/QueryUI.java</url>
-          <line>1307</line>
+          <line>1298</line>
           <option name="timeStamp" value="395" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/prestoComm/query_ui/QueryUI.java</url>
-          <line>1315</line>
+          <line>1306</line>
           <option name="timeStamp" value="397" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/prestoComm/query_ui/QueryUI.java</url>
-          <line>1302</line>
+          <line>1293</line>
           <option name="timeStamp" value="398" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/prestoComm/query_ui/QueryUI.java</url>
-          <line>1313</line>
+          <line>1304</line>
           <option name="timeStamp" value="399" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/prestoComm/query_ui/QueryUI.java</url>
-          <line>1320</line>
+          <line>1311</line>
           <option name="timeStamp" value="400" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/prestoComm/query_ui/QueryUI.java</url>
-          <line>1294</line>
+          <line>1285</line>
           <option name="timeStamp" value="401" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
@@ -945,28 +945,93 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/wizards/global_schema_config/GlobalSchemaConfiguration.java</url>
-          <line>1208</line>
+          <line>1213</line>
           <option name="timeStamp" value="404" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/wizards/global_schema_config/GlobalSchemaConfiguration.java</url>
-          <line>1199</line>
+          <line>1204</line>
           <option name="timeStamp" value="405" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/wizards/global_schema_config/GlobalSchemaConfiguration.java</url>
-          <line>1244</line>
+          <line>1249</line>
           <option name="timeStamp" value="406" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/wizards/global_schema_config/GlobalSchemaConfiguration.java</url>
-          <line>1252</line>
+          <line>1257</line>
           <option name="timeStamp" value="407" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/wizards/global_schema_config/GlobalSchemaConfiguration.java</url>
-          <line>1265</line>
+          <line>1270</line>
           <option name="timeStamp" value="408" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/prestoComm/query_ui/GlobalTableQuery.java</url>
+          <line>611</line>
+          <option name="timeStamp" value="413" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/prestoComm/query_ui/GlobalTableQuery.java</url>
+          <line>589</line>
+          <option name="timeStamp" value="417" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/prestoComm/query_ui/GlobalTableQuery.java</url>
+          <line>389</line>
+          <option name="timeStamp" value="419" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/prestoComm/query_ui/GlobalTableQuery.java</url>
+          <line>435</line>
+          <option name="timeStamp" value="422" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/prestoComm/query_ui/GlobalTableQuery.java</url>
+          <line>447</line>
+          <option name="timeStamp" value="445" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/prestoComm/query_ui/GlobalTableQuery.java</url>
+          <line>599</line>
+          <option name="timeStamp" value="446" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/prestoComm/query_ui/QueryUI.java</url>
+          <line>247</line>
+          <option name="timeStamp" value="448" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/prestoComm/query_ui/QueryUI.java</url>
+          <line>246</line>
+          <option name="timeStamp" value="449" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/prestoComm/query_ui/QueryUI.java</url>
+          <line>248</line>
+          <option name="timeStamp" value="450" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/prestoComm/query_ui/QueryUI.java</url>
+          <line>250</line>
+          <option name="timeStamp" value="451" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/prestoComm/query_ui/QueryUI.java</url>
+          <line>253</line>
+          <option name="timeStamp" value="452" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/prestoComm/query_ui/QueryUI.java</url>
+          <line>303</line>
+          <option name="timeStamp" value="454" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/prestoComm/query_ui/QueryUI.java</url>
+          <line>305</line>
+          <option name="timeStamp" value="455" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
