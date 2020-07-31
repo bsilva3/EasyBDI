@@ -2,8 +2,6 @@ package prestoComm.query_ui;
 
 import helper_classes.*;
 import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import prestoComm.DBModel;
 import prestoComm.MainMenu;
 import prestoComm.MetaDataManager;
@@ -24,6 +22,8 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -33,7 +33,6 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.List;
-import java.util.logging.Filter;
 
 public class QueryUI extends JPanel{
     private JTable queryResultsTable;
@@ -69,7 +68,7 @@ public class QueryUI extends JPanel{
 
     private MetaDataManager metaDataManager;
     private PrestoMediator prestoMediator;
-    private final String[] aggregations = { "count", "sum", "average"};
+    private final String[] aggregations = { "no aggregation", "count", "sum", "average"};
     private final String[] numberOperations = { "=", "!=", ">", "=>", "<", "<="};
     private final String[] stringOperations = { "=", "!=", "like"};
 
@@ -139,7 +138,7 @@ public class QueryUI extends JPanel{
             executeQueryButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     //open wizard and edit current project
-                    executeQuery();
+                    executeQueryAndShowResults();
                 }
             });
 
@@ -168,6 +167,9 @@ public class QueryUI extends JPanel{
                     if (evt.getClickCount() == 2) {
                         // Double-click on list log item: show full message
                         int index = list.locationToIndex(evt.getPoint());
+                        if (index < 0){
+                            return;
+                        }
                         QueryLog queryLog = (QueryLog) queryLogModel.get(index);
                         JOptionPane optionPane = new NarrowOptionPane();
                         optionPane.setMessage(queryLog.toString());
@@ -679,7 +681,10 @@ public class QueryUI extends JPanel{
             public void actionPerformed(ActionEvent arg0) {
                 if (index < 0)
                     return;
+                globalTableQueries.removeMeasure(measuresListModel.getElementAt(index).toString());
                 measuresList.remove(index);
+                measuresList.updateUI();
+                measuresList.revalidate();
             }
         };
     }
@@ -873,26 +878,60 @@ public class QueryUI extends JPanel{
         return query;
     }
 
+    public void executeQueryAndShowResults(){
+        SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
+            @Override
+            protected Void doInBackground() throws InterruptedException {
+                DateTime beginTime = new DateTime();
+                //buld query string
+                globalTableQueries.setFilterQuery(getFilterQuery());
+                String localQuery = globalTableQueries.buildQuery();//create query with inner query to get local table data
+                System.out.println(localQuery);
+                if (localQuery.contains("Error")){
+                    JOptionPane.showMessageDialog(null, "Could not execute query:\n"+localQuery, "Query Error", JOptionPane.ERROR_MESSAGE);
+                    queryLogModel.addElement(new QueryLog(localQuery, beginTime, null, 0));
+                    return null;
+                }
+                //execute query by presto
+                firePropertyChange("querying", null, null);
+                ResultSet results = prestoMediator.getLocalTablesQueries(localQuery);
 
+                //process query results
+                firePropertyChange("results_processing", null, null);
+                setResultsAndCreateLog(results, localQuery, beginTime);
+                LoadingScreenAnimator.closeGeneralLoadingAnimation();
+                backButton.setEnabled(true);
+                return null;
+            }
+        };
+        LoadingScreenAnimator.openGeneralLoadingAnimation(mainMenu, "Constructing Query...");
+        worker.execute();
+        worker.addPropertyChangeListener( new PropertyChangeListener() {
+            @Override
+            public void propertyChange(PropertyChangeEvent evt) {
+                if ("build_query".equals(evt.getPropertyName())) {
+                    LoadingScreenAnimator.setText("Constructing Query...");
+                }
+                else if ("querying".equals(evt.getPropertyName())) {
+                    LoadingScreenAnimator.setText("Executing Query...");
+                }
+                else if ("results_processing".equals(evt.getPropertyName())) {
+                    LoadingScreenAnimator.setText("Processing Query Results...");
+                }
+            }
+        });
+        backButton.setEnabled(false);
+    }
 
-    public void executeQuery(){
+    private void setResultsAndCreateLog(ResultSet results, String localQuery, DateTime beginTime){
+        if (results == null)
+            return;
         defaultTableModel.setColumnCount(0);
         defaultTableModel.setRowCount(0);//clear any previous results
 
-        DateTimeFormatter formatter = DateTimeFormat.forPattern("HH:mm:ss");
-        DateTime beginTime = new DateTime();
-        globalTableQueries.setFilterQuery(getFilterQuery());
-        String localQuery = globalTableQueries.buildQuery();//create query with inner query to get local table data
-
-        System.out.println(localQuery);
-
-        if (localQuery.contains("Error")){
-            JOptionPane.showMessageDialog(null, "Could not execute query:\n"+localQuery, "Query Error", JOptionPane.ERROR_MESSAGE);
-            queryLogModel.addElement(new QueryLog(localQuery, beginTime, null, 0));
-            return;
-        }
-        ResultSet results = prestoMediator.getLocalTablesQueries(localQuery);
         String[] cols = null;
+        //GroupableTableHeader header = (GroupableTableHeader)table.getTableHeader();
+
         //insert column results in JTable
         int nRows = 0;
         try {
@@ -905,7 +944,6 @@ public class QueryUI extends JPanel{
                 cols[i] = name;
             }
             defaultTableModel.setColumnIdentifiers(cols);
-
             //place rows
             //results.beforeFirst(); //return to begining
             while(results.next()){
@@ -915,9 +953,8 @@ public class QueryUI extends JPanel{
                 currentRow[0] = (nRows)+"";
                 for(int i = 0; i < columnCount-1; i++){
                     //Again, note that ResultSet column indices start at 1
-                    currentRow[i+1] = results.getString(i+1);
+                    currentRow[i+1] = results.getString(i+1);//first column (index 0) is the line number)
                 }
-
                 defaultTableModel.addRow(currentRow);
             }
 
@@ -931,8 +968,10 @@ public class QueryUI extends JPanel{
         DateTime endTime = new DateTime();
         queryLogModel.addElement(new QueryLog(localQuery, beginTime, endTime, nRows));
         queryResultsTable.revalidate();
+    }
 
-
+    private void createMultiHeaders(){
+        List<List<String>> pivotValues = globalTableQueries.getPivotValues();
     }
 
     private MouseListener getMouseListenerForColumnList() {
@@ -1110,19 +1149,18 @@ public class QueryUI extends JPanel{
 
     private void addMeasure(DefaultListModel listModel, String measureStr){
         //make sure this measure is not added already
-        String measureName = measureStr.split("[(]")[1]; //in the form "aggr(measureName)"
         for (int i = 0; i < listModel.size(); i++){
-            if (listModel.get(i).toString().contains(measureName)){
+            if (listModel.get(i).toString().equals(measureStr)){
                 JOptionPane.showMessageDialog(mainMenu, "Measure already present. Cannot add repeated Measure.", "Cannot add measure", JOptionPane.WARNING_MESSAGE);
                 return;
             }
         }
         listModel.add(listModel.size(), measureStr);
+        String[] splitres = measureStr.split("[(]"); //in the form "aggr(measureName)"
+        if (splitres.length == 1){
+            measureStr = "SIMPLE ("+measureStr+")";//case in which user does not use any operation
+        }
         globalTableQueries.addMeasure(measureStr);
-    }
-
-    private void removeMeasure(String measureStr){
-        globalTableQueries.removeMeasure(measureStr);
     }
 
     class TreeTransferHandler extends TransferHandler {
@@ -1225,7 +1263,12 @@ public class QueryUI extends JPanel{
                         JOptionPane.showMessageDialog(mainMenu, "You can only drag measures to this area.", "Measures only", JOptionPane.WARNING_MESSAGE);
                         return false;
                     }
-                    String measureStr = aggregationOpComboBox.getSelectedItem().toString() +"("+ column.getName() +")";
+                    String measureStr = "";
+                    if (aggregationOpComboBox.getSelectedIndex() == 0){//user selected no aggregation operation
+                        measureStr = column.getName();
+                    }
+                    else
+                        measureStr = aggregationOpComboBox.getSelectedItem().toString() +"("+ column.getName() +")";
                     addMeasure(listModel, measureStr);
                 }
                 return true;

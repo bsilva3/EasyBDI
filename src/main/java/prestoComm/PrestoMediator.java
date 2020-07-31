@@ -523,6 +523,9 @@ public class PrestoMediator {
             if (e.getCause().getMessage().contains("Failed to connect")){
                 JOptionPane.showMessageDialog(null, "Unnable to connect to Presto. Make sure it is running.", "Failed to connect to Presto", JOptionPane.ERROR_MESSAGE);
             }
+            else{
+                JOptionPane.showMessageDialog(null, "Presto returned the following error:\n"+e.getCause().getMessage(), "Error Presto", JOptionPane.ERROR_MESSAGE);
+            }
         }
         return null;
     }

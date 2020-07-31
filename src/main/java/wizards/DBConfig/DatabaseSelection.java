@@ -3,6 +3,7 @@ package wizards.DBConfig;
 import helper_classes.DBData;
 import helper_classes.TableData;
 import prestoComm.DBModel;
+import prestoComm.MetaDataManager;
 import wizards.global_schema_config.CustomTreeNode;
 import wizards.global_schema_config.NodeType;
 
@@ -25,9 +26,21 @@ public class DatabaseSelection extends JPanel{
     private JLabel stepLabel;
     private DefaultTreeModel treeModel;
     private List<DBData> dbs;
+    private boolean isEdit;
+    private MetaDataManager dbManager;
+    public static final String LOCAL_SCHEMA_ELEMENT = "-> In Local Schema";
 
-    public DatabaseSelection (List<DBData> dbs){
-        helpLabel.setText("<html>Select which elements in each database to use for the local schema construction by checking the boxes next to them.<html>");
+    public DatabaseSelection (List<DBData> dbs, boolean isEdit, MetaDataManager dbManager){
+        this.dbManager = dbManager;
+        this.isEdit = isEdit;
+        if (isEdit){
+            helpLabel.setText("<html>Select which elements in each database to use for the local schema construction by checking the boxes next to them.<br/>" +
+                    "Elements that were previously selected to build the local schema cannot be unselected.<html>");
+        }
+        else {
+            //new project
+            helpLabel.setText("<html>Select which elements in each database to use for the local schema construction by checking the boxes next to them.<html>");
+        }
         stepLabel.setText("Step 2/4");
         stepLabel.setFont(new Font("", Font.PLAIN, 18));
         this.dbs = dbs;
@@ -39,7 +52,13 @@ public class DatabaseSelection extends JPanel{
     private void setDbsInJtree(){
         CheckBoxTreeNode root = new CheckBoxTreeNode("root", null, null);
         for (DBData db : dbs){
-            CheckBoxTreeNode dbNode = new CheckBoxTreeNode(db.getDbName()+" in "+db.getUrl()+" ("+db.getDbModel()+")", db, NodeType.DATABASE);
+            CheckBoxTreeNode dbNode = null;
+            if (isEdit && dbManager.dbExists(db.getDbName(), db.getUrl())){
+                dbNode = new CheckBoxTreeNode(db.getDbName()+" in "+db.getUrl()+" ("+db.getDbModel()+")"+LOCAL_SCHEMA_ELEMENT, db, NodeType.DATABASE);
+            }
+            else{
+                dbNode = new CheckBoxTreeNode(db.getDbName()+" in "+db.getUrl()+" ("+db.getDbModel()+")", db, NodeType.DATABASE);
+            }
             Map<String, List<TableData>> tablesInSchemas = db.getTableBySchemaMap();
             for (Map.Entry<String, List<TableData>> entry : tablesInSchemas.entrySet()) {
                 String schema = entry.getKey();
@@ -56,7 +75,13 @@ public class DatabaseSelection extends JPanel{
                         prefixT = "Collection: ";
                     else
                         prefixT = "Table: ";
-                    CheckBoxTreeNode tableNodes = new CheckBoxTreeNode(prefixT + t.getTableName(), t, NodeType.TABLE);
+                    CheckBoxTreeNode tableNodes = null;
+                    if (isEdit && dbManager.tableExists(t.getTableName(), t.getSchemaName(), db.getDbName(), db.getUrl())){
+                        tableNodes = new CheckBoxTreeNode(prefixT + t.getTableName()+LOCAL_SCHEMA_ELEMENT, t, NodeType.TABLE);
+                    }
+                    else{
+                        tableNodes = new CheckBoxTreeNode(prefixT + t.getTableName(), t, NodeType.TABLE);
+                    }
                     schemaNode.add(tableNodes);
                 }
                 dbNode.add(schemaNode);
@@ -74,14 +99,7 @@ public class DatabaseSelection extends JPanel{
         checkBoxTree.revalidate();
         checkBoxTree.updateUI();
     }
-    /*private void createUIComponents() {
-        GridBagConstraints gc = new GridBagConstraints();
-        gc.weightx = 1.0;
-        gc.weighty = 5.0;
-        checkBoxTree = new JCheckBoxTree();
-        checkBoxTree.setPreferredSize(new Dimension(700, 450));
-        scrollPane.add(checkBoxTree, gc);
-    }*/
+
 
     public List<DBData> getSelection(){
         List<DBData> filteredDbs = new ArrayList<>();

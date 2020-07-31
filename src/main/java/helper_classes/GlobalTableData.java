@@ -83,7 +83,7 @@ public class GlobalTableData implements Serializable {
         return tablesUpdate;
     }
 
-    public Set<TableData> getLocalTablesFromCols_v(List<GlobalColumnData> columnDataList) {
+    public Set<TableData> getLocalTablesFromColsVerticalMap(List<GlobalColumnData> columnDataList) {
         Set<ColumnData> localCols = new HashSet<>();//list with all local columns that match to one of the specified columns
         for (GlobalColumnData globalCol : columnDataList){
             localCols.addAll(globalCol.getLocalColumns());

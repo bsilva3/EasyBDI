@@ -2,8 +2,7 @@ package wizards.DBConfig;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
+import java.awt.event.*;
 import java.util.EventListener;
 import java.util.EventObject;
 import java.util.HashMap;
@@ -140,6 +139,7 @@ public class JCheckBoxTree extends JTree {
             checkBox.setSelected(cn.isSelected);
             checkBox.setText(obj.toString());
             checkBox.setOpaque(cn.isSelected && cn.hasChildren && ! cn.allChildrenSelected);
+            checkBox.setEnabled(!obj.toString().contains("-> In Local Schema"));// if it contains this string, cannot be edited (alreadu exists)
             return this;
         }
     }

@@ -184,6 +184,10 @@ public class MainWizardPanel extends JPanel{
             JOptionPane.showMessageDialog(mainMenu, "Global Schema is invalid and could not be saved. Please verify the Global Schema.", "Error Saving Schema", JOptionPane.ERROR_MESSAGE);
             return;
         }
+        if (isEdit && metaDataManager.getGlobalSchema().size()>0){
+            //delete all global schema tables (and therefore, star schemas (cubes) to add new edited global schema
+            metaDataManager.deleteGlobalSchemaAndCubes();
+        }
         metaDataManager.insertGlobalSchemaData(globalSchema);
         StarSchema starSchema = cubeConfigWizzard.getMultiDimSchema();
         if (starSchema == null) {
@@ -223,7 +227,7 @@ public class MainWizardPanel extends JPanel{
             return;
         }
         //dbs.addAll(generateLocalSchema());
-        dbSelection = new DatabaseSelection(dbs);
+        dbSelection = new DatabaseSelection(dbs, isEdit, metaDataManager);
         addToMainPanel(dbConnWizzard, dbSelection);
     }
 
@@ -236,7 +240,7 @@ public class MainWizardPanel extends JPanel{
 
 
         List<GlobalTableData> globalSchema;
-        //if user is editing project with an existing global schema created previously, do not perform schema match
+        //if user is editing project with an existing global schema created previously, do not perform schema match and use the current global schema to populate global schema tree
         if (isEdit && metaDataManager.getGlobalTablesCount() > 0){
             globalSchema = metaDataManager.getGlobalSchema();
         }
@@ -315,16 +319,6 @@ public class MainWizardPanel extends JPanel{
 
         // check all elements to see if they have ids. if their id is 0, they were already inserted.
         return dbs;
-    }
-
-    public void buildGlobalSchemaFromLocalSchema(List<DBData> dbs){
-        //tables in SQLITE for global schema already created
-        SchemaMatcher schemaMatcher = new SchemaMatcher(this.projectName);
-        //Generate the global schema from the local schemas
-        List<GlobalTableData> globalTables = schemaMatcher.schemaIntegration(dbs);
-        //GlobalSchemaConfigurationV2 schemaConfigurationV2 = new GlobalSchemaConfigurationV2(dbs, globalTables);
-        //insert the global tables, global columns in the database and correspondences between local and global columns
-        //metaDataManager.insertGlobalSchemaData(globalTables);
     }
 
 

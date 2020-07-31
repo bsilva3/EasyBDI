@@ -599,6 +599,22 @@ public class MetaDataManager {
         return id;
     }
 
+    public boolean dbExists(String dbName, String server){
+        String query = "SELECT "+DB_DATA_NAME_FIELD+", "+DB_DATA_SERVER_FIELD+" FROM " + DB_DATA + " WHERE "+ DB_DATA_NAME_FIELD +" = '"+ dbName +"' AND " + DB_DATA_SERVER_FIELD +" = '" + server + "'";
+        Statement stmt  = null;
+        boolean exists = false;
+        try {
+            stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(query);
+            if(rs.next()) {//has a result, db exists
+                exists = true;
+            }
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
+        return exists;
+    }
+
     public int getDBID(String dbName, String server){
         String query = "SELECT id FROM " + DB_DATA + " WHERE "+ DB_DATA_NAME_FIELD +" = '"+ dbName +"' AND " + DB_DATA_SERVER_FIELD +" = '" + server + "'";
         Statement stmt  = null;
@@ -636,6 +652,27 @@ public class MetaDataManager {
         return id;
     }
 
+    public boolean tableExists(String tableName, String schema, String dbName, String server){
+        int dbID = this.getDBID(dbName, server);
+        if (dbID < 1)
+            return false;
+        String query = "SELECT id FROM " + TABLE_DATA + " WHERE "+ TABLE_DATA_NAME_FIELD +" = '"+ tableName +"' AND " + TABLE_DATA_SCHEMA_NAME_FIELD +" = '" + schema + "'"
+                + " AND "+ TABLE_DATA_DB_ID_FIELD +" = "+dbID+"";
+        Statement stmt  = null;
+        boolean exists = false;
+        try {
+            stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(query);
+            if(rs.next()) {
+                exists = true;
+            }
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
+        return exists;
+    }
+
+
     private int getColumnID(String columnName, int tableID){
         String query = "SELECT id FROM " + COLUMN_DATA + " WHERE "+ COLUMN_DATA_NAME_FIELD +" = '"+ columnName +"' AND " + COLUMN_DATA_TABLE_FIELD +" = " + tableID + "";
         Statement stmt  = null;
@@ -650,6 +687,25 @@ public class MetaDataManager {
             System.out.println(e);
         }
         return id;
+    }
+
+    public boolean columnExists(String columnName, String tableName, String schema, DBData db){
+        int tableID = this.getTableID(tableName, schema, db);
+        String query = "SELECT id FROM " + COLUMN_DATA + " WHERE "+ COLUMN_DATA_NAME_FIELD +" = '"+ columnName +"' AND " + COLUMN_DATA_TABLE_FIELD +" = " + tableID + "";
+        Statement stmt  = null;
+        if (tableID < 1)
+            return false;
+        boolean exists = false;
+        try {
+            stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(query);
+            if(rs.next()) {
+                exists = true;
+            }
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
+        return exists;
     }
 
     //returns enum of database type given an id
@@ -707,6 +763,16 @@ public class MetaDataManager {
             System.out.println(e.getMessage());
         }
         return globalTablesForColumns;
+    }
+
+    public void deleteGlobalSchemaAndCubes(){
+        String sql1 = "DELETE FROM "+ MULTIDIM_COLUMN +";";
+        String sql2 = "DELETE FROM "+ MULTIDIM_TABLE +";";
+        String sql3 = "DROP TABLE "+ CUBE_TABLE +";";
+        String sql4 = "DROP TABLE "+ CORRESPONDENCES_DATA +";";
+        String sql5 = "DROP TABLE "+ GLOBAL_COLUMN_DATA +";";
+        String sql6 = "DROP TABLE "+ GLOBAL_TABLE_DATA +";";
+        executeStatements(new String[]{sql1, sql2, sql3, sql4, sql5, sql6});
     }
 
     /**
