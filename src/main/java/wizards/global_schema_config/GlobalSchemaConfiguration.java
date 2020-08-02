@@ -455,6 +455,8 @@ public class GlobalSchemaConfiguration extends JPanel {
                 column.add(new CustomTreeNode(col.getDataType(), NodeType.COLUMN_INFO));
                 if (col.isPrimaryKey())
                     column.add(new CustomTreeNode("primary key", NodeType.PRIMARY_KEY));
+                if (col.hasForeignKey())
+                    column.add(new CustomTreeNode("Foreign Key: "+col.getForeignKey(), col.getForeignKey(), NodeType.FOREIGN_KEY));
                 //corrs
                 CustomTreeNode corrs = new CustomTreeNode("Matches", NodeType.MATCHES);
                 for (TableData t : col.getLocalTables()) {
@@ -719,7 +721,7 @@ public class GlobalSchemaConfiguration extends JPanel {
 
     public void addForeignKey(GlobalTableData t, GlobalColumnData referencedCol){
         if (selectedNode != null){
-            CustomTreeNode newNode = new CustomTreeNode("foreign key: "+ t.getTableName()+"."+referencedCol.getName(), t.getTableName()+"."+referencedCol.getName(), NodeType.FOREIGN_KEY);
+            CustomTreeNode newNode = new CustomTreeNode("Foreign Key: "+ t.getTableName()+"."+referencedCol.getName(), t.getTableName()+"."+referencedCol.getName(), NodeType.FOREIGN_KEY);
             referencedCols.put((GlobalColumnData) selectedNode.getObj(), t.getTableName()+"."+referencedCol.getName());
             globalSchemaModel.insertNodeInto(newNode, selectedNode, selectedNode.getChildCount()-1);
             TreeNode[] nodes = globalSchemaModel.getPathToRoot(newNode);
@@ -1015,8 +1017,11 @@ public class GlobalSchemaConfiguration extends JPanel {
         Set<TableData> completeLocalTables = globalTable.getLocalTablesFromCols();
         if (completeLocalTables.size() > 1) {
             ColumnData primKeyOriginalTable = null;
+            Set<ColumnData> primCols = new HashSet<>();
             //get the original prim key that other foreign keys prim keys reference
-            Set<ColumnData> primCols = globalTable.getPrimaryKeyColumn().getLocalColumns();
+            for (GlobalColumnData c : globalTable.getPrimaryKeyColumns()){
+                primCols.addAll(c.getLocalColumns());
+            }
             for (ColumnData c : primCols){
                 if (c.isPrimaryKey() && !c.hasForeignKey()){
                     primKeyOriginalTable = c;

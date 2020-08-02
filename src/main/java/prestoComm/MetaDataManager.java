@@ -768,10 +768,10 @@ public class MetaDataManager {
     public void deleteGlobalSchemaAndCubes(){
         String sql1 = "DELETE FROM "+ MULTIDIM_COLUMN +";";
         String sql2 = "DELETE FROM "+ MULTIDIM_TABLE +";";
-        String sql3 = "DROP TABLE "+ CUBE_TABLE +";";
-        String sql4 = "DROP TABLE "+ CORRESPONDENCES_DATA +";";
-        String sql5 = "DROP TABLE "+ GLOBAL_COLUMN_DATA +";";
-        String sql6 = "DROP TABLE "+ GLOBAL_TABLE_DATA +";";
+        String sql3 = "DELETE FROM "+ CUBE_TABLE +";";
+        String sql4 = "DELETE FROM "+ CORRESPONDENCES_DATA +";";
+        String sql5 = "DELETE FROM "+ GLOBAL_COLUMN_DATA +";";
+        String sql6 = "DELETE FROM "+ GLOBAL_TABLE_DATA +";";
         executeStatements(new String[]{sql1, sql2, sql3, sql4, sql5, sql6});
     }
 

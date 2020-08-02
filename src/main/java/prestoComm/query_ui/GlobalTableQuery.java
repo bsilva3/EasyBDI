@@ -193,8 +193,9 @@ public class GlobalTableQuery {
                 }
             }
             if (!primKeyIsSelected){
-                GlobalColumnData cp = dimTable.getKey().getPrimaryKeyColumn(); //primary key column missing
-                newCols.add(new GlobalColumnData(cp.getName(), cp.getDataType(), cp.isPrimaryKey(), cp.getLocalColumns()));
+                List<GlobalColumnData> cps = dimTable.getKey().getPrimaryKeyColumns(); //primary key column missing
+                for (GlobalColumnData cp : cps)
+                    newCols.add(new GlobalColumnData(cp.getName(), cp.getDataType(), cp.isPrimaryKey(), cp.getLocalColumns()));
             }
             newt.setGlobalColumnData(newCols);
             tableSelectRowsWithPrimKeys.put(newt, newCols);
@@ -383,9 +384,11 @@ public class GlobalTableQuery {
                     primKeyIsSelected = true;
                 }
             }
+
             if (!primKeyIsSelected){
-                GlobalColumnData cp = dimTable.getKey().getPrimaryKeyColumn(); //primary key column missing
-                newCols.add(new GlobalColumnData(cp.getName(), cp.getDataType(), cp.isPrimaryKey(), cp.getLocalColumns(), cp.getColumnID()));
+                List<GlobalColumnData> cps = dimTable.getKey().getPrimaryKeyColumns(); //primary key column missing
+                for (GlobalColumnData cp : cps)
+                    newCols.add(new GlobalColumnData(cp.getName(), cp.getDataType(), cp.isPrimaryKey(), cp.getLocalColumns(), cp.getColumnID()));
             }
             newt.setGlobalColumnData(newCols);
             tableSelectRowsWithPrimKeys.put(newt, newCols);
@@ -601,6 +604,7 @@ public class GlobalTableQuery {
     }
 
     public String buildQuery(){
+        this.pivotValues.clear();//reset elements
         String query = "";
         if (selectColumns.size() == 0 && measures.size() == 0 && selectRows.size() > 0){
             query = buildQuerySelectRowsOnly();
@@ -722,14 +726,89 @@ public class GlobalTableQuery {
         return query;
     }
 
-    private String handleVerticalMapping(GlobalTableData t, List<GlobalColumnData> selectCols){
+    private String handleVerticalMapping(GlobalTableData t, List<GlobalColumnData> selectCols) {
+        //for each local table that matches with this global table
+        String query = " SELECT ";
+        String tableJoinString = "INNER JOIN ";
+        List<GlobalColumnData> primKeyCols = t.getPrimaryKeyColumns();
+        Map<GlobalColumnData, Set<ColumnData>> pkWithLocalCols = new HashMap<>();
+        for (GlobalColumnData pk : primKeyCols){
+            pkWithLocalCols.put(pk, pk.getLocalColumns());
+        }
+        //get all local tables WITH ONLY LOCAL COLS SELECTED BY USER for the select clause
+        Set<TableData> localTablesFromSelectedCols = t.getLocalTablesFromColsVerticalMap(selectCols);//contains the tables in the inner query for select clause
+        //select clause
+        for (TableData localTable : localTablesFromSelectedCols){
+            Set<ColumnData> localCols = new HashSet<>(localTable.getColumnsList());
+            for (ColumnData col: localCols){
+                query+=col.getCompletePrestoColumnName() +", ";
+            }
+        }
+        if (query.endsWith(", ")) {
+            query = query.substring(0, query.length() - ", ".length());//last column is whithout a comma
+        }
+        //if only one table on the correspondences of the selected global columns, no need to perform joins)
+        if (localTablesFromSelectedCols.size() == 1) {
+            query += " FROM " + localTablesFromSelectedCols.iterator().next().getCompletePrestoTableName();
+        }
+        else{
+            //columns were selected that correspond to more than one local table, apply joins
+            Set<TableData> localTablesComplete = t.getAllLocalTablesFromCols(t.getGlobalColumnDataList());//tables that have columns mappig to the selected cols. The local tables have all columns
+            TableData originalTable = null;
+            for (TableData tb : localTablesComplete){
+                if (!tb.hasForeignKeys())
+                    originalTable = tb;
+            }
+            if (originalTable == null)
+                return null; //there MUST be a table with no foreign keys (the original table)
+            localTablesComplete.remove(originalTable);
+            query += " FROM " + originalTable.getCompletePrestoTableName();
+            List<ColumnData> pkOriginalColumns = originalTable.getPrimaryKeyColumns();
+            Set<TableData> localTablesSelected = getAllDiferentLocalTablesInGlobalColumns(selectCols);//tables with complete columns, but only those that have cols mapped to the selected global cols
+            localTablesSelected.remove(originalTable);
+            for (TableData tb : localTablesSelected) {
+                query += " "+tableJoinString + " " + tb.getCompletePrestoTableName();
+                List<ColumnData> pkColumns = tb.getPrimaryKeyColumns();
+                for (ColumnData pk : pkColumns){
+                    ColumnData fk = getForeignKeyRef(pkOriginalColumns, pk);//get wich of the pk originals are referenced by the pk of this pk of the current table
+                    if (fk == null){
+                        continue;
+                    }
+                    query+= " ON " + pk.getCompletePrestoColumnName() + " = " + fk.getCompletePrestoColumnName() +" AND ";
+                }
+            }
+        }
+        query = query.substring(0, query.length() - " AND ".length());//last column is whithout a comma
+
+        return query;
+    }
+
+    private Set<TableData> getAllDiferentLocalTablesInGlobalColumns(List<GlobalColumnData> gcs){
+        Set<TableData> localTablesSelected = new HashSet<>();
+        for (GlobalColumnData gc : gcs){
+            for (ColumnData lc : gc.getLocalColumns()){
+                localTablesSelected.add(lc.getTable());
+            }
+        }
+        return localTablesSelected;
+    }
+
+    private ColumnData getForeignKeyRef(List<ColumnData> pkOriginal, ColumnData fk){
+        for (ColumnData c : pkOriginal) {
+            if (fk.getForeignKeySimplified().equals(c.getTable().getTableName() + "." + c.getName()));
+            return c;
+        }
+        return null;
+    }
+
+    /*private String handleVerticalMapping(GlobalTableData t, List<GlobalColumnData> selectCols){
         //for each local table that matches with this global table
         String query = " SELECT ";
         String tableJoinString = "INNER JOIN ";
 
         Set<TableData> localTablesSelectCols = t.getLocalTablesFromColsVerticalMap(selectCols);
         //Set<TableData> localTables = t.getAllLocalTablesFromCols(t.getGlobalColumnDataList());
-        Set<TableData> localTables = t.getAllLocalTablesFromCols(selectCols);
+        Set<TableData> localTables = t.getAllLocalTablesFromCols(t.getGlobalColumnDataList());
         ColumnData primaryKeyCol = null;//primary key column of the original table (may be null if not queried any column or prim key)
         List<ColumnData> foreignKeyCols = new ArrayList<>();
         //all columns  from local tables (get primary key)
@@ -765,14 +844,24 @@ public class GlobalTableQuery {
             query+= " FROM "+localTablesSelectCols.iterator().next().getCompletePrestoTableName()+" ";//get the only local table present(no join needed)
         }
         else {
-            query += " FROM " + primaryKeyCol.getTable().getCompletePrestoTableName() + " ";
-            //add joins
-            for (ColumnData col : foreignKeyCols) {
-                query += tableJoinString + " " + col.getTable().getCompletePrestoTableName() + " ON " + primaryKeyCol.getCompletePrestoColumnName() + " = " + col.getCompletePrestoColumnName();
+            if (primaryKeyCol != null) {
+                query += " FROM " + primaryKeyCol.getTable().getCompletePrestoTableName() + " ";
+                //add joins
+                for (ColumnData col : foreignKeyCols) {
+                    query += tableJoinString + " " + col.getTable().getCompletePrestoTableName() + " ON " + primaryKeyCol.getCompletePrestoColumnName() + " = " + col.getCompletePrestoColumnName();
+                }
+            }
+            else{//TODO: test (more than 2 vertcial partioned tables)
+                //if original table (with prim key) not used in query use the first foreign key to join
+                String fkFullName = foreignKeyCols.get(0).getCompletePrestoColumnName();
+                query += " FROM " + fkFullName + " ";
+                for (int i = 1; i < foreignKeyCols.size(); i++) {
+                    query += tableJoinString + " " + foreignKeyCols.get(i).getTable().getCompletePrestoTableName() + " ON " + fkFullName + " = " + foreignKeyCols.get(i).getCompletePrestoColumnName();
+                }
             }
         }
         return query;
-    }
+    }*/
 
     private boolean localTableCorrespondsToOneOfTheGlobalTables(List<GlobalColumnData> globalCols, ColumnData localCol){
         for (GlobalColumnData c : globalCols){

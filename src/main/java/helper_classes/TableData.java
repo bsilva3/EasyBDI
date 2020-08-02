@@ -102,6 +102,23 @@ public class TableData implements Serializable {
         return false;
     }
 
+    public List<ColumnData> getPrimaryKeyColumns(){
+        List<ColumnData> primKeys = new ArrayList<>();
+        for (ColumnData c : columnsList){
+            if (c.isPrimaryKey())
+                primKeys.add(c);
+        }
+        return primKeys;
+    }
+
+    public boolean hasForeignKeys(){
+        for (ColumnData c : columnsList){
+            if (c.hasForeignKey())
+                return true;
+        }
+        return false;
+    }
+
     public String getCompletePrestoTableName(){
         return db.getCatalogName()+"."+schemaName+"."+tableName;
     }

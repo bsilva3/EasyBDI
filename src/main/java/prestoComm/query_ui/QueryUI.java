@@ -14,6 +14,7 @@ import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
@@ -33,6 +34,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 public class QueryUI extends JPanel{
     private JTable queryResultsTable;
@@ -124,7 +126,13 @@ public class QueryUI extends JPanel{
 
             //jtable
             this.defaultTableModel = new DefaultTableModel();
+            /*queryResultsTable = new JTable( defaultTableModel ) {
+                protected JTableHeader createDefaultTableHeader() {
+                    return new GroupableTableHeader(columnModel);
+                }
+            };*/
             this.queryResultsTable.setModel(defaultTableModel);
+            //queryResultsTable.setTableHeader(new GroupableTableHeader(queryResultsTable.getColumnModel()));
             queryResultsTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);//maintain column width
 
             backButton.addActionListener(new ActionListener() {
@@ -890,6 +898,8 @@ public class QueryUI extends JPanel{
                 if (localQuery.contains("Error")){
                     JOptionPane.showMessageDialog(null, "Could not execute query:\n"+localQuery, "Query Error", JOptionPane.ERROR_MESSAGE);
                     queryLogModel.addElement(new QueryLog(localQuery, beginTime, null, 0));
+                    LoadingScreenAnimator.closeGeneralLoadingAnimation();
+                    backButton.setEnabled(true);
                     return null;
                 }
                 //execute query by presto
@@ -902,6 +912,22 @@ public class QueryUI extends JPanel{
                 LoadingScreenAnimator.closeGeneralLoadingAnimation();
                 backButton.setEnabled(true);
                 return null;
+            }
+
+            protected void done() {
+                try {
+                    //System.out.println("Done");
+                    get();
+                } catch (ExecutionException e) {
+                    e.getCause().printStackTrace();
+                    String msg = String.format("Unexpected problem: %s",
+                            e.getCause().toString());
+                    //JOptionPane.showMessageDialog(mainMenu,
+                     //       msg, "Error", JOptionPane.ERROR_MESSAGE);
+                    LoadingScreenAnimator.closeGeneralLoadingAnimation();
+                } catch (InterruptedException e) {
+                    // Process e here
+                }
             }
         };
         LoadingScreenAnimator.openGeneralLoadingAnimation(mainMenu, "Constructing Query...");
@@ -936,14 +962,22 @@ public class QueryUI extends JPanel{
         int nRows = 0;
         try {
             ResultSetMetaData rsmd = results.getMetaData();
-            int columnCount = rsmd.getColumnCount()+1;//+1 for line col
-            cols = new String[columnCount];
-            cols[0] = " ";
-            for (int i = 1; i < columnCount; i++ ) {
-                String name = rsmd.getColumnName(i);
-                cols[i] = name;
+            int columnCount = rsmd.getColumnCount() + 1;;//+1 for line col
+
+            List<List<String>> pivots = globalTableQueries.getPivotValues();
+            pivots.clear();//REMOVE!!
+            if (pivots.size() > 0){
+                //createMultiHeaders(pivots);
             }
-            defaultTableModel.setColumnIdentifiers(cols);
+            else {
+                cols = new String[columnCount];
+                cols[0] = " ";
+                for (int i = 1; i < columnCount; i++) {
+                    String name = rsmd.getColumnName(i);
+                    cols[i] = name;
+                }
+                defaultTableModel.setColumnIdentifiers(cols);
+            }
             //place rows
             //results.beforeFirst(); //return to begining
             while(results.next()){
@@ -970,8 +1004,27 @@ public class QueryUI extends JPanel{
         queryResultsTable.revalidate();
     }
 
-    private void createMultiHeaders(){
-        List<List<String>> pivotValues = globalTableQueries.getPivotValues();
+    private void createMultiHeaders(List<List<String>> pivotValues){
+        List<ColumnGroup> groups = new ArrayList<>();
+        for (List<String> valuesGroup : pivotValues){
+            ColumnGroup g = new ColumnGroup(valuesGroup.get(0));
+            groups.add(g);
+            for (int i = 1; i < valuesGroup.size(); i++) {
+                ColumnGroup subG = new ColumnGroup(valuesGroup.get(i));
+                if (i > 0){
+                    groups.get(i-1).add(subG);
+                }
+            }
+        }
+        GroupableTableHeader header = (GroupableTableHeader)queryResultsTable.getTableHeader();
+        for (ColumnGroup g : groups){
+            header.addColumnGroup(g);
+        }
+        queryResultsTable = new JTable( defaultTableModel ) {
+            protected JTableHeader createDefaultTableHeader() {
+                return new GroupableTableHeader(columnModel);
+            }
+        };
     }
 
     private MouseListener getMouseListenerForColumnList() {

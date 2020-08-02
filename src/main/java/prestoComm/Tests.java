@@ -64,8 +64,12 @@ public class Tests {
         Set<TableData> completeLocalTables = globalTable.getLocalTablesFromCols();
         if (completeLocalTables.size() > 1) {
             ColumnData primKeyOriginalTable = null;
+            Set<ColumnData> primCols = new HashSet<>();
             //get the original prim key that other foreign keys prim keys reference
-            Set<ColumnData> primCols = globalTable.getPrimaryKeyColumn().getLocalColumns();
+            for (GlobalColumnData c : globalTable.getPrimaryKeyColumns()){
+                primCols.addAll(c.getLocalColumns());
+            }
+            //Set<ColumnData> primCols = globalTable.getPrimaryKeyColumns().getLocalColumns();
             for (ColumnData c : primCols){
                 if (c.isPrimaryKey() && !c.hasForeignKey()){
                     primKeyOriginalTable = c;

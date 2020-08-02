@@ -156,6 +156,15 @@ public class ColumnData implements Serializable {
         return foreignKey;
     }
 
+    /**
+     * Returns only the tableName.Column Name of the foreign key
+     * @return
+     */
+    public String getForeignKeySimplified() {
+        String[] s = foreignKey.split("\\.");
+        return s[2]+"."+s[3];
+    }
+
     public void setForeignKey(String foreignKey) {
         this.foreignKey = foreignKey;
     }

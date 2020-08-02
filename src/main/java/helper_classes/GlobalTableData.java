@@ -46,7 +46,12 @@ public class GlobalTableData implements Serializable {
         return tables;
     }
 
-    public Set<TableData> getLocalTablesFromCols(Set<ColumnData> cols) {
+    /**
+     * Return a list of local tables that contains columns that have correspondences with the global tables given. The local tables contain all columns
+     * @param cols
+     * @return
+     */
+    public Set<TableData> getLocalTablesFromCols(Collection<ColumnData> cols) {
         Set<TableData> tables = new HashSet<>();
         for (GlobalColumnData gc : this.globalColumnData){
             for (ColumnData c : gc.getLocalColumns())
@@ -59,7 +64,11 @@ public class GlobalTableData implements Serializable {
         return tables;
     }
 
-
+    /**
+     *
+     * @param columnDataList
+     * @return
+     */
     public Set<TableData> getAllLocalTablesFromCols(List<GlobalColumnData> columnDataList) {
         Set<ColumnData> localCols = new HashSet<>();//list with all local columns that match to one of the specified columns
         for (GlobalColumnData globalCol : columnDataList){
@@ -83,6 +92,12 @@ public class GlobalTableData implements Serializable {
         return tablesUpdate;
     }
 
+    /**
+     * Return a list of local tables that contains only columns that have correspondences with the global tables given. The local tables contain only
+     * the local columns that have the matches to the given global columns
+     * @param columnDataList
+     * @return
+     */
     public Set<TableData> getLocalTablesFromColsVerticalMap(List<GlobalColumnData> columnDataList) {
         Set<ColumnData> localCols = new HashSet<>();//list with all local columns that match to one of the specified columns
         for (GlobalColumnData globalCol : columnDataList){
@@ -145,12 +160,13 @@ public class GlobalTableData implements Serializable {
         return tablesIDS;
     }
 
-    public GlobalColumnData getPrimaryKeyColumn(){
+    public List<GlobalColumnData> getPrimaryKeyColumns(){
+        List<GlobalColumnData> primKeys = new ArrayList<>();
         for (GlobalColumnData c : globalColumnData){
             if (c.isPrimaryKey())
-                return c;
+                primKeys.add(c);
         }
-        return null;
+        return primKeys;
     }
 
 
