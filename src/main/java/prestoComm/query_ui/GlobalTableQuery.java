@@ -359,12 +359,12 @@ public class GlobalTableQuery {
     }*/
 
     public String buildQuerySelectRowsColsAndMeasures() {
-        //Map<String, List<String>> valuesByGlobalCol = new HashMap<>();
+
         String query = "SELECT ";
 
         //get distinct values of columns. If multiple columns, get all distinct combinations
         List<List<String>> valuesByGlobalCol = getAllDifferentValuesOfColumn();
-        this.pivotValues = valuesByGlobalCol;
+        //this.pivotValues = valuesByGlobalCol;
 
         //add to select atributes in the 'rows' area
         Map<GlobalTableData, List<GlobalColumnData>> tableSelectRowsWithPrimKeys = new HashMap<>();
@@ -415,14 +415,24 @@ public class GlobalTableQuery {
             for (List<String> pairs : valuesByGlobalCol){//for each list of value of each column
                 String valueColEnumeration = ""; //colName = value AND ColName = value etc...
                 String valueAlias = ""; //as aliasName
+                List<String> valuesRaw = new ArrayList<>();
                 for (int i = 0; i < pairs.size(); i++) {//v is already escaped with ''
                     String v = pairs.get(i);
-                    String valueRaw = v.replaceAll("'", "");
-                    if (valueRaw.isEmpty())
-                        valueRaw ="''";
+                    String valueRaw = ""; //value with no '
+                    if (v.charAt(0)=='\'' && v.charAt(v.length()-1) == '\''){
+                        valueRaw = v.substring(1, v.length()-1);//remove the ' at the beginning and end of string
+                    }
+                    else
+                        valueRaw = v;
+                    valueRaw = valueRaw.replaceAll("''", "'");//all ' were replaced by '' to be escaped when used as column anmes for presto. Convert back to single '
+                    //valueRaw = v.replaceAll("'", "");
+                    valuesRaw.add(valueRaw);
+                    //if (valueRaw.isEmpty())
+                        //valueRaw ="''";
                     valueColEnumeration += colNames.get(i) + " = "+v+" AND ";//building a colName = value AND ColName = value etc...
                     valueAlias += valueRaw + "_";
                 }
+                pivotValues.add(valuesRaw);
                 //remove last AND from enumerations and last _ from alias
                 valueColEnumeration = valueColEnumeration.substring(0, valueColEnumeration.length() - " AND ".length());//remove last AND from enumeration
                 valueAlias = valueAlias.substring(0, valueAlias.length() - "_".length());//remove last _ from alias

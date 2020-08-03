@@ -124,6 +124,9 @@
       <item class="wizards.DBConfig.JCheckBoxTree" icon="/com/intellij/uiDesigner/icons/tree.png" removable="true" auto-create-binding="false" can-attach-label="false">
         <default-constraints vsize-policy="3" hsize-policy="3" anchor="0" fill="0" />
       </item>
+      <item class="io.github.qualtagh.swing.table.view.JBroTable" icon="/com/intellij/uiDesigner/icons/table.png" removable="true" auto-create-binding="false" can-attach-label="false">
+        <default-constraints vsize-policy="3" hsize-policy="3" anchor="0" fill="0" />
+      </item>
     </group>
   </component>
 </project>

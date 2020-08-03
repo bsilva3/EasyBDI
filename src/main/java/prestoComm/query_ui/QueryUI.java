@@ -1,6 +1,10 @@
 package prestoComm.query_ui;
 
 import helper_classes.*;
+import helper_classes.Utils;
+import io.github.qualtagh.swing.table.model.*;
+import io.github.qualtagh.swing.table.view.JBroTable;
+import io.github.qualtagh.swing.table.view.JBroTableModel;
 import org.joda.time.DateTime;
 import prestoComm.DBModel;
 import prestoComm.MainMenu;
@@ -37,7 +41,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 public class QueryUI extends JPanel{
-    private JTable queryResultsTable;
+    private JBroTable queryResultsTableGroupable;
     private JTree schemaTree;
     private JTree filterTree;
     private JList measuresList;
@@ -55,6 +59,7 @@ public class QueryUI extends JPanel{
     private JButton saveQueryButton;
     private JButton loadQueryButton;
     private JButton clearAllFieldsButton;
+    private JScrollPane tablePane;
     private String project;
 
     private StarSchema starSchema;
@@ -66,7 +71,7 @@ public class QueryUI extends JPanel{
     private DefaultListModel columnListModel;
     private DefaultListModel rowsListModel;
     private DefaultListModel queryLogModel;
-    private DefaultTableModel defaultTableModel;
+    private JBroTableModel defaultTableModel;
 
     private MetaDataManager metaDataManager;
     private PrestoMediator prestoMediator;
@@ -125,15 +130,11 @@ public class QueryUI extends JPanel{
             columnsList.setTransferHandler(new TreeTransferHandler());
 
             //jtable
-            this.defaultTableModel = new DefaultTableModel();
-            /*queryResultsTable = new JTable( defaultTableModel ) {
-                protected JTableHeader createDefaultTableHeader() {
-                    return new GroupableTableHeader(columnModel);
-                }
-            };*/
-            this.queryResultsTable.setModel(defaultTableModel);
-            //queryResultsTable.setTableHeader(new GroupableTableHeader(queryResultsTable.getColumnModel()));
-            queryResultsTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);//maintain column width
+            //this.defaultTableModel = new JBroTableModel(new ModelData());
+            //queryResultsTableGroupable = new JBroTable();
+            //tablePane.add(queryResultsTableGroupable);
+            //this.queryResultsTable.setModel(defaultTableModel);
+            //queryResultsTableGroupable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);//maintain column width
 
             backButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
@@ -690,7 +691,7 @@ public class QueryUI extends JPanel{
                 if (index < 0)
                     return;
                 globalTableQueries.removeMeasure(measuresListModel.getElementAt(index).toString());
-                measuresList.remove(index);
+                measuresListModel.remove(index);
                 measuresList.updateUI();
                 measuresList.revalidate();
             }
@@ -952,11 +953,11 @@ public class QueryUI extends JPanel{
     private void setResultsAndCreateLog(ResultSet results, String localQuery, DateTime beginTime){
         if (results == null)
             return;
-        defaultTableModel.setColumnCount(0);
-        defaultTableModel.setRowCount(0);//clear any previous results
+        //defaultTableModel.setColumnCount(0);
+        //defaultTableModel.setRowCount(0);//clear any previous results
 
-        String[] cols = null;
-        //GroupableTableHeader header = (GroupableTableHeader)table.getTableHeader();
+        IModelFieldGroup[] cols = null;
+        ModelData data = null;
 
         //insert column results in JTable
         int nRows = 0;
@@ -965,66 +966,137 @@ public class QueryUI extends JPanel{
             int columnCount = rsmd.getColumnCount() + 1;;//+1 for line col
 
             List<List<String>> pivots = globalTableQueries.getPivotValues();
-            pivots.clear();//REMOVE!!
-            if (pivots.size() > 0){
-                //createMultiHeaders(pivots);
+            //pivots.clear();
+            if (pivots.size() > 0 && pivots.get(0).size() > 1){//if there are pivoted columns and the number of columns that were pivot is biggger than one, then it is necessary to group multiple column headers
+                cols = createMultiHeaders(pivots, rsmd, columnCount);
+                data = new ModelData( cols );
             }
-            else {
-                cols = new String[columnCount];
-                cols[0] = " ";
+            else { //no pivoted columns or only one pivoted column, there is only one level of column headers
+                cols = new IModelFieldGroup[columnCount];
+                cols[0] = new ModelField( " ", " " );
                 for (int i = 1; i < columnCount; i++) {
                     String name = rsmd.getColumnName(i);
-                    cols[i] = name;
+                    cols[i] = new ModelField( name, name );;
                 }
-                defaultTableModel.setColumnIdentifiers(cols);
+                data = new ModelData( cols );
             }
             //place rows
             //results.beforeFirst(); //return to begining
+            List<ModelRow> rows = new ArrayList<>();
             while(results.next()){
                 //Fetch each row from the ResultSet, and add to ArrayList of rows
-                String[] currentRow = new String[columnCount];
-                nRows++;
-                currentRow[0] = (nRows)+"";
+                rows.add(new ModelRow( columnCount));
+                rows.get(nRows).setValue(0,(nRows+1)+"");
                 for(int i = 0; i < columnCount-1; i++){
                     //Again, note that ResultSet column indices start at 1
-                    currentRow[i+1] = results.getString(i+1);//first column (index 0) is the line number)
+                    //currentRow[i+1] = results.getString(i+1);//first column (index 0) is the line number)
+                    rows.get(nRows).setValue(i+1,results.getString(i+1));//first column (index 0) is the line number)
                 }
-                defaultTableModel.addRow(currentRow);
+                nRows++;
+                //defaultTableModel.addRow(rows);
             }
-
+            ModelRow[] rowsArray = new ModelRow[rows.size()];
+            rowsArray = rows.toArray(rowsArray);
+            data.setRows( rowsArray );
+            //add elements to table and add table to scrollpane
+            queryResultsTableGroupable = new JBroTable(data);
+            queryResultsTableGroupable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);//maintain column width
+            tablePane.setViewportView(queryResultsTableGroupable);
             DefaultTableCellRenderer rendar1 = new DefaultTableCellRenderer();
             rendar1.setBackground(new Color(238, 238, 238));//same color on line rows as header
-            queryResultsTable.getColumnModel().getColumn(0).setCellRenderer(rendar1);
+            queryResultsTableGroupable.getColumnModel().getColumn(0).setCellRenderer(rendar1);
 
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
         DateTime endTime = new DateTime();
         queryLogModel.addElement(new QueryLog(localQuery, beginTime, endTime, nRows));
-        queryResultsTable.revalidate();
+        queryResultsTableGroupable.revalidate();
     }
 
-    private void createMultiHeaders(List<List<String>> pivotValues){
-        List<ColumnGroup> groups = new ArrayList<>();
-        for (List<String> valuesGroup : pivotValues){
-            ColumnGroup g = new ColumnGroup(valuesGroup.get(0));
-            groups.add(g);
-            for (int i = 1; i < valuesGroup.size(); i++) {
-                ColumnGroup subG = new ColumnGroup(valuesGroup.get(i));
-                if (i > 0){
-                    groups.get(i-1).add(subG);
+    private IModelFieldGroup[] createMultiHeaders(List<List<String>> pivotValues, ResultSetMetaData rsmd, int columnCount) throws SQLException {
+        List<IModelFieldGroup> cols = new ArrayList<>();
+        cols.add(new ModelField( " ", " " ));
+        int nNonPivotTables = columnCount - (pivotValues.size() +1);//get number of columns from elements that are not pivoted columns
+        int nNonPivotTablesAndLineCOl = nNonPivotTables+1;
+        //nNonPivotTables++;//add the column with line numbers
+        //add column names of non pivoted columns
+        for (int i = 1; i <= nNonPivotTables; i++) {//start iterating on first pivot column
+            String name = rsmd.getColumnName(i);
+            cols.add(new ModelField( name, name ));
+        }
+
+        //for all list of values group similar values at header 0 add only different values
+        cols.add(new ModelFieldGroup(pivotValues.get(0).get(0), pivotValues.get(0).get(0)));
+        for (int i = 1; i < pivotValues.size(); i++){
+            String value = pivotValues.get(i).get(0);
+            if (!cols.get(cols.size()-1).getCaption().equals(value)){//check of previous value has same value. if it does not, add new value
+                cols.add(new ModelFieldGroup(value+i, value));
+            }
+        }
+
+        //inner column
+
+        //do the same but for last elements, (leaf headers) and put them in respective parents)
+        int lastValueIndex = pivotValues.get(0).size()-1;
+        for (int i = 0; i < pivotValues.size(); i++) {
+            String value = pivotValues.get(i).get(lastValueIndex);
+            ModelField leafField = new ModelField(value + i, value);
+            String parentValue = pivotValues.get(i).get(lastValueIndex - 1);
+            if (lastValueIndex > 1) {
+                for (int j = nNonPivotTablesAndLineCOl ; j < cols.size(); j++) {//start looking after the 'one level columns'
+                    ModelFieldGroup fieldParent = (ModelFieldGroup) cols.get(j);
+                    fieldParent = (ModelFieldGroup) fieldParent.getChild(parentValue);
+                    if (fieldParent != null) {
+                        fieldParent.withChild(leafField);
+                        break;
+                    }
+                }
+            } else {
+                for (int j = nNonPivotTablesAndLineCOl ; j < cols.size(); j++) {//start looking after the 'one level columns'
+                    //only 2 column headers
+                    ModelFieldGroup fieldParent = (ModelFieldGroup) cols.get(j);
+                    if (fieldParent.getCaption().equals(parentValue)) {
+                        fieldParent.withChild(leafField);
+                    }
                 }
             }
         }
-        GroupableTableHeader header = (GroupableTableHeader)queryResultsTable.getTableHeader();
-        for (ColumnGroup g : groups){
-            header.addColumnGroup(g);
+        IModelFieldGroup[] colsArray = new IModelFieldGroup[cols.size()];
+        colsArray = cols.toArray(colsArray);
+        return colsArray;
+    }
+
+    private IModelFieldGroup[] createMultiHeaders2(List<List<String>> pivotValues, ResultSetMetaData rsmd, int columnCount) throws SQLException {
+        IModelFieldGroup[] cols = new IModelFieldGroup[columnCount];
+        cols[0] = new ModelField( " ", " " );
+        int nNonPivotTables = columnCount - (pivotValues.size() +1);//get number of columns from elements that are not pivoted columns
+        int nNonPivotTablesAndLineCOl = nNonPivotTables+1;
+        //nNonPivotTables++;//add the column with line numbers
+        //add column names of non pivoted columns
+        for (int i = 1; i <= nNonPivotTables; i++) {//start iterating on first pivot column
+            String name = rsmd.getColumnName(i);
+            cols[i] = new ModelField( name, name );
         }
-        queryResultsTable = new JTable( defaultTableModel ) {
-            protected JTableHeader createDefaultTableHeader() {
-                return new GroupableTableHeader(columnModel);
+        for (int i = 0; i < pivotValues.size(); i++){
+            List<String> values = pivotValues.get(i);
+            ModelFieldGroup group = new ModelFieldGroup( values.get(0)+i, values.get(0) );
+            List<ModelFieldGroup> groups = new ArrayList<>();
+            groups.add(group);
+            for (int j = 1; j < values.size()-2; j++){//iterate all except first and last
+                groups.add(new ModelFieldGroup(values.get(j)+j, values.get(j)));
             }
-        };
+            ModelField finalValue = new ModelField(values.get(values.size()-1)+i, values.get(values.size()-1));
+            ModelFieldGroup lastGroup = groups.get(groups.size()-1);
+            lastGroup.withChild(finalValue);
+            for (int j=groups.size()-2; j>=0; j--){//skip last item
+                lastGroup = groups.get(j).withChild(lastGroup);
+            }
+            cols[nNonPivotTablesAndLineCOl+i] = lastGroup;
+        }
+        //ModelField fields[] = ModelFieldGroup.getBottomFields( cols );
+
+        return cols;
     }
 
     private MouseListener getMouseListenerForColumnList() {
