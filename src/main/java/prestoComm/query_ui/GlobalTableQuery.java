@@ -21,6 +21,7 @@ public class GlobalTableQuery {
     private List<List<String>> pivotValues;
 
     private final static int LIMIT_NUMBER = 50000;
+    public final static int MAX_SELECT_COLS = 3;
 
     public GlobalTableQuery(PrestoMediator presto, FactsTable factsTable) {
         this.presto = presto;
@@ -37,6 +38,9 @@ public class GlobalTableQuery {
     }
 
     public void addSelectColumn(GlobalTableData table, GlobalColumnData col){
+        if (selectColumns.size() >= MAX_SELECT_COLS){
+            return;
+        }
         //table already present, add the column
         if (selectColumns.containsKey(table)){
             List<GlobalColumnData> listCols = selectRows.get(table);
@@ -201,11 +205,34 @@ public class GlobalTableQuery {
             tableSelectRowsWithPrimKeys.put(newt, newCols);
         }
 
+        List<String> groupByMeasure = new ArrayList<>(); //list of measures that are not aggregated, and therefore must appear on the group bu clause
+
         if (selectMeasure) {
+            boolean repeatedMeasures = false;
+            List<String> measureNames = new ArrayList<>();
+            for (String measureCol : measures) {
+                String measureName = measureCol.split("[()]")[1];
+                if (measureNames.contains(measureName)){
+                    repeatedMeasures = true;
+                    break;
+                }
+                measureNames.add(measureName);
+            }
             //add to the select the measures with the aggregation operation (in the form 'aggr(measureName)'). This a string taken from the drop area in the interface.
             for (String measureCol : measures) {
-                String measureName = measureCol.split("[()]")[1]; //split on first space to the measure name (its in the form "aggr(measureName)" )
-                query += measureCol + " AS " + measureName + ",";
+                String measureOP = measureCol.split("[()]")[0]; //split on parenthesis to get the measure op (its in the form "aggr(measureName)" )
+                String measureName = measureCol.split("[()]")[1]; //split on parenthesis to get the measure name (its in the form "aggr(measureName)" )
+                String measureAlias = measureName; //alias for the measure (same name if no repeated measures)
+                if (measureOP.trim().equalsIgnoreCase("SIMPLE")){//only add measure name
+                    query += measureName + " AS " + measureAlias + ",";
+                    groupByMeasure.add(measureName);
+                }
+                else{
+                    if (repeatedMeasures){
+                        measureAlias = measureName+"_"+measureOP;
+                    }
+                    query += measureCol + " AS " + measureAlias + ",";
+                }
             }
         }
 
@@ -275,88 +302,14 @@ public class GlobalTableQuery {
                 query +=table.getTableName()+"."+col.getName()+",";
             }
         }
+        for (String measure : groupByMeasure){
+            query+= measure+",";
+        }
         query = query.substring(0, query.length() - 1);//last elemment without comma
         query += ")"; //close group by
 
         return query;
     }
-
-    //Creates a 'SELECT XXX FROM ( ) join fatcs with dims foreign keys' with the necessary inner queries to get local schema data and join facts foreign keys with dims. Also
-    //performs aggregations on the measures and groups the dimensions rows
-    /*public String buildQuerySelectRowsAndMeasures(){
-        String query = "SELECT ";
-        Collection<List<GlobalColumnData>> dimsRows = (Collection<List<GlobalColumnData>>) selectRows.values(); //list with a list of rows of each dim table
-        //first add to the select the dimensions columns
-        for (List<GlobalColumnData> dimsRowsOfTable : dimsRows){
-            for (GlobalColumnData c : dimsRowsOfTable){
-                query+= c.getName()+",";
-            }
-        }
-        //add to the select the measures with the aggregation operation (in the form 'aggr(measureName)'). This a string taken from the drop are in the interface.
-        for (String measureCol : measures){
-            String measureName = measureCol.split("[()]")[1]; //split on first space to the measure name (its in the form "aggr(measureName)" )
-            query+= measureCol+" AS "+measureName+",";
-        }
-        query = query.substring(0, query.length() - 1);//last elemment without comma
-        query+= " FROM ";
-        for (Map.Entry<GlobalTableData, List<GlobalColumnData>> tableSelectRows : selectRows.entrySet()){
-            //for each global column create inner queries in the 'From' clause
-            GlobalTableData t = tableSelectRows.getKey();
-            List<GlobalColumnData> rowsForSelect = tableSelectRows.getValue();
-
-            String subQueries = getLocalTableQuery(t, rowsForSelect);
-
-            if(subQueries.contains("Error")){
-                return subQueries;//propagate error
-            }
-            query+="("+subQueries;
-            //Join on facts table
-            query+= ") AS " + t.getTableName()+",";
-        }
-        query = query.substring(0, query.length() - 1);//last elemment without comma
-
-        Map<GlobalColumnData, Boolean> factColumns = factsTable.getColumns();
-        String factsLocalTableQuery = getLocalTableQuery(factsTable.getGlobalTable()); //not efficient (repeats for every join..)
-        if (factsLocalTableQuery.contains("Error")){
-            return factsLocalTableQuery;
-        }
-        //foreign key of facts = prim key of the dimensions
-        for (Map.Entry<GlobalColumnData, Boolean> factColumn : factColumns.entrySet()){
-            boolean isMeasure = factColumn.getValue();
-            if (!isMeasure){ //it must be a foreign key, check if it references a dim table
-                for (GlobalTableData tableDim : selectRows.keySet()){
-
-                    GlobalColumnData factsCol = factColumn.getKey();
-                    if (factsCol.hasForeignKey()){
-                        GlobalColumnData referencedCol = isFactsColReferencingDimTable(factsCol.getForeignKey(), tableDim);
-                        if (referencedCol != null){
-                            query+= " JOIN (" + factsLocalTableQuery +") AS "+factsTable.getGlobalTable().getTableName()+" ON " ;
-                            query+= tableDim.getTableName()+"."+referencedCol.getName() +" = "+factsTable.getGlobalTable().getTableName()+"."+factsCol.getName();
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-        //validate query so far
-        if (!query.contains("JOIN"))
-            return "Error: Query not correctly formulated";
-        //group by for each dim column
-        query += " GROUP BY ( ";
-        for (Map.Entry<GlobalTableData, List<GlobalColumnData>> tableSelectRows : selectRows.entrySet()) {
-            //for each global column create inner queries in the 'From' clause
-            GlobalTableData table = tableSelectRows.getKey();
-            List<GlobalColumnData> columns = tableSelectRows.getValue();
-            for (GlobalColumnData col : columns) {
-                query +=table.getTableName()+"."+col.getName()+",";
-            }
-        }
-        query = query.substring(0, query.length() - 1);//last elemment without comma
-        query += ")"; //close group by
-
-        //Oder by here if (any)...
-        return query;
-    }*/
 
     public String buildQuerySelectRowsColsAndMeasures() {
 

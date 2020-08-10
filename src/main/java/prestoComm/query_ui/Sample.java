@@ -20,13 +20,14 @@ public class Sample {
         // Each node of columns tree is an instance of IModelFieldGroup.
         // Leafs are always ModelFields.
         // Roots can be either ModelFields or ModelFieldGroups.
+        ModelFieldGroup g = new ModelFieldGroup( "E", "E" ).withChild(new ModelField( "Bs", "Bs" ));
         IModelFieldGroup groups[] = new IModelFieldGroup[] {
                 new ModelFieldGroup( "AF", "A" ).withChild(new ModelField("ihnf", "injfa")),
                 new ModelFieldGroup( "A", "A" )
                         .withChild( new ModelField( "B", "B" ) )
                         .withChild( new ModelField( "C", "C" ).withRowspan( 2 ) ), // Custom rowspan set.
                 new ModelFieldGroup( "D", "D" )
-                        .withChild( new ModelField( "E", "E" ) )
+                        .withChild( g )
                         .withChild( new ModelField( "F", "F" ) ),
                 new ModelField( "G", "G" ),
                 new ModelFieldGroup( "H", "H" )

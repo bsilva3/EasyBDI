@@ -17,8 +17,6 @@ import wizards.global_schema_config.NodeType;
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.JTableHeader;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
@@ -40,6 +38,8 @@ import java.util.*;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
+import static prestoComm.query_ui.GlobalTableQuery.MAX_SELECT_COLS;
+
 public class QueryUI extends JPanel{
     private JBroTable queryResultsTableGroupable;
     private JTree schemaTree;
@@ -60,7 +60,7 @@ public class QueryUI extends JPanel{
     private JButton loadQueryButton;
     private JButton clearAllFieldsButton;
     private JScrollPane tablePane;
-    private String project;
+    private Set<String> filters;
 
     private StarSchema starSchema;
     private GlobalTableQuery globalTableQueries;//used to store all queries for each global table, and their columns
@@ -85,6 +85,7 @@ public class QueryUI extends JPanel{
         this.mainMenu = mainMenu;
         this.metaDataManager = new MetaDataManager(projectName);
         this.prestoMediator = new PrestoMediator();
+        filters = new HashSet<>();
 
         mainPanel.setSize(mainMenu.getSize());
 
@@ -749,14 +750,14 @@ public class QueryUI extends JPanel{
         return new ActionListener() {
 
             @Override
-            public void actionPerformed(ActionEvent arg0) {
+            public void actionPerformed(ActionEvent arg0) {//TODO: bug when removing first filter, boolean op must be deleted and is not (what if a sub condition exists..)
                 if(node != null){
                     //remove node
                     FilterNode parent = (FilterNode) node.getParent();
                     int index = parent.getIndex(node);
                     int childCount = parent.getChildCount();
                     if (index > 0){
-                        //need to
+                        //
                         FilterNode nodeAbove = (FilterNode) parent.getChildAt(index-1);
                         if (nodeAbove.getNodeType() == FilterNodeType.BOOLEAN_OPERATION){
                             filterTreeModel.removeNodeFromParent(nodeAbove);
@@ -770,6 +771,9 @@ public class QueryUI extends JPanel{
                         }
                     }
                     filterTreeModel.removeNodeFromParent(node);
+                    GlobalColumnData c = (GlobalColumnData) node.getObj();
+                    filters.remove(c.getFullName());
+                    System.out.println(filters);
                     filterTree.repaint();
                     filterTree.updateUI();
                 }
@@ -887,13 +891,44 @@ public class QueryUI extends JPanel{
         return query;
     }
 
+    private boolean filterColumnExistsInRows(){
+        for (String s : filters){
+            String tableName = s.split("\\.")[0];
+            String columnName = s.split("\\.")[1];
+            boolean isInRows = false;
+            for (Map.Entry<GlobalTableData, List<GlobalColumnData>> rows : globalTableQueries.getSelectRows().entrySet()){
+                GlobalTableData gt = rows.getKey();
+                if (gt.getTableName().equals(tableName)){
+                    List<GlobalColumnData> gcs = rows.getValue();
+                    for (GlobalColumnData gc : gcs){
+                        if (gc.getName().equals(columnName)){
+                            isInRows = true;
+                        }
+                    }
+                }
+            }
+            if (!isInRows){//this filter column is not selected in the rows
+                return false;
+            }
+        }
+    return true;//all filter column are seleced in the rows
+    }
+
     public void executeQueryAndShowResults(){
         SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
             @Override
             protected Void doInBackground() throws InterruptedException {
                 DateTime beginTime = new DateTime();
+                //validate query string
+                if (!filterColumnExistsInRows()){
+                    LoadingScreenAnimator.closeGeneralLoadingAnimation();
+                    backButton.setEnabled(true);
+                    JOptionPane.showMessageDialog(mainMenu, "There is one or more columns in filters not selected\n in the rows area.", "Invalid Query", JOptionPane.ERROR_MESSAGE);
+                    return null;
+                }
                 //buld query string
                 globalTableQueries.setFilterQuery(getFilterQuery());
+
                 String localQuery = globalTableQueries.buildQuery();//create query with inner query to get local table data
                 System.out.println(localQuery);
                 if (localQuery.contains("Error")){
@@ -963,41 +998,43 @@ public class QueryUI extends JPanel{
         int nRows = 0;
         try {
             ResultSetMetaData rsmd = results.getMetaData();
-            int columnCount = rsmd.getColumnCount() + 1;;//+1 for line col
+            int columnCount = rsmd.getColumnCount() + 1;
+            ;//+1 for line col
 
             List<List<String>> pivots = globalTableQueries.getPivotValues();
             //pivots.clear();
-            if (pivots.size() > 0 && pivots.get(0).size() > 1){//if there are pivoted columns and the number of columns that were pivot is biggger than one, then it is necessary to group multiple column headers
-                cols = createMultiHeaders(pivots, rsmd, columnCount);
-                data = new ModelData( cols );
-            }
-            else { //no pivoted columns or only one pivoted column, there is only one level of column headers
+            List<ModelRow> rows = new ArrayList<>();
+            if (pivots.size() > 0 && pivots.get(0).size() > 1) {//if there are pivoted columns and the number of columns that were pivot is biggger than one, then it is necessary to group multiple column headers
+                data = createMultiHeaders(pivots, rsmd, columnCount, results);
+
+            } else { //no pivoted columns or only one pivoted column, there is only one level of column headers
                 cols = new IModelFieldGroup[columnCount];
-                cols[0] = new ModelField( " ", " " );
+                cols[0] = new ModelField(" ", " ");
                 for (int i = 1; i < columnCount; i++) {
                     String name = rsmd.getColumnName(i);
-                    cols[i] = new ModelField( name, name );;
+                    cols[i] = new ModelField(name, name);
                 }
-                data = new ModelData( cols );
-            }
-            //place rows
-            //results.beforeFirst(); //return to begining
-            List<ModelRow> rows = new ArrayList<>();
-            while(results.next()){
-                //Fetch each row from the ResultSet, and add to ArrayList of rows
-                rows.add(new ModelRow( columnCount));
-                rows.get(nRows).setValue(0,(nRows+1)+"");
-                for(int i = 0; i < columnCount-1; i++){
-                    //Again, note that ResultSet column indices start at 1
-                    //currentRow[i+1] = results.getString(i+1);//first column (index 0) is the line number)
-                    rows.get(nRows).setValue(i+1,results.getString(i+1));//first column (index 0) is the line number)
+                data = new ModelData(cols);
+                //place rows
+                //results.beforeFirst(); //return to begining
+
+                while (results.next()) {
+                    //Fetch each row from the ResultSet, and add to ArrayList of rows
+                    rows.add(new ModelRow(columnCount));
+                    rows.get(nRows).setValue(0, (nRows + 1) + "");
+                    for (int i = 0; i < columnCount - 1; i++) {
+                        //Again, note that ResultSet column indices start at 1
+                        //currentRow[i+1] = results.getString(i+1);//first column (index 0) is the line number)
+                        rows.get(nRows).setValue(i + 1, results.getString(i + 1));//first column (index 0) is the line number)
+                    }
+                    nRows++;
+                    //defaultTableModel.addRow(rows);
                 }
-                nRows++;
-                //defaultTableModel.addRow(rows);
+
+                ModelRow[] rowsArray = new ModelRow[rows.size()];
+                rowsArray = rows.toArray(rowsArray);
+                data.setRows(rowsArray);
             }
-            ModelRow[] rowsArray = new ModelRow[rows.size()];
-            rowsArray = rows.toArray(rowsArray);
-            data.setRows( rowsArray );
             //add elements to table and add table to scrollpane
             queryResultsTableGroupable = new JBroTable(data);
             queryResultsTableGroupable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);//maintain column width
@@ -1014,7 +1051,7 @@ public class QueryUI extends JPanel{
         queryResultsTableGroupable.revalidate();
     }
 
-    private IModelFieldGroup[] createMultiHeaders(List<List<String>> pivotValues, ResultSetMetaData rsmd, int columnCount) throws SQLException {
+    private ModelData createMultiHeaders(List<List<String>> pivotValues, ResultSetMetaData rsmd, int columnCount, ResultSet results) throws SQLException {
         List<IModelFieldGroup> cols = new ArrayList<>();
         cols.add(new ModelField( " ", " " ));
         int nNonPivotTables = columnCount - (pivotValues.size() +1);//get number of columns from elements that are not pivoted columns
@@ -1026,33 +1063,64 @@ public class QueryUI extends JPanel{
             cols.add(new ModelField( name, name ));
         }
 
+        int nLevels =  pivotValues.get(0).size();
+
         //for all list of values group similar values at header 0 add only different values
         cols.add(new ModelFieldGroup(pivotValues.get(0).get(0), pivotValues.get(0).get(0)));
-        for (int i = 1; i < pivotValues.size(); i++){
+        for (int i = 1; i < pivotValues.size(); i++){//start on the second values list, fisrt already inserted
             String value = pivotValues.get(i).get(0);
             if (!cols.get(cols.size()-1).getCaption().equals(value)){//check of previous value has same value. if it does not, add new value
-                cols.add(new ModelFieldGroup(value+i, value));
+                cols.add(new ModelFieldGroup(value, value));
             }
         }
 
-        //inner column
+        //2nd level of values if there are 3 levels if it exists
+        if (nLevels == 3) {
+            for (int i = 0; i < pivotValues.size(); i++) {//start on the second values list, fisrt already inserted
+                String value = pivotValues.get(i).get(1);//2nd value of each list
+                String parentValue = pivotValues.get(i).get(0);//value that appears on same list, one level up
+                for (int j = nNonPivotTablesAndLineCOl ; j < cols.size(); j++) {//start looking for the parent after the 'one level columns'
+                    ModelFieldGroup fieldParent = (ModelFieldGroup) cols.get(j);
+                    //fieldParent = (ModelFieldGroup) fieldParent.getChild(parentValue);
+                    if (fieldParent == null){
+                        continue;
+                    }
+                    if (fieldParent.getCaption().equals(parentValue)) {
+                        ModelFieldGroup childField = (ModelFieldGroup) fieldParent.getChild(value);
+                        if (childField == null){
+                            ModelFieldGroup secondLevelField = new ModelFieldGroup(value+i, value);
+                            fieldParent.withChild(secondLevelField);//add this value as child
+                            break;
+                        }
+                        String child = childField.getCaption();
+                        if (child != null && child.equals(value)){//this value is already child, move to next value
+                            break;
+                        }
+                    }
+                }
+            }
+        }
 
-        //do the same but for last elements, (leaf headers) and put them in respective parents)
-        int lastValueIndex = pivotValues.get(0).size()-1;
+        int lastLevelIndex = nLevels-1;
+        //do the same but for last elements, (leaf headers) and put them in respective parents. These are either the 3rd or 2nd level of headers
         for (int i = 0; i < pivotValues.size(); i++) {
-            String value = pivotValues.get(i).get(lastValueIndex);
+            String value = pivotValues.get(i).get(lastLevelIndex);
             ModelField leafField = new ModelField(value + i, value);
-            String parentValue = pivotValues.get(i).get(lastValueIndex - 1);
-            if (lastValueIndex > 1) {
+            if (nLevels == 3) {//3 header levels
+                String parentSecondHeaderValue = pivotValues.get(i).get(1);
                 for (int j = nNonPivotTablesAndLineCOl ; j < cols.size(); j++) {//start looking after the 'one level columns'
                     ModelFieldGroup fieldParent = (ModelFieldGroup) cols.get(j);
-                    fieldParent = (ModelFieldGroup) fieldParent.getChild(parentValue);
-                    if (fieldParent != null) {
-                        fieldParent.withChild(leafField);
-                        break;
+                    String valueTopHeader = pivotValues.get(i).get(0);
+                    if (fieldParent.getCaption().equals(valueTopHeader)){
+                        fieldParent = (ModelFieldGroup) fieldParent.getChild(parentSecondHeaderValue+i);//get child requires IDENTIFIER AND NOT CAPTION!!
+                        if (fieldParent != null) {
+                            fieldParent.withChild(leafField);
+                            break;
+                        }
                     }
                 }
             } else {
+                String parentValue = pivotValues.get(i).get(lastLevelIndex - 1);
                 for (int j = nNonPivotTablesAndLineCOl ; j < cols.size(); j++) {//start looking after the 'one level columns'
                     //only 2 column headers
                     ModelFieldGroup fieldParent = (ModelFieldGroup) cols.get(j);
@@ -1062,41 +1130,42 @@ public class QueryUI extends JPanel{
                 }
             }
         }
+        for (List<String> s : pivotValues){
+            System.out.println(s);
+        }
+        System.out.println("h");
+        for (int n = nNonPivotTablesAndLineCOl; n < cols.size(); n++){
+            ModelFieldGroup child = (ModelFieldGroup) cols.get(n);
+            for (IModelFieldGroup c : child.getChildren()){
+                ModelFieldGroup child2 = (ModelFieldGroup) c;
+                System.out.println(child2.getChildren());
+            }
+        }
         IModelFieldGroup[] colsArray = new IModelFieldGroup[cols.size()];
         colsArray = cols.toArray(colsArray);
-        return colsArray;
-    }
 
-    private IModelFieldGroup[] createMultiHeaders2(List<List<String>> pivotValues, ResultSetMetaData rsmd, int columnCount) throws SQLException {
-        IModelFieldGroup[] cols = new IModelFieldGroup[columnCount];
-        cols[0] = new ModelField( " ", " " );
-        int nNonPivotTables = columnCount - (pivotValues.size() +1);//get number of columns from elements that are not pivoted columns
-        int nNonPivotTablesAndLineCOl = nNonPivotTables+1;
-        //nNonPivotTables++;//add the column with line numbers
-        //add column names of non pivoted columns
-        for (int i = 1; i <= nNonPivotTables; i++) {//start iterating on first pivot column
-            String name = rsmd.getColumnName(i);
-            cols[i] = new ModelField( name, name );
-        }
-        for (int i = 0; i < pivotValues.size(); i++){
-            List<String> values = pivotValues.get(i);
-            ModelFieldGroup group = new ModelFieldGroup( values.get(0)+i, values.get(0) );
-            List<ModelFieldGroup> groups = new ArrayList<>();
-            groups.add(group);
-            for (int j = 1; j < values.size()-2; j++){//iterate all except first and last
-                groups.add(new ModelFieldGroup(values.get(j)+j, values.get(j)));
-            }
-            ModelField finalValue = new ModelField(values.get(values.size()-1)+i, values.get(values.size()-1));
-            ModelFieldGroup lastGroup = groups.get(groups.size()-1);
-            lastGroup.withChild(finalValue);
-            for (int j=groups.size()-2; j>=0; j--){//skip last item
-                lastGroup = groups.get(j).withChild(lastGroup);
-            }
-            cols[nNonPivotTablesAndLineCOl+i] = lastGroup;
-        }
-        //ModelField fields[] = ModelFieldGroup.getBottomFields( cols );
+        List<ModelRow> rows = new ArrayList<>();
+        ModelData data = new ModelData(colsArray);
 
-        return cols;
+        int nRows = 0;
+
+        while (results.next()) {
+            //Fetch each row from the ResultSet, and add to ArrayList of rows
+            rows.add(new ModelRow(columnCount));
+            rows.get(nRows).setValue(0, (nRows + 1) + "");
+            for (int i = 0; i < columnCount - 1; i++) {
+                //Again, note that ResultSet column indices start at 1
+                //currentRow[i+1] = results.getString(i+1);//first column (index 0) is the line number)
+                rows.get(nRows).setValue(i + 1, results.getString(i + 1));//first column (index 0) is the line number)
+            }
+            nRows++;
+            //defaultTableModel.addRow(rows);
+            ModelRow[] rowsArray = new ModelRow[rows.size()];
+            rowsArray = rows.toArray(rowsArray);
+            data.setRows(rowsArray);
+        }
+
+        return data;
     }
 
     private MouseListener getMouseListenerForColumnList() {
@@ -1220,6 +1289,17 @@ public class QueryUI extends JPanel{
     }
 
     private void addColumnsToList(DefaultListModel listModel, GlobalColumnData globalCol, GlobalTableData globalTable){
+        //first iterate to check if maximum value of columns is achieved:
+        int nCols = 0;
+        for (int i = 0; i < listModel.getSize(); i++) {
+            if (String.valueOf(listModel.getElementAt(i)).contains("    ")){
+                nCols++;
+            }
+        }
+        if (nCols >= MAX_SELECT_COLS){
+            JOptionPane.showMessageDialog(mainMenu, "Maximum number of columns Reached", "Maximum number of columns Reached.\nDelete columns to add new ones.", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
         String[] s = null;
         //check if table name of this column exists. If true then inserted here
         ListElementWrapper elemtTosearch = new ListElementWrapper(globalTable.getTableName(), globalTable, ListElementType.GLOBAL_TABLE);
@@ -1413,6 +1493,7 @@ public class QueryUI extends JPanel{
                         //no filters added yet
                         FilterNode root = new FilterNode("", null, null);
                         root.add(new FilterNode(s[1], column, FilterNodeType.CONDITION));
+                        filters.add(column.getFullName());//for validation purposes
                         filterTreeModel = new DefaultTreeModel(root);
                         filterTree.setModel(filterTreeModel);
                         filterTree.setRootVisible(false);
@@ -1439,6 +1520,7 @@ public class QueryUI extends JPanel{
                             return false;
                         //filterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION), parent, parent.getChildCount());
                         filterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), parent, parent.getChildCount());
+                        filters.add(column.getFullName());//for validation purposes
                         path = new TreePath(parent.getPath());
                     }
                     else if (parent.getNodeType() == null && parent.getChildCount() > 0){
@@ -1449,6 +1531,7 @@ public class QueryUI extends JPanel{
                             return false;
                         filterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION), parent, parent.getChildCount());
                         filterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), parent, parent.getChildCount());
+                        filters.add(column.getFullName());//for validation purposes
                         path = new TreePath(parent.getPath());
                     }
                     else if (parent.getNodeType() == FilterNodeType.CONDITION ){
@@ -1468,12 +1551,14 @@ public class QueryUI extends JPanel{
                             FilterNode booleanNode = new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION);
                             filterTreeModel.insertNodeInto(booleanNode, parentOfParent, indexOfParent+1);// create this condition between the condition and the inner expression
                             filterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), booleanNode, booleanNode.getChildCount());//Must be child of the bolean operator
+                            filters.add(column.getFullName());//for validation purposes
                             path = new TreePath(booleanNode.getPath());
                         }
                         else {
                             //inserting on an already existent boolean node with inner expr. IF it has an inner expr, add the operator and cond, else only the cond as childs
                             filterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION), boleanNodeParent, boleanNodeParent.getChildCount());
                             filterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), boleanNodeParent, boleanNodeParent.getChildCount());
+                            filters.add(column.getFullName());//for validation purposes
                             path = new TreePath(boleanNodeParent.getPath());
                         }
                     }
@@ -1487,8 +1572,10 @@ public class QueryUI extends JPanel{
                         //get the boolean operator next to it and check if it has childs
                         filterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION), parent, parent.getChildCount());
                         filterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), parent, parent.getChildCount());
+                        filters.add(column.getFullName());//for validation purposes
                         path = new TreePath(parent.getPath());
                     }
+                    System.out.println(filters);
                     filterTree.expandPath(path);
 
                     filterTree.revalidate();
