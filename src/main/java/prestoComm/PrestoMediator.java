@@ -141,7 +141,7 @@ public class PrestoMediator {
         String configFileName = dbData.getFullFilePath();
         try {
             writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(configFileName), "utf-8"));
-            writer.write("connector.name = " + dbData.getDbModel().toString().toLowerCase()+"\n");
+            writer.write("connector.name = " + dbData.getDbModel().getConnectorName().toLowerCase()+"\n");
             writer.write(writeDBTypePropertiesFile(dbData));
             writer.close();
         } catch (FileNotFoundException e) {
@@ -195,6 +195,13 @@ public class PrestoMediator {
                 config += "cassandra.username="+dbData.getUser()+"\n";
                 config += "cassandra.password="+dbData.getPass()+"\n";
             }
+        }
+
+        else if (dbData.getDbModel().equals(DBModel.HIVE)){
+            config += "hive.metastore.uri=thrift://"+dbData.getUrl()+"\n";
+            //if ( dbData.getPass() != null && !dbData.getPass().isEmpty()) {
+              //  config += "redis.password="+dbData.getPass()+"\n";
+            //}
         }
 
         else {

@@ -944,6 +944,13 @@ public class QueryUI extends JPanel{
 
                 //process query results
                 firePropertyChange("results_processing", null, null);
+                if (results == null){
+                    LoadingScreenAnimator.closeGeneralLoadingAnimation();
+                    backButton.setEnabled(true);
+                    JOptionPane.showMessageDialog(mainMenu, "Query returned with no results. Check if Presto is running and\nthat the data source is also available.",
+                            "Query empty", JOptionPane.ERROR_MESSAGE);
+                    return null;
+                }
                 setResultsAndCreateLog(results, localQuery, beginTime);
                 LoadingScreenAnimator.closeGeneralLoadingAnimation();
                 backButton.setEnabled(true);
@@ -1119,7 +1126,7 @@ public class QueryUI extends JPanel{
                         }
                     }
                 }
-            } else {
+            } else if (nLevels == 2) {
                 String parentValue = pivotValues.get(i).get(lastLevelIndex - 1);
                 for (int j = nNonPivotTablesAndLineCOl ; j < cols.size(); j++) {//start looking after the 'one level columns'
                     //only 2 column headers
@@ -1130,17 +1137,7 @@ public class QueryUI extends JPanel{
                 }
             }
         }
-        for (List<String> s : pivotValues){
-            System.out.println(s);
-        }
-        System.out.println("h");
-        for (int n = nNonPivotTablesAndLineCOl; n < cols.size(); n++){
-            ModelFieldGroup child = (ModelFieldGroup) cols.get(n);
-            for (IModelFieldGroup c : child.getChildren()){
-                ModelFieldGroup child2 = (ModelFieldGroup) c;
-                System.out.println(child2.getChildren());
-            }
-        }
+
         IModelFieldGroup[] colsArray = new IModelFieldGroup[cols.size()];
         colsArray = cols.toArray(colsArray);
 
