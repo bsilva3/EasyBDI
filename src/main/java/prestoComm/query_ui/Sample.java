@@ -20,6 +20,7 @@ public class Sample {
         // Each node of columns tree is an instance of IModelFieldGroup.
         // Leafs are always ModelFields.
         // Roots can be either ModelFields or ModelFieldGroups.
+        System.out.println(Double.parseDouble("D"));
         ModelFieldGroup g = new ModelFieldGroup( "E", "E" ).withChild(new ModelField( "Bs", "Bs" ));
         IModelFieldGroup groups[] = new IModelFieldGroup[] {
                 new ModelFieldGroup( "AF", "A" ).withChild(new ModelField("ihnf", "injfa")),

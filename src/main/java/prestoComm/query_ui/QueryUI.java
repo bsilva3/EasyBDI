@@ -190,7 +190,7 @@ public class QueryUI extends JPanel{
                 }
             });
 
-            this.globalTableQueries = new GlobalTableQuery(prestoMediator, starSchema.getFactsTable());
+            this.globalTableQueries = new GlobalTableQuery(prestoMediator, starSchema.getFactsTable(), starSchema.getDimsTables());
             add(mainPanel);
             this.setVisible(true);
         }
@@ -772,7 +772,7 @@ public class QueryUI extends JPanel{
                     }
                     filterTreeModel.removeNodeFromParent(node);
                     GlobalColumnData c = (GlobalColumnData) node.getObj();
-                    filters.remove(c.getFullName());
+                    globalTableQueries.removeFilter(c.getFullName());
                     System.out.println(filters);
                     filterTree.repaint();
                     filterTree.updateUI();
@@ -879,11 +879,12 @@ public class QueryUI extends JPanel{
             query +="(";
             for (int j = 0 ; j < filterNode.getChildCount(); j++){
                 FilterNode innerFilterNode = (FilterNode) filterNode.getChildAt(j);
-                String c = innerFilterNode.getUserObject().toString();
+                /*String c = innerFilterNode.getUserObject().toString();
                 if (innerFilterNode.getNodeType() == FilterNodeType.CONDITION && !Utils.stringIsNumericOrBoolean(c)){
                     c = "'"+c+"'";
                 }
-                query += c +" ";
+                query += c +" ";*/
+                query += innerFilterNode.getUserObject().toString()+" ";
                 query += processInnerExpressions(innerFilterNode);
             }
             query +=")";
@@ -920,12 +921,12 @@ public class QueryUI extends JPanel{
             protected Void doInBackground() throws InterruptedException {
                 DateTime beginTime = new DateTime();
                 //validate query string
-                if (!filterColumnExistsInRows()){
+                /*if (!filterColumnExistsInRows()){
                     LoadingScreenAnimator.closeGeneralLoadingAnimation();
                     backButton.setEnabled(true);
                     JOptionPane.showMessageDialog(mainMenu, "There is one or more columns in filters not selected\n in the rows area.", "Invalid Query", JOptionPane.ERROR_MESSAGE);
                     return null;
-                }
+                }*/
                 //buld query string
                 globalTableQueries.setFilterQuery(getFilterQuery());
 
@@ -1490,7 +1491,7 @@ public class QueryUI extends JPanel{
                         //no filters added yet
                         FilterNode root = new FilterNode("", null, null);
                         root.add(new FilterNode(s[1], column, FilterNodeType.CONDITION));
-                        filters.add(column.getFullName());//for validation purposes
+                        globalTableQueries.addFilter(column.getFullName());//for validation purposes
                         filterTreeModel = new DefaultTreeModel(root);
                         filterTree.setModel(filterTreeModel);
                         filterTree.setRootVisible(false);
@@ -1548,14 +1549,14 @@ public class QueryUI extends JPanel{
                             FilterNode booleanNode = new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION);
                             filterTreeModel.insertNodeInto(booleanNode, parentOfParent, indexOfParent+1);// create this condition between the condition and the inner expression
                             filterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), booleanNode, booleanNode.getChildCount());//Must be child of the bolean operator
-                            filters.add(column.getFullName());//for validation purposes
+                            globalTableQueries.addFilter(column.getFullName());//for validation purposes
                             path = new TreePath(booleanNode.getPath());
                         }
                         else {
                             //inserting on an already existent boolean node with inner expr. IF it has an inner expr, add the operator and cond, else only the cond as childs
                             filterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION), boleanNodeParent, boleanNodeParent.getChildCount());
                             filterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), boleanNodeParent, boleanNodeParent.getChildCount());
-                            filters.add(column.getFullName());//for validation purposes
+                            globalTableQueries.addFilter(column.getFullName());//for validation purposes
                             path = new TreePath(boleanNodeParent.getPath());
                         }
                     }
@@ -1569,7 +1570,7 @@ public class QueryUI extends JPanel{
                         //get the boolean operator next to it and check if it has childs
                         filterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION), parent, parent.getChildCount());
                         filterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), parent, parent.getChildCount());
-                        filters.add(column.getFullName());//for validation purposes
+                        globalTableQueries.addFilter(column.getFullName());//for validation purposes
                         path = new TreePath(parent.getPath());
                     }
                     System.out.println(filters);
@@ -1623,6 +1624,9 @@ public class QueryUI extends JPanel{
             String filterValue = "";
             if (result == JOptionPane.OK_OPTION) {
                 filterValue = value.getText();
+                if (!Utils.stringIsNumericOrBoolean(filterValue)){
+                    filterValue = "'"+filterValue+"'";
+                }
                 if (filterValue.length() == 0){
                     JOptionPane.showMessageDialog(null, "Please insert a filter value with same data type",
                             "Operation Failed", JOptionPane.ERROR_MESSAGE);

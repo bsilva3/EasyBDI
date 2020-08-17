@@ -16,6 +16,7 @@ public class ColumnData implements Serializable {
     private int tableID;
     private MappingType mapping;
     private ColumnData fk;
+    private String globalColumnName;
 
     public static class Builder {
         private int columnID;
@@ -26,6 +27,7 @@ public class ColumnData implements Serializable {
         private String foreignKey;
         private int tableID;
         private MappingType mapping;
+        private String globalColumnName;
 
         public Builder (String name, String dataType, boolean isPrimaryKey){
             this.name = name;
@@ -156,6 +158,8 @@ public class ColumnData implements Serializable {
         return foreignKey;
     }
 
+
+
     /**
      * Returns only the tableName.Column Name of the foreign key
      * @return
@@ -212,6 +216,14 @@ public class ColumnData implements Serializable {
         if (this.foreignKey == null || this.foreignKey.isEmpty())
             return false;
         return true;
+    }
+
+    public String getGlobalColumnName() {
+        return globalColumnName;
+    }
+
+    public void setGlobalColumnName(String globalColumnName) {
+        this.globalColumnName = globalColumnName;
     }
 
     public String getCompletePrestoColumnName(){

@@ -72,7 +72,10 @@ public class GlobalTableData implements Serializable {
     public Set<TableData> getAllLocalTablesFromCols(List<GlobalColumnData> columnDataList) {
         Set<ColumnData> localCols = new HashSet<>();//list with all local columns that match to one of the specified columns
         for (GlobalColumnData globalCol : columnDataList){
-            localCols.addAll(globalCol.getLocalColumns());
+            Set<ColumnData> cols = globalCol.getLocalColumns();
+            for (ColumnData c : cols)
+                c.setGlobalColumnName(globalCol.getName());
+            localCols.addAll(cols);
         }
         Set<TableData> tables = getLocalTablesFromCols();
 
@@ -101,7 +104,10 @@ public class GlobalTableData implements Serializable {
     public Set<TableData> getLocalTablesFromColsVerticalMap(List<GlobalColumnData> columnDataList) {
         Set<ColumnData> localCols = new HashSet<>();//list with all local columns that match to one of the specified columns
         for (GlobalColumnData globalCol : columnDataList){
-            localCols.addAll(globalCol.getLocalColumns());
+            Set<ColumnData> cols = globalCol.getLocalColumns();
+            for (ColumnData c : cols)
+                c.setGlobalColumnName(globalCol.getName());
+            localCols.addAll(cols);
         }
         Set<TableData> tables = getLocalTablesFromCols(localCols); //only local tables of selected global cols (vertical_partioning)
 

@@ -8,6 +8,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.*;
 
+
 public class GlobalTableQuery {
 
     private Map<GlobalTableData, List<GlobalColumnData>> selectRows;
@@ -15,7 +16,9 @@ public class GlobalTableQuery {
     private List<String> measures;
     private List<String> orderBy;
     private String filterQuery;
+    private Set<String> filters;
     private FactsTable factsTable;
+    private List<GlobalTableData> dimensions;
     private PrestoMediator presto;
 
     private List<List<String>> pivotValues;
@@ -23,14 +26,16 @@ public class GlobalTableQuery {
     private final static int LIMIT_NUMBER = 50000;
     public final static int MAX_SELECT_COLS = 3;
 
-    public GlobalTableQuery(PrestoMediator presto, FactsTable factsTable) {
+    public GlobalTableQuery(PrestoMediator presto, FactsTable factsTable, List<GlobalTableData> dimensions) {
         this.presto = presto;
         this.factsTable = factsTable;
+        this.dimensions = dimensions;
         selectRows = new HashMap<>();
         selectColumns = new HashMap<>();
         measures = new ArrayList<>();
         orderBy = new ArrayList<>();
         pivotValues = new ArrayList<>();
+        filters = new HashSet<>();
     }
 
     public void addOrderByRow(String groupByRow){
@@ -106,8 +111,16 @@ public class GlobalTableQuery {
         }
     }
 
+    public void addFilter(String column){
+        filters.add(column);
+    }
+
     public void removeMeasure(String measure){
         this.measures.remove(measure);
+    }
+
+    public void removeFilter(String column){
+        filters.remove(column);
     }
 
     public String getLocalTableQuery(GlobalTableData t, List<GlobalColumnData> selectCols){
@@ -150,7 +163,49 @@ public class GlobalTableQuery {
 
         query = query.substring(0, query.length() - 1);//last elemment without comma
         query+= " FROM ";
-        for (Map.Entry<GlobalTableData, List<GlobalColumnData>> tableSelectRows : selectRows.entrySet()){
+
+        //check if all tables and columns of filters are selected
+        Map<GlobalTableData, List<GlobalColumnData>> selectRowsCopy = new HashMap<>(selectRows);
+        if (filterQuery.length() > 0 && filters.size() > 0){
+            for (String filterCol : filters){
+                String [] filterSplit = filterCol.split("\\.");
+                String tableName = filterSplit[0];
+                String colName = filterSplit[1];
+                boolean isSelected = false;
+                for (Map.Entry<GlobalTableData, List<GlobalColumnData>> selectedTable : selectRows.entrySet()){
+                    GlobalTableData gt = selectedTable.getKey();
+                    if (gt.getTableName().equals(tableName)){
+                        List<GlobalColumnData> cols = selectedTable.getValue();
+                        for (GlobalColumnData gc : cols){
+                            if (gc.getName().equals(colName)) {
+                                isSelected = true;
+                                break;                  //this filter is already present in user selection
+                            }
+                        }
+                        if (!isSelected){
+                            //column in filter not in user selection, add it
+                            cols.add(gt.getGlobalColumnData(colName));
+                        }
+                    }
+                    else{
+                        //table for current filter is not present in user selection, add it to from clause and add the column selected to filter
+                        for (GlobalTableData gtnew : dimensions){
+                            if (gtnew.getTableName().equals(tableName)){
+                                for (GlobalColumnData gc : gtnew.getGlobalColumnDataList()){
+                                    if (gc.getName().equals(colName)){
+                                        List<GlobalColumnData> ls = new ArrayList<>();
+                                        ls.add(gc);
+                                        selectRowsCopy.put(gtnew, ls);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        for (Map.Entry<GlobalTableData, List<GlobalColumnData>> tableSelectRows : selectRowsCopy.entrySet()){
             //for each global table
             GlobalTableData t = tableSelectRows.getKey();
             List<GlobalColumnData> rowsForSelect = tableSelectRows.getValue();
@@ -317,7 +372,6 @@ public class GlobalTableQuery {
 
         //get distinct values of columns. If multiple columns, get all distinct combinations
         List<List<String>> valuesByGlobalCol = getAllDifferentValuesOfColumn();
-        //this.pivotValues = valuesByGlobalCol;
 
         //add to select atributes in the 'rows' area
         Map<GlobalTableData, List<GlobalColumnData>> tableSelectRowsWithPrimKeys = new HashMap<>();
@@ -360,6 +414,7 @@ public class GlobalTableQuery {
         if (colNames.size() != valuesByGlobalCol.get(0).size()){//list of columns of values must be same length as list of values of columns
             return "Error";
         }
+
         //clauses to create columns
         //for each measure, iterate
         for (String measure : measures){
@@ -371,7 +426,7 @@ public class GlobalTableQuery {
                 List<String> valuesRaw = new ArrayList<>();
                 for (int i = 0; i < pairs.size(); i++) {//v is already escaped with ''
                     String v = pairs.get(i);
-                    String valueRaw = ""; //value with no '
+                    String valueRaw = ""; //value with no singe quote
                     if (v.charAt(0)=='\'' && v.charAt(v.length()-1) == '\''){
                         valueRaw = v.substring(1, v.length()-1);//remove the ' at the beginning and end of string
                     }
@@ -389,9 +444,6 @@ public class GlobalTableQuery {
                 //remove last AND from enumerations and last _ from alias
                 valueColEnumeration = valueColEnumeration.substring(0, valueColEnumeration.length() - " AND ".length());//remove last AND from enumeration
                 valueAlias = valueAlias.substring(0, valueAlias.length() - "_".length());//remove last _ from alias
-                if (Utils.stringIsNumericOrBoolean(valueAlias)) {
-                    valueAlias = "_" + valueAlias; //boolean or numerics are not accepted as column names
-                }
                 if (valueAlias.trim().isEmpty()){//empty alias name, add a new name
                     valueAlias="empty";
                 }
@@ -545,7 +597,7 @@ public class GlobalTableQuery {
                     Map<String, String> valueFields = (Map<String, String>) results.getObject(1);//returns only one columns with a map with fieldx=value, fieldy=value...
                     for (Map.Entry<String, String> valueField : valueFields.entrySet()){//mapp with key=fieldName, value=value from select
                         String value = valueField.getValue();
-                        if (!Utils.stringIsNumericOrBoolean(value))
+                        if (!Utils.stringIsNumericOrBoolean(value))//if string, add single quotes as this value will be used to create queries
                             value = "'"+value.replaceAll("'", "''")+"'";//2 single quotes to escape any single quotes in the string ('Women's dress' -> ''Women''s dress'
                         valuePairs.add(value);
                     }
@@ -628,7 +680,12 @@ public class GlobalTableQuery {
         for (TableData localTable : localTables){
             List<ColumnData> localCols = localTable.getColumnsList();
             for (int i = 0; i < localCols.size()-1; i++){
-                query+=localCols.get(i).getCompletePrestoColumnName() +", ";
+                ColumnData c = localCols.get(i);
+                query+=c.getCompletePrestoColumnName();
+                if (!c.getName().equals(c.getGlobalColumnName())){//if this local column's name is not the same as the matched global column, add an alias
+                    query+=" AS "+c.getGlobalColumnName();
+                }
+                query+=", ";
             }
             query+=localCols.get(localCols.size()-1).getCompletePrestoColumnName()+" ";//last column is whithout a comma
             query+= "FROM "+localTable.getCompletePrestoTableName()+" ";
@@ -927,5 +984,13 @@ public class GlobalTableQuery {
 
     public void setPivotValues(List<List<String>> pivotValues) {
         this.pivotValues = pivotValues;
+    }
+
+    public Set<String> getFilters() {
+        return filters;
+    }
+
+    public void setFilters(Set<String> filters) {
+        this.filters = filters;
     }
 }
