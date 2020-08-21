@@ -135,6 +135,66 @@ public class GlobalTableQuery {
             return "Error: Invalid Mapping Type";
     }
 
+    private Map<GlobalTableData, List<GlobalColumnData>> addFilterColumnIfNeeded(Map<GlobalTableData, List<GlobalColumnData>> selectAttrs){
+        if (filterQuery.length() > 0 && filters.size() > 0){
+            for (String filterCol : filters){
+                String [] filterSplit = filterCol.split("\\.");
+                String tableName = filterSplit[0];
+                String colName = filterSplit[1];
+                boolean isSelected = false;
+                for (Map.Entry<GlobalTableData, List<GlobalColumnData>> selectedTable : selectAttrs.entrySet()){
+                    GlobalTableData gt = selectedTable.getKey();
+                    if (gt.getTableName().equals(tableName)) {
+                        List<GlobalColumnData> cols = selectedTable.getValue();
+                        for (GlobalTableData dim : dimensions) {
+                            if (dim.getTableName().equals(gt.getTableName())) {
+                                for (GlobalColumnData gc : gt.getGlobalColumnDataList()) {
+                                    if (gc.getName().equals(colName)) {
+                                        isSelected = true;
+                                        break;                  //this filter is already present in user selection
+                                    }
+                                }
+                                if (!isSelected){
+                                    //column in filter not in user selection, add it
+                                    cols.add(dim.getGlobalColumnData(colName));
+                                }
+                                break;
+                            }
+                        }
+                    }
+                    /*if (gt.getTableName().equals(tableName)){
+                        List<GlobalColumnData> cols = selectedTable.getValue();
+                        for (GlobalColumnData gc : gt.getGlobalColumnDataList()){
+                            if (gc.getName().equals(colName)) {
+                                isSelected = true;
+                                break;                  //this filter is already present in user selection
+                            }
+                        }
+                        if (!isSelected){
+                            //column in filter not in user selection, add it
+                            cols.add(gt.getGlobalColumnData(colName));
+                        }
+                    }*/
+                    /*else{
+                        //table for current filter is not present in user selection, add it to from clause and add the column selected to filter
+                        for (GlobalTableData gtnew : dimensions){
+                            if (gtnew.getTableName().equals(tableName)){
+                                for (GlobalColumnData gc : gtnew.getGlobalColumnDataList()){
+                                    if (gc.getName().equals(colName)){
+                                        List<GlobalColumnData> ls = new ArrayList<>();
+                                        ls.add(gc);
+                                        selectRowsCopy.put(gtnew, ls);
+                                    }
+                                }
+                            }
+                        }
+                    }*/
+                }
+            }
+        }
+        return selectAttrs;
+    }
+
     public String getLocalTableQuery(GlobalTableData t){
         MappingType mapping = t.getMappingType();
         if (mapping == MappingType.Simple)
@@ -166,44 +226,7 @@ public class GlobalTableQuery {
 
         //check if all tables and columns of filters are selected
         Map<GlobalTableData, List<GlobalColumnData>> selectRowsCopy = new HashMap<>(selectRows);
-        if (filterQuery.length() > 0 && filters.size() > 0){
-            for (String filterCol : filters){
-                String [] filterSplit = filterCol.split("\\.");
-                String tableName = filterSplit[0];
-                String colName = filterSplit[1];
-                boolean isSelected = false;
-                for (Map.Entry<GlobalTableData, List<GlobalColumnData>> selectedTable : selectRows.entrySet()){
-                    GlobalTableData gt = selectedTable.getKey();
-                    if (gt.getTableName().equals(tableName)){
-                        List<GlobalColumnData> cols = selectedTable.getValue();
-                        for (GlobalColumnData gc : cols){
-                            if (gc.getName().equals(colName)) {
-                                isSelected = true;
-                                break;                  //this filter is already present in user selection
-                            }
-                        }
-                        if (!isSelected){
-                            //column in filter not in user selection, add it
-                            cols.add(gt.getGlobalColumnData(colName));
-                        }
-                    }
-                    else{
-                        //table for current filter is not present in user selection, add it to from clause and add the column selected to filter
-                        for (GlobalTableData gtnew : dimensions){
-                            if (gtnew.getTableName().equals(tableName)){
-                                for (GlobalColumnData gc : gtnew.getGlobalColumnDataList()){
-                                    if (gc.getName().equals(colName)){
-                                        List<GlobalColumnData> ls = new ArrayList<>();
-                                        ls.add(gc);
-                                        selectRowsCopy.put(gtnew, ls);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        selectRowsCopy = addFilterColumnIfNeeded(selectRows);
 
         for (Map.Entry<GlobalTableData, List<GlobalColumnData>> tableSelectRows : selectRowsCopy.entrySet()){
             //for each global table
@@ -227,6 +250,7 @@ public class GlobalTableQuery {
         return query;
     }
 
+
     //Creates a 'SELECT XXX FROM ( ) join fatcs with dims foreign keys' with the necessary inner queries to get local schema data and join facts foreign keys with dims. Also
     //performs aggregations on the measures and groups the dimensions rows
     public String buildQuerySelectRowsAndMeasures(boolean selectMeasure) {
@@ -241,6 +265,7 @@ public class GlobalTableQuery {
             List<GlobalColumnData> cols = dimTable.getValue();
             GlobalTableData t = dimTable.getKey();
             GlobalTableData newt = new GlobalTableData(t.getTableName());
+            newt.setId(t.getId());
             List<GlobalColumnData> newCols = new ArrayList<>();
             boolean primKeyIsSelected = false;
             for (GlobalColumnData c : cols){
@@ -260,8 +285,8 @@ public class GlobalTableQuery {
             tableSelectRowsWithPrimKeys.put(newt, newCols);
         }
 
-        List<String> groupByMeasure = new ArrayList<>(); //list of measures that are not aggregated, and therefore must appear on the group bu clause
-
+        List<String> groupByMeasure = new ArrayList<>();
+        //list of measures that are not aggregated, and therefore must appear on the group bu clause
         if (selectMeasure) {
             boolean repeatedMeasures = false;
             List<String> measureNames = new ArrayList<>();
@@ -294,6 +319,9 @@ public class GlobalTableQuery {
         query = query.substring(0, query.length() - 1);//last elemment without comma
         query+= " FROM ";
 
+        //check if all tables and columns of filters are selected
+        tableSelectRowsWithPrimKeys = addFilterColumnIfNeeded(tableSelectRowsWithPrimKeys);
+
         for (Map.Entry<GlobalTableData, List<GlobalColumnData>> tableSelectRows : tableSelectRowsWithPrimKeys.entrySet()){
             //for each global column create inner queries in the 'From' clause
             GlobalTableData t = tableSelectRows.getKey();
@@ -309,7 +337,33 @@ public class GlobalTableQuery {
             query+= ") AS " + t.getTableName()+",";
         }
         //get facts table in from clause
-        String subQueries = "("+getLocalTableQuery(factsTable.getGlobalTable());
+        //get necessary attributes of facts table
+        List<GlobalColumnData> factsCols = new ArrayList<>();
+        for (Map.Entry<GlobalColumnData, Boolean> factsCol : factsTable.getColumns().entrySet()){
+            //for each column, if it's measure, check if it was selected and addit. For foreign keys, check if they are needed and add them for selection
+            Boolean isMeasure = factsCol.getValue();
+            GlobalColumnData col = factsCol.getKey();
+            if (isMeasure){
+                for (String s : measures) {
+                    String measureName = s.split("[()]")[1];
+                    if (col.getName().equals(measureName)) {
+                        factsCols.add(col);
+                        break;
+                    }
+                }
+            }
+            else if (col.isForeignKey()){
+                String fk = col.getForeignKey();//globTable.globCol
+                String tableName = fk.split("\\.")[0];
+                for (Map.Entry<GlobalTableData, List<GlobalColumnData>> selectRow : selectRows.entrySet()){
+                    if (selectRow.getKey().getTableName().equals(tableName)){
+                        factsCols.add(col);
+                        break;
+                    }
+                }
+            }
+        }
+        String subQueries = "("+getLocalTableQuery(factsTable.getGlobalTable(),factsCols);
         if(subQueries.contains("Error")){
             return subQueries;//propagate error
         }
@@ -369,7 +423,7 @@ public class GlobalTableQuery {
     public String buildQuerySelectRowsColsAndMeasures() {
 
         String query = "SELECT ";
-
+        int nSelectCols = 0;
         //get distinct values of columns. If multiple columns, get all distinct combinations
         List<List<String>> valuesByGlobalCol = getAllDifferentValuesOfColumn();
 
@@ -385,6 +439,7 @@ public class GlobalTableQuery {
             boolean primKeyIsSelected = false;
             for (GlobalColumnData c : cols){
                 query+= t.getTableName()+"."+c.getName()+",";
+                nSelectCols++;
                 GlobalColumnData newC = new GlobalColumnData(c.getName(), c.getDataType(), c.isPrimaryKey(), c.getLocalColumns());//new references so that the originals are unnaltered
                 newCols.add(newC);
                 if (c.isPrimaryKey()) {
@@ -417,6 +472,7 @@ public class GlobalTableQuery {
 
         //clauses to create columns
         //for each measure, iterate
+        List<Integer> groupByPivotCols = new ArrayList<>();
         for (String measure : measures){
             String measureName = getMeasureName(measure);
             String measureOP = getMeasureOP(measure);
@@ -448,19 +504,24 @@ public class GlobalTableQuery {
                     valueAlias="empty";
                 }
                 valueAlias = "\""+valueAlias+"\"";//space between chars in alias is not allowed, add double quotes
+                nSelectCols++;
                 if (measureOP.equalsIgnoreCase("COUNT")) //inneficient, if running for every row...
                     query+= " SUM(CASE WHEN "+ valueColEnumeration + " THEN 1 ELSE 0 END) AS "+valueAlias+", ";
                 else if (measureOP.equalsIgnoreCase("SUM")) //inneficient, if running for every row...
                     query+= " SUM(CASE WHEN "+ valueColEnumeration + " THEN "+measureName +" ELSE 0 END) AS "+valueAlias+", ";
                 else if (measureOP.equalsIgnoreCase("AVG")) //inneficient, if running for every row...
                     query+= " AVG(CASE WHEN "+ valueColEnumeration + " THEN "+measureName +" ELSE NULL END) AS "+valueAlias+", ";
-                else if (measureOP.equalsIgnoreCase("SIMPLE")) //inneficient, if running for every row...
-                    query+= " (CASE WHEN "+ valueColEnumeration + " THEN "+measureName +" ELSE 0 END) AS "+valueAlias+", ";
+                else if (measureOP.equalsIgnoreCase("SIMPLE")) {
+                    query += " (CASE WHEN " + valueColEnumeration + " THEN " + measureName + " ELSE 0 END) AS " + valueAlias + ", ";
+                    groupByPivotCols.add(nSelectCols);
+                }
             }
         }
 
         query = query.substring(0, query.length() - ", ".length());//last elemment without comma
         query+= " FROM ";
+
+        tableSelectRowsWithPrimKeys = addFilterColumnIfNeeded(tableSelectRowsWithPrimKeys);
 
         for (Map.Entry<GlobalTableData, List<GlobalColumnData>> tableSelectRows : tableSelectRowsWithPrimKeys.entrySet()){
             //for each global column create inner queries in the 'From' clause
@@ -485,8 +546,68 @@ public class GlobalTableQuery {
             //Join on facts table
             query+= ") AS " + t.getTableName()+",";
         }
+
+        Map<GlobalTableData, List<GlobalColumnData>> selectColsCopy = new HashMap<>(selectColumns);
+        //do the same for columns selected but with tables that were not previously included, if any
+        for (Map.Entry<GlobalTableData, List<GlobalColumnData>> tableSelectCols : selectColumns.entrySet()){
+            GlobalTableData gt = tableSelectCols.getKey();
+            if (!selectRows.keySet().contains(gt) && dimensions.contains(gt)){//search in rows if table is selected (if so, it has been added)
+                //table not added to from clause, add the table and also the primk key to selected attributes
+                GlobalTableData dimTable = dimensions.get(dimensions.indexOf(gt));
+                List<GlobalColumnData> cs = selectColsCopy.get(gt);
+                cs.addAll(dimTable.getPrimaryKeyColumns());
+                selectColsCopy.put(gt, cs);
+            }
+            else{
+                selectColsCopy.remove(gt);//remove and do not add table to for, already added in the rows
+            }
+        }
+
+        selectColsCopy = addFilterColumnIfNeeded(selectColsCopy);
+
+        for (Map.Entry<GlobalTableData, List<GlobalColumnData>> tableSelectCols : selectColsCopy.entrySet()){
+            //for each global column create inner queries in the 'From' clause
+            GlobalTableData t = tableSelectCols.getKey();
+            List<GlobalColumnData> colsForSelect = tableSelectCols.getValue();
+
+            String subQueries = getLocalTableQuery(t, colsForSelect);
+
+            if(subQueries.contains("Error")){
+                return subQueries;//propagate error
+            }
+            query+="("+subQueries;
+            //Join on facts table
+            query+= ") AS " + t.getTableName()+",";
+        }
+
         //get facts table in from clause
-        String subQueries = "("+getLocalTableQuery(factsTable.getGlobalTable());
+        //get necessary attributes of facts table
+        List<GlobalColumnData> factsCols = new ArrayList<>();
+        for (Map.Entry<GlobalColumnData, Boolean> factsCol : factsTable.getColumns().entrySet()){
+            //for each column, if it's measure, check if it was selected and addit. For foreign keys, check if they are needed and add them for selection
+            Boolean isMeasure = factsCol.getValue();
+            GlobalColumnData col = factsCol.getKey();
+            if (isMeasure){
+                for (String s : measures) {
+                    String measureName = s.split("[()]")[1];
+                    if (col.getName().equals(measureName)) {
+                        factsCols.add(col);
+                        break;
+                    }
+                }
+            }
+            else if (col.isForeignKey()){
+                String fk = col.getForeignKey();//globTable.globCol
+                String tableName = fk.split("\\.")[0];
+                for (Map.Entry<GlobalTableData, List<GlobalColumnData>> selectRow : selectRows.entrySet()){
+                    if (selectRow.getKey().getTableName().equals(tableName)){
+                        factsCols.add(col);
+                        break;
+                    }
+                }
+            }
+        }
+        String subQueries = "("+getLocalTableQuery(factsTable.getGlobalTable(), factsCols);
         if(subQueries.contains("Error")){
             return subQueries;//propagate error
         }
@@ -533,6 +654,10 @@ public class GlobalTableQuery {
             for (GlobalColumnData col : columns) {
                 query +=table.getTableName()+"."+col.getName()+",";
             }
+        }
+        //add any pivoted columns without the aggregation
+        for (Integer pivotColNumber : groupByPivotCols){
+            query +=pivotColNumber+",";
         }
         query = query.substring(0, query.length() - 1);//last elemment without comma
         query += ")"; //close group by
@@ -615,7 +740,7 @@ public class GlobalTableQuery {
         return measureAndOP.split("[()]")[1]; //split on first space to the measure name (its in the form "aggr(measureName)" )
     }
     private String getMeasureOP(String measureAndOP){
-        return measureAndOP.split("[\\(]")[0]; //split on first space to the measure name (its in the form "aggr(measureName)" )
+        return measureAndOP.split("[\\(]")[0].trim(); //split on first space to the measure name (its in the form "aggr(measureName)" )
     }
 
     public String buildQuery(){
@@ -907,6 +1032,8 @@ public class GlobalTableQuery {
         selectColumns.clear();
         measures.clear();
         orderBy.clear();
+        filters.clear();
+        filterQuery = "";
     }
 
     public Map<Integer, String> getMeasuresWithID() {

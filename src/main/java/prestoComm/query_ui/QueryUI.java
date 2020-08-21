@@ -16,6 +16,7 @@ import wizards.global_schema_config.NodeType;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
@@ -37,6 +38,7 @@ import java.sql.SQLException;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.logging.Filter;
 
 import static prestoComm.query_ui.GlobalTableQuery.MAX_SELECT_COLS;
 
@@ -60,7 +62,7 @@ public class QueryUI extends JPanel{
     private JButton loadQueryButton;
     private JButton clearAllFieldsButton;
     private JScrollPane tablePane;
-    private Set<String> filters;
+    private JButton exportResultsToCSVButton;
 
     private StarSchema starSchema;
     private GlobalTableQuery globalTableQueries;//used to store all queries for each global table, and their columns
@@ -85,7 +87,6 @@ public class QueryUI extends JPanel{
         this.mainMenu = mainMenu;
         this.metaDataManager = new MetaDataManager(projectName);
         this.prestoMediator = new PrestoMediator();
-        filters = new HashSet<>();
 
         mainPanel.setSize(mainMenu.getSize());
 
@@ -149,6 +150,7 @@ public class QueryUI extends JPanel{
                 public void actionPerformed(ActionEvent e) {
                     //open wizard and edit current project
                     executeQueryAndShowResults();
+                    exportResultsToCSVButton.setEnabled(true);
                 }
             });
 
@@ -222,6 +224,13 @@ public class QueryUI extends JPanel{
                 clearAllFieldsAndQueryElements();
             }
         });
+        exportResultsToCSVButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                exportResultsToCSV();
+            }
+        });
+        exportResultsToCSVButton.setEnabled(false); //initially, no results on screen, will be enable when clicking on execute query
     }
 
     private void clearAllFieldsAndQueryElements(){
@@ -237,6 +246,7 @@ public class QueryUI extends JPanel{
         columnsList.updateUI();
         measuresList.revalidate();
         measuresList.updateUI();
+        filterTree.setModel(null);
         filterTree.revalidate();
         filterTree.updateUI();
 
@@ -287,9 +297,16 @@ public class QueryUI extends JPanel{
             String measureItem = measure.getValue()+"("+measure.getKey().getName()+")";
             addMeasure(measuresListModel, measureItem);
         }
-
-        this.filterTreeModel = new DefaultTreeModel(metaDataManager.getQueryFilters(queryID));
+        Object[] filters = metaDataManager.getQueryFilters(queryID);
+        this.filterTreeModel = new DefaultTreeModel((FilterNode) filters[1]);
         this.filterTree.setModel(filterTreeModel);
+        String filtersStr = (String) filters[0];
+        Set<String> filtersList = new HashSet<>();
+        String[] filtersSplit = filtersStr.split(";");
+        for (String s : filtersSplit){
+            filtersList.add(s);
+        }
+        globalTableQueries.setFilters(filtersList);
 
     }
 
@@ -334,7 +351,8 @@ public class QueryUI extends JPanel{
                 }
             }
         }
-        boolean success = metaDataManager.insertNewQuerySave(nameTxt.getText(), cubeSelectionComboBox.getSelectedItem().toString(), rows, columns, measures, (FilterNode) filterTreeModel.getRoot() );
+        boolean success = metaDataManager.insertNewQuerySave(nameTxt.getText(), cubeSelectionComboBox.getSelectedItem().toString(), rows, columns,
+                measures, (FilterNode) filterTreeModel.getRoot(), globalTableQueries.getFilters() );
         if (success){
             JOptionPane.showMessageDialog(mainMenu, "Query "+nameTxt.getText()+" save successfully!", "Query saved", JOptionPane.PLAIN_MESSAGE);
         }
@@ -773,7 +791,7 @@ public class QueryUI extends JPanel{
                     filterTreeModel.removeNodeFromParent(node);
                     GlobalColumnData c = (GlobalColumnData) node.getObj();
                     globalTableQueries.removeFilter(c.getFullName());
-                    System.out.println(filters);
+                    System.out.println(globalTableQueries.getFilters());
                     filterTree.repaint();
                     filterTree.updateUI();
                 }
@@ -892,27 +910,32 @@ public class QueryUI extends JPanel{
         return query;
     }
 
-    private boolean filterColumnExistsInRows(){
-        for (String s : filters){
+    private boolean filterTableExistsInRows(){
+        for (String s : globalTableQueries.getFilters()){
             String tableName = s.split("\\.")[0];
-            String columnName = s.split("\\.")[1];
-            boolean isInRows = false;
+            //String columnName = s.split("\\.")[1];
+            boolean isSelected = false;
+            //check the tables on rows selected
             for (Map.Entry<GlobalTableData, List<GlobalColumnData>> rows : globalTableQueries.getSelectRows().entrySet()){
                 GlobalTableData gt = rows.getKey();
                 if (gt.getTableName().equals(tableName)){
-                    List<GlobalColumnData> gcs = rows.getValue();
-                    for (GlobalColumnData gc : gcs){
-                        if (gc.getName().equals(columnName)){
-                            isInRows = true;
-                        }
-                    }
+                    isSelected = true;
+                    break;
                 }
             }
-            if (!isInRows){//this filter column is not selected in the rows
+            //check the tables on columns selected
+            for (Map.Entry<GlobalTableData, List<GlobalColumnData>> rows : globalTableQueries.getSelectColumns().entrySet()){
+                GlobalTableData gt = rows.getKey();
+                if (gt.getTableName().equals(tableName)){
+                    isSelected = true;
+                    break;
+                }
+            }
+            if (!isSelected){//this filter tables is not selected in the rows
                 return false;
             }
         }
-    return true;//all filter column are seleced in the rows
+        return true;//all filter tables are seleced in the rows
     }
 
     public void executeQueryAndShowResults(){
@@ -921,12 +944,12 @@ public class QueryUI extends JPanel{
             protected Void doInBackground() throws InterruptedException {
                 DateTime beginTime = new DateTime();
                 //validate query string
-                /*if (!filterColumnExistsInRows()){
+                if (!filterTableExistsInRows()){
                     LoadingScreenAnimator.closeGeneralLoadingAnimation();
                     backButton.setEnabled(true);
                     JOptionPane.showMessageDialog(mainMenu, "There is one or more columns in filters not selected\n in the rows area.", "Invalid Query", JOptionPane.ERROR_MESSAGE);
                     return null;
-                }*/
+                }
                 //buld query string
                 globalTableQueries.setFilterQuery(getFilterQuery());
 
@@ -1020,7 +1043,7 @@ public class QueryUI extends JPanel{
                 cols[0] = new ModelField(" ", " ");
                 for (int i = 1; i < columnCount; i++) {
                     String name = rsmd.getColumnName(i);
-                    cols[i] = new ModelField(name, name);
+                    cols[i] = new ModelField(name+i, name);
                 }
                 data = new ModelData(cols);
                 //place rows
@@ -1043,6 +1066,12 @@ public class QueryUI extends JPanel{
                 rowsArray = rows.toArray(rowsArray);
                 data.setRows(rowsArray);
             }
+            if (data == null){
+                JOptionPane.showMessageDialog(mainMenu, "Error processing query results.", "Error", JOptionPane.ERROR_MESSAGE);
+                LoadingScreenAnimator.closeGeneralLoadingAnimation();
+                backButton.setEnabled(true);
+                return;
+            }
             //add elements to table and add table to scrollpane
             queryResultsTableGroupable = new JBroTable(data);
             queryResultsTableGroupable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);//maintain column width
@@ -1053,6 +1082,9 @@ public class QueryUI extends JPanel{
 
         } catch (SQLException throwables) {
             throwables.printStackTrace();
+            LoadingScreenAnimator.closeGeneralLoadingAnimation();
+            backButton.setEnabled(true);
+            return;
         }
         DateTime endTime = new DateTime();
         queryLogModel.addElement(new QueryLog(localQuery, beginTime, endTime, nRows));
@@ -1062,7 +1094,7 @@ public class QueryUI extends JPanel{
     private ModelData createMultiHeaders(List<List<String>> pivotValues, ResultSetMetaData rsmd, int columnCount, ResultSet results) throws SQLException {
         List<IModelFieldGroup> cols = new ArrayList<>();
         cols.add(new ModelField( " ", " " ));
-        int nNonPivotTables = columnCount - (pivotValues.size() +1);//get number of columns from elements that are not pivoted columns
+        int nNonPivotTables = Math.abs(columnCount - (pivotValues.size() +1));//get number of columns from elements that are not pivoted columns
         int nNonPivotTablesAndLineCOl = nNonPivotTables+1;
         //nNonPivotTables++;//add the column with line numbers
         //add column names of non pivoted columns
@@ -1143,7 +1175,12 @@ public class QueryUI extends JPanel{
         colsArray = cols.toArray(colsArray);
 
         List<ModelRow> rows = new ArrayList<>();
-        ModelData data = new ModelData(colsArray);
+        ModelData data = null;
+        try{ data = new ModelData(colsArray);}
+        catch (IllegalArgumentException e){
+            e.printStackTrace();
+            return null;
+        }
 
         int nRows = 0;
 
@@ -1164,6 +1201,55 @@ public class QueryUI extends JPanel{
         }
 
         return data;
+    }
+
+
+    public boolean exportResultsToCSV() {
+        ModelData data = queryResultsTableGroupable.getData();
+        if (data == null){
+            JOptionPane.showMessageDialog(mainMenu, "No results in table, nothing to save.", "Nothing to save", JOptionPane.WARNING_MESSAGE);
+            return false;
+        }
+        File pathToExportTo = null;
+        JFileChooser f = new JFileChooser();
+        //f.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        f.setFileFilter(new FileNameExtensionFilter("CSV", ".csv"));
+        int returnVal = f.showSaveDialog(mainMenu);
+        if (returnVal == JFileChooser.APPROVE_OPTION) {
+            pathToExportTo = f.getSelectedFile();
+            System.out.println(pathToExportTo);
+            if (pathToExportTo == null){
+                return false;
+            }
+            if (!pathToExportTo.toString().endsWith(".csv")){
+                pathToExportTo = new File(pathToExportTo.toString()+".csv");
+            }
+            try {
+                FileWriter csv = new FileWriter(pathToExportTo);
+
+
+                //column names
+                data.getFields();
+
+                csv.write("\n");
+                ModelRow[] rows = data.getRows();
+                for (int i = 0; i < rows.length; i++) {
+                    Object[] values = rows[i].getValues();
+                    for (int j = 0; j < values.length; j++) {
+                        csv.write(values[j].toString() + ",");
+                    }
+                    csv.write("\n");
+                }
+
+
+
+                csv.close();
+                return true;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return false;
     }
 
     private MouseListener getMouseListenerForColumnList() {
@@ -1518,7 +1604,7 @@ public class QueryUI extends JPanel{
                             return false;
                         //filterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION), parent, parent.getChildCount());
                         filterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), parent, parent.getChildCount());
-                        filters.add(column.getFullName());//for validation purposes
+                        globalTableQueries.addFilter(column.getFullName());//for validation purposes
                         path = new TreePath(parent.getPath());
                     }
                     else if (parent.getNodeType() == null && parent.getChildCount() > 0){
@@ -1529,7 +1615,7 @@ public class QueryUI extends JPanel{
                             return false;
                         filterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION), parent, parent.getChildCount());
                         filterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), parent, parent.getChildCount());
-                        filters.add(column.getFullName());//for validation purposes
+                        globalTableQueries.addFilter(column.getFullName());//for validation purposes
                         path = new TreePath(parent.getPath());
                     }
                     else if (parent.getNodeType() == FilterNodeType.CONDITION ){
@@ -1573,7 +1659,7 @@ public class QueryUI extends JPanel{
                         globalTableQueries.addFilter(column.getFullName());//for validation purposes
                         path = new TreePath(parent.getPath());
                     }
-                    System.out.println(filters);
+                    System.out.println(globalTableQueries.getFilters());
                     filterTree.expandPath(path);
 
                     filterTree.revalidate();

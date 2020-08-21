@@ -266,6 +266,7 @@ public class MetaDataManager {
         String sql15 = "CREATE TABLE IF NOT EXISTS "+ QUERY_FILTERS +" (\n"
                 + "    "+ QUERY_ID +" integer PRIMARY KEY,\n"
                 + "    "+ QUERY_FILTERS_STR +" blob ,\n"
+                + "    "+ QUERY_FILTERS_LIST +" text ,\n"
                 + "    FOREIGN KEY ("+ QUERY_ID +") REFERENCES "+QUERY_SAVE+"("+QUERY_ID+")); ";
 
         executeStatements(new String[] {sql1, sql2, sql3, sql4, sql5, sql6, sql7, sql8, sql9, sql10, sql11, sql12, sql13, sql14, sql15});
@@ -1366,7 +1367,7 @@ public class MetaDataManager {
     }
 
     public boolean insertNewQuerySave(String queryName, String cubeName, Map<GlobalTableData, List<GlobalColumnData>> rows,
-                                   Map<GlobalTableData, List<GlobalColumnData>> columns, Map<Integer, String> measures, FilterNode filters){
+                                   Map<GlobalTableData, List<GlobalColumnData>> columns, Map<Integer, String> measures, FilterNode filters, Set<String> filtersColsStr){
         int cubeID = getOrcreateCube(cubeName);
         String sql = "INSERT INTO "+ QUERY_SAVE + "("+QUERY_CUBE_ID+", "+QUERY_NAME+") VALUES(?,?)";
         int queryID = -1;
@@ -1447,10 +1448,16 @@ public class MetaDataManager {
         //insert filters (if any)
         byte[] filtersByte = makebyteFromTreeModel(filters);
         if (filters != null) {
-            sql = "INSERT INTO " + QUERY_FILTERS + "(" + QUERY_ID + ", " + QUERY_FILTERS_STR + ") VALUES(?,?)";
+            String filtersStr = "";
+            for (String s : filtersColsStr){
+                filtersStr +=s+";";//list of tablename.colname separated by ; in the filters
+            }
+            filtersStr = filtersStr.substring(0, filtersStr.length() - 1); //remove last ;
+            sql = "INSERT INTO " + QUERY_FILTERS + "(" + QUERY_ID + ", " + QUERY_FILTERS_STR + ", "+QUERY_FILTERS_LIST+") VALUES(?,?,?)";
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                     pstmt.setInt(1, queryID);
                     pstmt.setBytes(2, filtersByte);
+                    pstmt.setString(3, filtersStr);
                     pstmt.executeUpdate();
             } catch (SQLException e) {
                 System.out.println(e.getMessage());
@@ -1611,14 +1618,17 @@ public class MetaDataManager {
         return measures;
     }
 
-    public FilterNode getQueryFilters(int queryID){
+    public Object[] getQueryFilters(int queryID){
         try {
             Statement stmt = conn.createStatement();
-            String sql = "SELECT "+ QUERY_FILTERS_STR+" FROM " + QUERY_FILTERS + " WHERE "+QUERY_ID+" = " +queryID+";";
+            String sql = "SELECT "+ QUERY_FILTERS_STR+", "+QUERY_FILTERS_LIST+" FROM " + QUERY_FILTERS + " WHERE "+QUERY_ID+" = " +queryID+";";
             ResultSet rs = stmt.executeQuery(sql);
             // loop through the result set
             if (rs.next()) {
-                return readTreeModel(rs.getBytes(QUERY_FILTERS_STR));
+                Object[] filters = new Object[2];
+                filters[0] = rs.getString(QUERY_FILTERS_LIST);
+                filters[1] = readTreeModel(rs.getBytes(QUERY_FILTERS_STR));
+                return filters;
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());

@@ -121,6 +121,7 @@ public class Constants {
     //query save: filters
     public static final String QUERY_FILTERS = "query_filters";
     public static final String QUERY_FILTERS_STR = "filters_str";
+    public static final String QUERY_FILTERS_LIST = "filters_list";
 
     public static final String GLOBAL_TABLE_DATA_MULTI_TYPE_FIELD = "multidimensional_type";
     public static final String CUBE_TABLE = "cube";
