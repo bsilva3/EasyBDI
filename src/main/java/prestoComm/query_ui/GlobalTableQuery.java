@@ -25,6 +25,7 @@ public class GlobalTableQuery {
 
     private final static int LIMIT_NUMBER = 50000;
     public final static int MAX_SELECT_COLS = 3;
+    public final static String MULTI_HEADER_SEPARATOR = "-";
 
     public GlobalTableQuery(PrestoMediator presto, FactsTable factsTable, List<GlobalTableData> dimensions) {
         this.presto = presto;
@@ -494,19 +495,19 @@ public class GlobalTableQuery {
                     //if (valueRaw.isEmpty())
                         //valueRaw ="''";
                     valueColEnumeration += colNames.get(i) + " = "+v+" AND ";//building a colName = value AND ColName = value etc...
-                    valueAlias += valueRaw + "_";
+                    valueAlias += valueRaw + MULTI_HEADER_SEPARATOR;
                 }
                 pivotValues.add(valuesRaw);
                 //remove last AND from enumerations and last _ from alias
                 valueColEnumeration = valueColEnumeration.substring(0, valueColEnumeration.length() - " AND ".length());//remove last AND from enumeration
-                valueAlias = valueAlias.substring(0, valueAlias.length() - "_".length());//remove last _ from alias
+                valueAlias = valueAlias.substring(0, valueAlias.length() - MULTI_HEADER_SEPARATOR.length());//remove last - from alias
                 if (valueAlias.trim().isEmpty()){//empty alias name, add a new name
                     valueAlias="empty";
                 }
                 valueAlias = "\""+valueAlias+"\"";//space between chars in alias is not allowed, add double quotes
                 nSelectCols++;
                 if (measureOP.equalsIgnoreCase("COUNT")) //inneficient, if running for every row...
-                    query+= " SUM(CASE WHEN "+ valueColEnumeration + " THEN 1 ELSE 0 END) AS "+valueAlias+", ";
+                    query+= " SUM(CASE WHEN "+ valueColEnumeration + " AND "+measureName+" NOT NULL THEN 1 ELSE 0 END) AS "+valueAlias+", ";
                 else if (measureOP.equalsIgnoreCase("SUM")) //inneficient, if running for every row...
                     query+= " SUM(CASE WHEN "+ valueColEnumeration + " THEN "+measureName +" ELSE 0 END) AS "+valueAlias+", ";
                 else if (measureOP.equalsIgnoreCase("AVG")) //inneficient, if running for every row...

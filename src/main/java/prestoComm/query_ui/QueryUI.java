@@ -1217,7 +1217,6 @@ public class QueryUI extends JPanel{
         int returnVal = f.showSaveDialog(mainMenu);
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             pathToExportTo = f.getSelectedFile();
-            System.out.println(pathToExportTo);
             if (pathToExportTo == null){
                 return false;
             }
@@ -1229,7 +1228,19 @@ public class QueryUI extends JPanel{
 
 
                 //column names
-                data.getFields();
+                ModelField[] fields = data.getFields();
+                for (int i = 0; i < fields.length; i++) {
+                    ModelField leafField = fields[i];
+                    String fieldStr = leafField.getCaption();
+                    if (leafField.getParent() != null){//check if theres a parent, a higher level header
+                        ModelFieldGroup groupField = leafField.getParent();
+                        fieldStr = groupField.getCaption() +" - "+fieldStr;
+                        if (groupField.getParent() != null) {//check if theres a parent, a higher level header (considering no more than 3 levels of headers!)
+                            fieldStr = groupField.getParent().getCaption() + " - " + fieldStr;
+                        }
+                    }
+                    csv.write(fieldStr+",");
+                }
 
                 csv.write("\n");
                 ModelRow[] rows = data.getRows();
@@ -1241,14 +1252,14 @@ public class QueryUI extends JPanel{
                     csv.write("\n");
                 }
 
-
-
                 csv.close();
+                JOptionPane.showMessageDialog(mainMenu, "Results exported to "+pathToExportTo+"!", "Success", JOptionPane.PLAIN_MESSAGE);
                 return true;
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
+        JOptionPane.showMessageDialog(mainMenu, "Could not export results", "Failed export", JOptionPane.ERROR_MESSAGE);
         return false;
     }
 
