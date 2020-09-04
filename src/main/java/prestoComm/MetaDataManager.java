@@ -179,7 +179,7 @@ public class MetaDataManager {
         String sql5 = "CREATE TABLE IF NOT EXISTS "+ GLOBAL_TABLE_DATA +" (\n"
                 + "    "+ GLOBAL_TABLE_DATA_ID_FIELD +" integer PRIMARY KEY,\n"
                 + "    "+ GLOBAL_TABLE_DATA_NAME_FIELD +" text NOT NULL,\n"
-                + "    "+ GLOBAL_TABLE_DATA_MULTI_TYPE_FIELD +" text,\n"
+               // + "    "+ GLOBAL_TABLE_DATA_MULTI_TYPE_FIELD +" text,\n"
                 + "    "+ DB_TYPE_QUERY_FIELD +" text, \n"
                 +  "    UNIQUE("+ GLOBAL_TABLE_DATA_NAME_FIELD+") ON CONFLICT IGNORE );";
 
@@ -197,7 +197,7 @@ public class MetaDataManager {
         String sql7 = "CREATE TABLE IF NOT EXISTS "+ CORRESPONDENCES_DATA +" (\n"
                 + "    "+ CORRESPONDENCES_GLOBAL_COL_FIELD +" integer,\n"
                 + "    "+ CORRESPONDENCES_LOCAL_COL_FIELD +" integer ,\n"
-                + "    "+ CORRESPONDENCES_CONVERSION_FIELD +" text,\n"
+                //+ "    "+ CORRESPONDENCES_CONVERSION_FIELD +" text,\n"
                 + "    "+ CORRESPONDENCES_TYPE_FIELD +" integer, \n"
                 + "    PRIMARY KEY("+ CORRESPONDENCES_GLOBAL_COL_FIELD+", "+CORRESPONDENCES_LOCAL_COL_FIELD+") ON CONFLICT IGNORE, \n"
                 + "    FOREIGN KEY ("+ CORRESPONDENCES_GLOBAL_COL_FIELD +") REFERENCES "+GLOBAL_COLUMN_DATA+"("+GLOBAL_COLUMN_DATA_ID_FIELD+"), "
@@ -205,8 +205,8 @@ public class MetaDataManager {
 
         String sql8 = "CREATE TABLE IF NOT EXISTS "+ CUBE_TABLE +" (\n"
                 + "    "+ CUBE_ID_FIELD +" integer PRIMARY KEY,\n"
-                + "    "+ CUBE_NAME +" text UNIQUE,\n"
-                + "    "+ CUBE_TYPE_FIELD +" text ); ";
+                + "    "+ CUBE_NAME +" text UNIQUE);";
+               // + "    "+ CUBE_TYPE_FIELD +" text ); ";
 
         String sql9 = "CREATE TABLE IF NOT EXISTS "+ MULTIDIM_TABLE +" (\n"
                 + "    "+ MULTIDIM_TABLE_ID +" integer PRIMARY KEY,\n"

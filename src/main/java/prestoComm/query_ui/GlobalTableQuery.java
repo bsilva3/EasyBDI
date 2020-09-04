@@ -16,7 +16,9 @@ public class GlobalTableQuery {
     private List<String> measures;
     private List<String> orderBy;
     private String filterQuery;
+    private String filterAggrQuery;
     private Set<String> filters;
+    private Set<String> aggrFilters;
     private FactsTable factsTable;
     private List<GlobalTableData> dimensions;
     private PrestoMediator presto;
@@ -37,6 +39,9 @@ public class GlobalTableQuery {
         orderBy = new ArrayList<>();
         pivotValues = new ArrayList<>();
         filters = new HashSet<>();
+        aggrFilters = new HashSet<>();
+        filterQuery = "";
+        filterAggrQuery = "";
     }
 
     public void addOrderByRow(String groupByRow){
@@ -66,7 +71,13 @@ public class GlobalTableQuery {
         //table already present, add the column
         if (selectRows.containsKey(table)){
             List<GlobalColumnData> listCols = selectRows.get(table);
-            if (!listCols.contains(col)){
+            if (listCols.contains(col)){
+                //column present, compare aggregation operations (must all be different if column is duplicated)
+                if( !listCols.get(listCols.indexOf(col)).getAggrOp().equals(col.getAggrOp()) ){
+                    selectRows.get(table).add(col);
+                }
+            }
+            else{ //column not present, add it
                 selectRows.get(table).add(col);
                 return;
             }
@@ -116,12 +127,20 @@ public class GlobalTableQuery {
         filters.add(column);
     }
 
+    public void addAggrFilter(String column){
+        aggrFilters.add(column);
+    }
+
     public void removeMeasure(String measure){
         this.measures.remove(measure);
     }
 
     public void removeFilter(String column){
         filters.remove(column);
+    }
+
+    public void removeAggrFilter(String column){
+        aggrFilters.remove(column);
     }
 
     public String getLocalTableQuery(GlobalTableData t, List<GlobalColumnData> selectCols){
@@ -149,7 +168,7 @@ public class GlobalTableQuery {
                         List<GlobalColumnData> cols = selectedTable.getValue();
                         for (GlobalTableData dim : dimensions) {
                             if (dim.getTableName().equals(gt.getTableName())) {
-                                for (GlobalColumnData gc : gt.getGlobalColumnDataList()) {
+                                for (GlobalColumnData gc : selectedTable.getValue()) {
                                     if (gc.getName().equals(colName)) {
                                         isSelected = true;
                                         break;                  //this filter is already present in user selection
@@ -212,17 +231,26 @@ public class GlobalTableQuery {
     public String buildQuerySelectRowsOnly(){
         String query = "SELECT ";
         //first add to the select the dimensions columns
-
+        boolean hasAggregations = false;
+        String selectColsNoAggr = "";
         for (Map.Entry<GlobalTableData, List<GlobalColumnData>> dimTable : selectRows.entrySet()){
             List<GlobalColumnData> cols = dimTable.getValue();
             GlobalTableData t = dimTable.getKey();
             for (GlobalColumnData c : cols){
-                query+= t.getTableName()+"."+c.getName()+",";
-
+                if (c.getAggrOp()!=null && !c.getAggrOp().isEmpty()){
+                    query += c.getAggrOpFullName()+" AS \""+c.getAggrOp().toLowerCase() +" of "+c.getFullName()+"\",";// aggregationOP (table.column) as "aggrOP of table.column"
+                    hasAggregations = true;
+                }
+                else {
+                    query += t.getTableName() + "." + c.getName() + ",";// or c.getFullname();
+                    selectColsNoAggr += t.getTableName() + "." + c.getName() +",";
+                }
             }
         }
 
         query = query.substring(0, query.length() - 1);//last elemment without comma
+        if (selectColsNoAggr.length()> 0)
+            selectColsNoAggr = selectColsNoAggr.substring(0, selectColsNoAggr.length() - 1);//last elemment without comma
         query+= " FROM ";
 
         //check if all tables and columns of filters are selected
@@ -248,6 +276,16 @@ public class GlobalTableQuery {
             query += " WHERE " + filterQuery;//add filters to the query (if there are filters). Filters will be applied to the outer query
         }
 
+        //add group by if aggregations exist and non aggregate columns exist as well
+        if (hasAggregations && selectColsNoAggr.length() > 0){
+            query += " GROUP BY ("+selectColsNoAggr+")"; //group columns that do not have aggregations
+        }
+
+        //add having clause if exist
+        if (filterAggrQuery.length() > 0){
+            query += " HAVING " + filterAggrQuery;//add filters to the query (if there are filters). Filters will be applied to the outer query
+        }
+
         return query;
     }
 
@@ -270,7 +308,12 @@ public class GlobalTableQuery {
             List<GlobalColumnData> newCols = new ArrayList<>();
             boolean primKeyIsSelected = false;
             for (GlobalColumnData c : cols){
-                query+= t.getTableName()+"."+c.getName()+",";
+                if (c.getAggrOp()!=null && !c.getAggrOp().isEmpty()){
+                    query += c.getAggrOpFullName()+" AS \""+c.getAggrOp().toLowerCase() +" of "+c.getFullName()+"\",";// aggregationOP (table.column) as "aggrOP of table.column"
+                }
+                else {
+                    query += t.getTableName() + "." + c.getName() + ",";// noo aggregation
+                }
                 GlobalColumnData newC = new GlobalColumnData(c.getName(), c.getDataType(), c.isPrimaryKey(), c.getLocalColumns());
                 newCols.add(newC);
                 if (c.isPrimaryKey()) {
@@ -409,7 +452,8 @@ public class GlobalTableQuery {
             GlobalTableData table = tableSelectRows.getKey();
             List<GlobalColumnData> columns = tableSelectRows.getValue();
             for (GlobalColumnData col : columns) {
-                query +=table.getTableName()+"."+col.getName()+",";
+                if (col.getAggrOp() == null || col.getAggrOp().isEmpty())
+                    query +=table.getTableName()+"."+col.getName()+",";//no aggregation dim column, add to group by
             }
         }
         for (String measure : groupByMeasure){
@@ -439,7 +483,12 @@ public class GlobalTableQuery {
             List<GlobalColumnData> newCols = new ArrayList<>();
             boolean primKeyIsSelected = false;
             for (GlobalColumnData c : cols){
-                query+= t.getTableName()+"."+c.getName()+",";
+                if (c.getAggrOp()!=null && !c.getAggrOp().isEmpty()){
+                    query += c.getAggrOpFullName()+" AS \""+c.getAggrOp().toLowerCase() +" of "+c.getFullName()+"\",";// aggregationOP (table.column) as "aggrOP of table.column"
+                }
+                else {
+                    query += t.getTableName() + "." + c.getName() + ",";// noo aggregation
+                }
                 nSelectCols++;
                 GlobalColumnData newC = new GlobalColumnData(c.getName(), c.getDataType(), c.isPrimaryKey(), c.getLocalColumns());//new references so that the originals are unnaltered
                 newCols.add(newC);
@@ -507,7 +556,7 @@ public class GlobalTableQuery {
                 valueAlias = "\""+valueAlias+"\"";//space between chars in alias is not allowed, add double quotes
                 nSelectCols++;
                 if (measureOP.equalsIgnoreCase("COUNT")) //inneficient, if running for every row...
-                    query+= " SUM(CASE WHEN "+ valueColEnumeration + " AND "+measureName+" NOT NULL THEN 1 ELSE 0 END) AS "+valueAlias+", ";
+                    query+= " SUM(CASE WHEN "+ valueColEnumeration + " AND "+measureName+" IS NOT NULL THEN 1 ELSE 0 END) AS "+valueAlias+", ";
                 else if (measureOP.equalsIgnoreCase("SUM")) //inneficient, if running for every row...
                     query+= " SUM(CASE WHEN "+ valueColEnumeration + " THEN "+measureName +" ELSE 0 END) AS "+valueAlias+", ";
                 else if (measureOP.equalsIgnoreCase("AVG")) //inneficient, if running for every row...
@@ -536,7 +585,6 @@ public class GlobalTableQuery {
                     }
                 }
             }
-            //todo must add in the from a inner query to fetch table of atributes in the 'columns' area IF such table is not already in the 'rows area'
 
             String subQueries = getLocalTableQuery(t, rowsForSelect);
 
@@ -653,7 +701,8 @@ public class GlobalTableQuery {
             GlobalTableData table = tableSelectRows.getKey();
             List<GlobalColumnData> columns = tableSelectRows.getValue();
             for (GlobalColumnData col : columns) {
-                query +=table.getTableName()+"."+col.getName()+",";
+                if (col.getAggrOp() == null || col.getAggrOp().isEmpty())
+                    query +=table.getTableName()+"."+col.getName()+",";
             }
         }
         //add any pivoted columns without the aggregation
@@ -1035,6 +1084,7 @@ public class GlobalTableQuery {
         orderBy.clear();
         filters.clear();
         filterQuery = "";
+        filterAggrQuery = "";
     }
 
     public Map<Integer, String> getMeasuresWithID() {
@@ -1120,5 +1170,21 @@ public class GlobalTableQuery {
 
     public void setFilters(Set<String> filters) {
         this.filters = filters;
+    }
+
+    public String getFilterAggrQuery() {
+        return filterAggrQuery;
+    }
+
+    public void setFilterAggrQuery(String filterAggrQuery) {
+        this.filterAggrQuery = filterAggrQuery;
+    }
+
+    public Set<String> getAggrFilters() {
+        return aggrFilters;
+    }
+
+    public void setAggrFilters(Set<String> aggrFilters) {
+        this.aggrFilters = aggrFilters;
     }
 }

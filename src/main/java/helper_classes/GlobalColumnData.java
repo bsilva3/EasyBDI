@@ -12,12 +12,14 @@ public class GlobalColumnData implements Serializable {
     private String foreignKey; //globalTablename.globalColumnName
     private String orderBy; //just for the query save
     private String fullName; //table.column
+    private String aggrOp; //aggrOP
 
     public GlobalColumnData(String name, String dataType, boolean isPrimaryKey, Set<ColumnData> localCols) {
         this.name = name;
         this.dataType = dataType;
         this.isPrimaryKey = isPrimaryKey;
         this.localColumns = localCols;
+        this.aggrOp = "";
     }
 
     public GlobalColumnData(String name, String dataType, boolean isPrimaryKey, Set<ColumnData> localCols, int id) {
@@ -26,6 +28,7 @@ public class GlobalColumnData implements Serializable {
         this.isPrimaryKey = isPrimaryKey;
         this.localColumns = localCols;
         this.columnID = id;
+        this.aggrOp = "";
     }
 
     public GlobalColumnData(String name, String dataType, boolean isPrimaryKey, ColumnData localCol) {
@@ -34,6 +37,7 @@ public class GlobalColumnData implements Serializable {
         this.isPrimaryKey = isPrimaryKey;
         this.localColumns = new HashSet<>();
         this.localColumns.add(localCol);
+        this.aggrOp = "";
     }
 
     public GlobalColumnData(ColumnData column) {
@@ -43,6 +47,7 @@ public class GlobalColumnData implements Serializable {
         this.foreignKey = column.getForeignKey();
         this.localColumns = new HashSet<>();
         this.localColumns.add(column);
+        this.aggrOp = "";
     }
 
     public MappingType getMappingType(){
@@ -156,6 +161,34 @@ public class GlobalColumnData implements Serializable {
 
     public void setFullName(String fullName) {
         this.fullName = fullName;
+    }
+
+    public String getAggrOp() {
+        return aggrOp;
+    }
+
+    //aggrOP(tableName.columnName)
+    public String getAggrOpFullName() {
+        String aggrOpFullName = "";
+        if (aggrOp.contains("DISTINCT"))
+            aggrOpFullName = "COUNT(DISTINCT "+getFullName()+")";
+        else
+            aggrOpFullName = aggrOp+"("+getFullName()+")";
+        return aggrOpFullName;
+    }
+
+    //aggrOP(tableName.columnName)
+    public String getAggrOpName() {
+        String aggrOpFullName = "";
+        if (aggrOp.contains("DISTINCT"))
+            aggrOpFullName = "COUNT(DISTINCT "+name+")";
+        else
+            aggrOpFullName = aggrOp+"("+name+")";
+        return aggrOpFullName;
+    }
+
+    public void setAggrOp(String aggrOpFullName) {
+        this.aggrOp = aggrOpFullName;
     }
 
     public boolean hasForeignKey(){
