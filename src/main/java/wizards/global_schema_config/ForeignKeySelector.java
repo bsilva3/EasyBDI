@@ -45,7 +45,7 @@ public class ForeignKeySelector extends JFrame{
         this.setVisible(true);
     }
 
-    private void fillTablesComboBox(){
+    private void fillTablesComboBox(){ //TODO: error when primary keys do not exist anywhere
         String[] s = new String[globalTabs.size()];
         for (int i = 0; i < globalTabs.size(); i++){
             s[i] = globalTabs.get(i).getTableName();
@@ -58,6 +58,10 @@ public class ForeignKeySelector extends JFrame{
 
     private void setColumnsComboBox(GlobalTableData t){
         List<GlobalColumnData> primKeyCols = t.getGlobalColumnDataList();
+        if (primKeyCols.size() == 0){
+            JOptionPane.showMessageDialog(mainPanel, "No primary keys defined on global tables", "No primary keys", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
         String[] s = new String[primKeyCols.size()];
         for (int i = 0; i < primKeyCols.size(); i++){
             s[i] = primKeyCols.get(i).getName();

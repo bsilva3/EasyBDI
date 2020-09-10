@@ -2,13 +2,19 @@ package prestoComm;
 
 import helper_classes.ColumnData;
 import helper_classes.DBData;
+import helper_classes.LoadingScreenAnimator;
 import helper_classes.TableData;
 import io.prestosql.jdbc.$internal.guava.collect.ImmutableSet;
 
 import javax.swing.*;
+import java.awt.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.*;
 import java.sql.*;
 import java.util.*;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 import static prestoComm.Constants.*;
 
@@ -22,6 +28,7 @@ public class PrestoMediator {
     private DBConnector prestoConnector;
     private ResultSet res;
     private Statement stmt;
+    private char[] password;
 
     public PrestoMediator(){
         prestoConnector = new DBConnector(url, JDBC_DRIVER, user, pass);
@@ -160,7 +167,9 @@ public class PrestoMediator {
      */
     public String testDBConnection(DBData db){
         createDBFileProperties(db);
-        showRestartPrompt();
+        int status = restartPresto();
+        if (status != SUCCESS)
+            return "Failed (Presto not restarted)";
         String state = this.makeQuery("show schemas from \""+db.getCatalogName()+"\"");
         if (!state.equals(SUCCESS_STR))
             removeDBFile(db.getFullFilePath()); //remove config file that points to DB with incorrect permitions or data
@@ -189,8 +198,18 @@ public class PrestoMediator {
                 config += "redis.password="+dbData.getPass()+"\n";
             }
         }
-        else if (dbData.getDbModel().equals(DBModel.Cassandra)){//TODO: if port is not default (9042), cassandra.native-protocol-port must be defined with the port
-            config += "cassandra.contact-points="+dbData.getUrl()+"\n";
+        else if (dbData.getDbModel().equals(DBModel.Cassandra)){//TODO: Logic for only one host, and not for "host,host,host"
+            if (dbData.getUrl().contains(":")){//port on url, cassandra connector does not accecpt port and host on same field
+                String[] urlSplit = dbData.getUrl().split(":");
+                int port = Integer.parseInt(urlSplit[1]);
+                config += "cassandra.contact-points="+urlSplit[0]+"\n";
+                if (port != DBModel.Cassandra.getDefaultPort()){
+                    config += "cassandra.native-protocol-port="+port+"\n";//required if port is different than default
+                }
+            }else{
+                config += "cassandra.contact-points="+dbData.getUrl()+"\n";
+            }
+
             if (authNeeded) {
                 config += "cassandra.username="+dbData.getUser()+"\n";
                 config += "cassandra.password="+dbData.getPass()+"\n";
@@ -440,15 +459,96 @@ public class PrestoMediator {
         return records;
     }
 
+    public int startPresto(){
+        //start presto again
+        int commandExecutedStatus = executeSudoCommand(PRESTO_BIN+"/launcher start", "In order to start Presto, the system password is required.", false);
+        if (commandExecutedStatus != SUCCESS){
+            return commandExecutedStatus;
+        }
+        try {
+            Thread.sleep(5000); //pause 5 seconds, give time to start
+        } catch(InterruptedException ex) {
+            Thread.currentThread().interrupt();
+        }
+        //wait and check if connection with presto is possible every 4 seconds, 3 times
+        return tryIsPrestoInitialized();
+    }
 
-    //NOT WORKING!!
-    public boolean restartPresto(){
+    public int stopPresto(){
+        int commandExecutedStatus = executeSudoCommand(PRESTO_BIN+"/launcher stop", "Please, enter the system password so that presto can be stopped.", false);//stop presto
+        if (commandExecutedStatus != SUCCESS){
+            return commandExecutedStatus;
+        }
+        try {
+            Thread.sleep(2000); //pause 2 seconds, give time to stop
+        } catch(InterruptedException ex) {
+            Thread.currentThread().interrupt();
+        }
+        return SUCCESS;
+    }
+
+    public int restartPresto(){
+        //stop presto
+        int commandExecutedStatus = executeSudoCommand(PRESTO_BIN+"/launcher stop", "<html><p>Presto needs to be restarted in order to add a new data" +
+                " source.</p><p>Please, enter the system password.</p></html>", true);//stop presto and save pass so that user does not repeat it
+        if (commandExecutedStatus != SUCCESS){
+            return commandExecutedStatus;
+        }
+        try {
+            Thread.sleep(2000); //pause 2 seconds, give time to stop
+        } catch(InterruptedException ex) {
+            Thread.currentThread().interrupt();
+        }
+        commandExecutedStatus = executeSudoCommand(PRESTO_BIN+"/launcher start", password, false); //start presto as daemon, otherwise will run as background and occupy main thread
+        if (commandExecutedStatus != SUCCESS){
+            return commandExecutedStatus;
+        }
+        try {
+            Thread.sleep(8000); //pause 6 seconds, give time to start
+        } catch(InterruptedException ex) {
+            Thread.currentThread().interrupt();
+        }
+        //wait and check if connection with presto is possible every 4 seconds, 3 times
+        int status =  tryIsPrestoInitialized();
+        return status;
+    }
+
+    public int tryIsPrestoInitialized(){
+        int nTries = 0;
+        while (nTries < 3) {
+            try {
+                conn.getMetaData();
+                String state = makeQuery("show catalogs");
+                if (state.equals(SUCCESS_STR))
+                    return SUCCESS;
+                nTries++;//failed to make query, not fully restarted
+            } catch (SQLException e) {
+                nTries++;
+            }
+            try {
+                Thread.sleep(5000); //pause 3 seconds, give time to start
+            } catch(InterruptedException ex) {
+                Thread.currentThread().interrupt();
+            }
+        }
+        if (nTries >= 3)
+            return FAILED;
+        else
+            return SUCCESS;
+    }
+
+
+    //based on https://stackoverflow.com/a/40775875
+    private int executeSudoCommand(String command, String helpMessage, boolean savePass){
         InputStreamReader input;
         OutputStreamWriter output;
 
         try {
             //Create the process and start it.
-            Process pb = new ProcessBuilder("sudo",  "bash", "-c", PRESTO_BIN+"/launcher" + " -S /bin/cat /etc/sudoers 2>&1").start();
+            Process pb = new ProcessBuilder("/bin/bash", "-c", "/usr/bin/sudo -S "+ command +" 2>&1").start();
+            //ProcessBuilder processBuilder = new ProcessBuilder();
+            //processBuilder.command("/bin/bash", "-c", "sudo -S ls");
+            //Process pb = processBuilder.start();
             output = new OutputStreamWriter(pb.getOutputStream());
             input = new InputStreamReader(pb.getInputStream());
 
@@ -457,43 +557,82 @@ public class PrestoMediator {
             while ((bytes = input.read(buffer, 0, 1024)) != -1) {
                 if(bytes == 0)
                     continue;
+                if (tryies >=3 ){
+                    return FAILED;
+                }
                 //Output the data to console, for debug purposes
                 String data = String.valueOf(buffer, 0, bytes);
                 System.out.println(data);
                 // Check for password request
                 if (data.contains("[sudo] password")) {
                     // Here you can request the password to user using JOPtionPane or System.console().readPassword();
-                    JPasswordField pwd = new JPasswordField(20);
-                    int action = JOptionPane.showConfirmDialog(null, pwd,"Enter Password",JOptionPane.OK_CANCEL_OPTION);
-                    if(action < 0)JOptionPane.showMessageDialog(null,"Cancel, X or escape key selected");
-                    else JOptionPane.showMessageDialog(null,"Your password is "+new String(pwd.getPassword()));
-                    char password[] = pwd.getPassword();
+                    JPasswordField pwd = new JPasswordField(30);
+                    String labelText = "";
+                    if (tryies > 0)
+                        labelText = "Wrong password, please try again";
+                    else
+                        labelText = helpMessage;
+                    JComponent[]inputs = new JComponent[]{
+                            new JLabel(labelText),
+                            pwd
+                    };
+
+                    int action = JOptionPane.showConfirmDialog(null, inputs,"Please, enter password",JOptionPane.OK_CANCEL_OPTION);
+                    if (action < 0 || action == 2) { //user canceled
+                        pb.destroy();
+                        return CANCELED;
+                    }
+                    else if (action == 0) {
+                        password = pwd.getPassword();
+                        output.write(password);
+                        output.write('\n');
+                        output.flush();
+                        // erase password data, to avoid security issues.
+                        if (savePass == false)
+                            Arrays.fill(password, '\0');
+                        tryies++;
+                    }
+
+                }
+            }
+        } catch (IOException ex) { System.err.println(ex); return FAILED;}
+        return SUCCESS;
+    }
+
+    private int executeSudoCommand(String command, char[] password, boolean savePass){
+        InputStreamReader input;
+        OutputStreamWriter output;
+
+        try {
+            //Create the process and start it.
+            Process pb = new ProcessBuilder("/bin/bash", "-c", "/usr/bin/sudo -S "+ command +" 2>&1").start();
+            //ProcessBuilder processBuilder = new ProcessBuilder();
+            //processBuilder.command("/bin/bash", "-c", "sudo -S ls");
+            //Process pb = processBuilder.start();
+            output = new OutputStreamWriter(pb.getOutputStream());
+            input = new InputStreamReader(pb.getInputStream());
+
+            int bytes = 0;
+            char buffer[] = new char[1024];
+            while ((bytes = input.read(buffer, 0, 1024)) != -1) {
+                if(bytes == 0)
+                    continue;
+
+                //Output the data to console, for debug purposes
+                String data = String.valueOf(buffer, 0, bytes);
+                System.out.println(data);
+                // Check for password request
+                if (data.contains("[sudo] password")) {
                     output.write(password);
                     output.write('\n');
                     output.flush();
                     // erase password data, to avoid security issues.
-                    Arrays.fill(password, '\0');
-                    tryies++;
+                    if (savePass == false)
+                        Arrays.fill(password, '\0');
                 }
             }
-            if (tryies > 3){
-                return false;
-            }
-        } catch (IOException ex) { System.err.println(ex); }
-        //wait and check if connection with presto is possible every 4 seconds, 3 times
-        int nTries = 0;
-        while (nTries < 3) {
-            try {
-                conn.getMetaData();
-                return true;
-            } catch (SQLException e) {
-                nTries++;
-            }
-        }
-        if (nTries >= 3)
-            return false;
-        else
-            return true;
+        } catch (IOException ex) { System.err.println(ex); return FAILED;}
+        return SUCCESS;
     }
 
     /**
@@ -515,6 +654,7 @@ public class PrestoMediator {
     public ResultSet getLocalTablesQueries(String query){
         try {
             stmt = conn.createStatement();
+            stmt.setQueryTimeout(180); //query has 3 minutes to finnish, else sql exception
             ResultSet res = stmt.executeQuery(query);
             ResultSetMetaData rsmd = res.getMetaData();
 
@@ -529,6 +669,13 @@ public class PrestoMediator {
             e.printStackTrace();
             if (e.getCause().getMessage().contains("Failed to connect")){
                 JOptionPane.showMessageDialog(null, "Unnable to connect to Presto. Make sure it is running.", "Failed to connect to Presto", JOptionPane.ERROR_MESSAGE);
+            }
+            else if (e.getCause().getMessage().contains("Connection refused")){
+                JOptionPane.showMessageDialog(null, "Connection refused. Presto may still be initializing. If error persists check Presto connection.", "Failed to connect to Presto", JOptionPane.ERROR_MESSAGE);
+            }
+            else if (e.getCause().getMessage().contains("timeout")){
+                JOptionPane.showMessageDialog(null, "Query canceled, time out of 3 minutes reached.\nPresto is now required to restart in order to clear any inconsistant state.", "Failed to connect to Presto", JOptionPane.ERROR_MESSAGE);
+                restartPresto();
             }
             else{
                 JOptionPane.showMessageDialog(null, "Presto returned the following error:\n"+e.getCause().getMessage(), "Error Presto", JOptionPane.ERROR_MESSAGE);

@@ -345,11 +345,20 @@
       </scrollpane>
       <component id="c687e" class="javax.swing.JCheckBox" binding="countCheckBox">
         <constraints>
-          <grid row="3" column="5" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-          <gridbag weightx="0.5" weighty="0.1"/>
+          <grid row="3" column="4" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="0.2" weighty="0.1"/>
         </constraints>
         <properties>
           <text value="Add COUNT(*)"/>
+        </properties>
+      </component>
+      <component id="cbce3" class="javax.swing.JCheckBox" binding="distinctCheckBox">
+        <constraints>
+          <grid row="3" column="5" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="0.2" weighty="0.1"/>
+        </constraints>
+        <properties>
+          <text value="DISTINCT"/>
         </properties>
       </component>
     </children>

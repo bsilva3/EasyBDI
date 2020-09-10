@@ -137,6 +137,8 @@ public class CustomTreeNode extends DefaultMutableTreeNode implements Serializab
                 return "cassandra_icon.png";
             case MongoDB:
                 return "mongo_icon.png";
+            case HIVE:
+                return "hive_icon.png";
         }
         return "database_icon.png";
     }

@@ -33,6 +33,24 @@ public class LoadingScreenAnimator{
         return;
     }
 
+    public static void openGeneralLoadingOnlyText(JComponent comp, String text) {
+        frameGeneralLoading = new JFrame(" ");
+        frameGeneralLoading.setLayout(new BorderLayout());
+        frameGeneralLoading.setUndecorated(true);
+        frameGeneralLoading.getRootPane().setWindowDecorationStyle(JRootPane.NONE);
+        frameGeneralLoading.setLocationRelativeTo(comp);
+
+        messageLabel = new JLabel(text);
+        messageLabel.setFont(new Font(messageLabel.getFont().getName(), Font.PLAIN, 15));
+        messageLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        frameGeneralLoading.add(messageLabel, BorderLayout.CENTER);
+
+        frameGeneralLoading.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        frameGeneralLoading.setSize(400, 200);
+        frameGeneralLoading.setVisible(true);
+        return;
+    }
+
     public static void setText(String text) {
         messageLabel.setText(text);
     }

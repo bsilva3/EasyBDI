@@ -1,6 +1,7 @@
 package wizards.DBConfig;
 
 import helper_classes.DBData;
+import helper_classes.LoadingScreenAnimator;
 import helper_classes.SimpleDBData;
 import helper_classes.TableData;
 import org.omg.PortableInterceptor.SUCCESSFUL;
@@ -15,7 +16,7 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
 
-import static prestoComm.Constants.SUCCESS_STR;
+import static prestoComm.Constants.*;
 
 public class DatabaseConnectionWizardV2 extends JPanel {
     //extends AbstractWizardPage
@@ -183,7 +184,10 @@ public class DatabaseConnectionWizardV2 extends JPanel {
                     "Connection Test Failed",
                     JOptionPane.ERROR_MESSAGE);
         }
+        LoadingScreenAnimator.openGeneralLoadingOnlyText(mainPanel, "<html>Restarting Presto to temporarly add the new data source.</p>" +
+                "<p> A query will be made to test connectivity.</p><html>This may take no more than 30 seconds.</p></html>");
         String result = prestoMediator.testDBConnection(dbList.get(index));
+        LoadingScreenAnimator.closeGeneralLoadingAnimation();
         if (result.equals(SUCCESS_STR)){
             //connection success
             JOptionPane.showMessageDialog(null,
@@ -226,7 +230,19 @@ public class DatabaseConnectionWizardV2 extends JPanel {
         for (int i = 0; i < dbList.size(); i++){
             prestoMediator.createDBFileProperties(dbList.get(i));
         }
-        prestoMediator.showRestartPrompt();
+        LoadingScreenAnimator.openGeneralLoadingOnlyText(mainPanel, "<html><p>Restarting Presto to add the new data sources.</p>" +
+                "<p>This may take no more than 30 seconds</p></html>.");
+        int success = prestoMediator.restartPresto();
+        LoadingScreenAnimator.closeGeneralLoadingAnimation();
+        if (success == FAILED){
+            JOptionPane.showMessageDialog(mainPanel, "Presto could not be restarted.", "Could not restart", JOptionPane.WARNING_MESSAGE);
+            return null;
+        }
+        else if (success == CANCELED){
+            //JOptionPane.showMessageDialog(mainPanel, "Presto could not be restarted.", "Could not restart", JOptionPane.WARNING_MESSAGE);
+            return null;
+        }
+        //prestoMediator.showRestartPrompt();
         for (int i = 0; i < dbList.size(); i++){
             DBData db = getTablesInDBFromPresto(dbList.get(i));
             if (db == null){

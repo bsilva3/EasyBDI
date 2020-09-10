@@ -34,8 +34,13 @@ public class DBData implements Serializable {
         if (!this.url.isEmpty() && this.url.charAt(this.url.length() - 1) == '/'){
             this.url = this.url.substring(0, this.url.length()-1);
         }
-        this.catalogName = dbModel+"_"+this.url+"_"+this.dbName;
-        this.catalogName = this.catalogName.toLowerCase().replaceAll("[\\:\\-\\.()]", "_");
+        if (dbModel == DBModel.Cassandra) {//cassandra may not contain the port on the url
+            String urlNoPort = url.split(":")[0];
+            this.catalogName = dbModel + "_" + urlNoPort + "_" + this.dbName;
+        }
+        else
+            this.catalogName = dbModel+"_"+this.url+"_"+this.dbName;
+        this.catalogName = this.catalogName.toLowerCase().replaceAll("[\\:\\-\\/.()]", "_");
     }
 
 

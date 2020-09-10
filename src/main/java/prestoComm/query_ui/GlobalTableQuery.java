@@ -348,13 +348,12 @@ public class GlobalTableQuery {
                 String measureName = measureCol.split("[()]")[1]; //split on parenthesis to get the measure name (its in the form "aggr(measureName)" )
                 String measureAlias = measureName; //alias for the measure (same name if no repeated measures)
                 if (measureOP.trim().equalsIgnoreCase("SIMPLE")){//only add measure name
-                    query += measureName + " AS " + measureAlias + ",";
+                    //query += measureName + " AS " + measureAlias + ",";
+                    query += measureName + ",";
                     groupByMeasure.add(measureName);
                 }
                 else{
-                    if (repeatedMeasures){
-                        measureAlias = measureName+"_"+measureOP;
-                    }
+                    measureAlias = "\""+measureOP+" of "+measureName+"\"";
                     query += measureCol + " AS " + measureAlias + ",";
                 }
             }

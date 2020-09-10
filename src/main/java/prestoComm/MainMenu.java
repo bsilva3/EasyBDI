@@ -30,6 +30,8 @@ public class MainMenu extends JFrame{
 
     private Dimension windowSize;
 
+    private final String mainMenuTitle = "Data source configuration wizard";
+
     public MainMenu(){
         try {
             queryBtnImage = ImageIO.read(new File(Constants.IMAGES_DIR+"query_icon.jpg"));
@@ -56,7 +58,7 @@ public class MainMenu extends JFrame{
         this.setLayout(new BorderLayout());
         setContentPane(mainPanel);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        this.setTitle("Data source configuration wizard");
+        this.setTitle(mainMenuTitle);
         pack();
         this.setVisible(true);
     }
@@ -160,6 +162,10 @@ public class MainMenu extends JFrame{
 
     }
 
+    public void changeTitle(String title){
+        this.setTitle(title);
+    }
+
     private void openQueryUI(){
         placePanelInFrame(new QueryUI(currentProjectSelected, this));
     }
@@ -203,6 +209,7 @@ public class MainMenu extends JFrame{
     }
 
     public void returnToMainMenu(){
+        changeTitle(mainMenuTitle);
         placePanelInFrame(mainPanel);
         refreshProjectsInComboBox();
         checkProject();

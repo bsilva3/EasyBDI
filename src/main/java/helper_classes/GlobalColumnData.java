@@ -181,14 +181,36 @@ public class GlobalColumnData implements Serializable {
     public String getAggrOpName() {
         String aggrOpFullName = "";
         if (aggrOp.contains("DISTINCT"))
-            aggrOpFullName = "COUNT(DISTINCT "+name+")";
+            aggrOpFullName = aggrOp.split(" ")[0]+"(DISTINCT "+name+")";
         else
             aggrOpFullName = aggrOp+"("+name+")";
         return aggrOpFullName;
     }
 
-    public void setAggrOp(String aggrOpFullName) {
-        this.aggrOp = aggrOpFullName;
+    public void setAggrOp(String aggrOp) {
+        if (aggrOp.contains("DISTINCT")){
+            this.aggrOp = aggrOp;
+            this.aggrOp+=" DISTINCT";
+        }
+        else
+            this.aggrOp = aggrOp;
+    }
+
+    public void setAggrOp(String aggrOp, boolean hasDistinct) {
+        if (hasDistinct){
+            this.aggrOp = aggrOp;
+            this.aggrOp+=" DISTINCT";
+        }
+        else
+            this.aggrOp = aggrOp;
+    }
+
+    public void changeDistinct() {
+        if (aggrOp.contains("DISTINCT")){
+            this.aggrOp = aggrOp.split(" ")[0];
+        }
+        else
+            this.aggrOp+=" DISTINCT";
     }
 
     public boolean hasForeignKey(){

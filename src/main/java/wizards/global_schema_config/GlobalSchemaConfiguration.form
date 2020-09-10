@@ -12,12 +12,9 @@
       <scrollpane id="5dacf">
         <constraints>
           <grid row="4" column="0" row-span="1" col-span="4" vsize-policy="7" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-          <gridbag top="0" left="5" bottom="0" right="10" weightx="1.0" weighty="5.0"/>
+          <gridbag top="0" left="5" bottom="0" right="10" weightx="1.0" weighty="1.0"/>
         </constraints>
-        <properties>
-          <maximumSize width="300" height="500"/>
-          <preferredSize width="150" height="300"/>
-        </properties>
+        <properties/>
         <border type="none"/>
         <children>
           <component id="f54e1" class="javax.swing.JTree" binding="globalSchemaTree">
@@ -33,7 +30,7 @@
       <scrollpane id="77d04">
         <constraints>
           <grid row="4" column="5" row-span="1" col-span="4" vsize-policy="7" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-          <gridbag weightx="5.0" weighty="5.0"/>
+          <gridbag weightx="5.0" weighty="1.0"/>
         </constraints>
         <properties>
           <verticalScrollBarPolicy value="20"/>
@@ -58,8 +55,8 @@
       </scrollpane>
       <component id="c6392" class="javax.swing.JLabel">
         <constraints>
-          <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="0" anchor="6" fill="0" indent="0" use-parent-layout="false"/>
-          <gridbag weightx="1.0" weighty="0.5"/>
+          <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="1.0" weighty="0.1"/>
         </constraints>
         <properties>
           <horizontalTextPosition value="4"/>
@@ -68,10 +65,10 @@
       </component>
       <component id="11ba3" class="javax.swing.JTextField" binding="searchGlobalField">
         <constraints>
-          <grid row="3" column="1" row-span="1" col-span="1" vsize-policy="7" hsize-policy="6" anchor="2" fill="1" indent="0" use-parent-layout="false">
+          <grid row="3" column="1" row-span="1" col-span="1" vsize-policy="7" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false">
             <preferred-size width="150" height="-1"/>
           </grid>
-          <gridbag weightx="2.0" weighty="0.5"/>
+          <gridbag weightx="2.0" weighty="0.1"/>
         </constraints>
         <properties>
           <alignmentX value="0.5"/>
@@ -86,8 +83,8 @@
       </component>
       <component id="320b4" class="javax.swing.JButton" binding="searchGlobalButton">
         <constraints>
-          <grid row="3" column="2" row-span="1" col-span="1" vsize-policy="7" hsize-policy="3" anchor="10" fill="0" indent="0" use-parent-layout="false"/>
-          <gridbag weightx="1.0" weighty="0.5"/>
+          <grid row="3" column="2" row-span="1" col-span="1" vsize-policy="7" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="1.0" weighty="0.1"/>
         </constraints>
         <properties>
           <preferredSize width="78" height="25"/>
@@ -96,8 +93,8 @@
       </component>
       <component id="3ea7e" class="javax.swing.JLabel">
         <constraints>
-          <grid row="3" column="5" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="6" fill="0" indent="0" use-parent-layout="false"/>
-          <gridbag weightx="1.0" weighty="0.5"/>
+          <grid row="3" column="5" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="1.0" weighty="0.1"/>
         </constraints>
         <properties>
           <horizontalTextPosition value="4"/>
@@ -106,10 +103,10 @@
       </component>
       <component id="fbcf6" class="javax.swing.JTextField" binding="localTableSearchField">
         <constraints>
-          <grid row="3" column="6" row-span="1" col-span="1" vsize-policy="4" hsize-policy="6" anchor="2" fill="1" indent="0" use-parent-layout="false">
+          <grid row="3" column="6" row-span="1" col-span="1" vsize-policy="4" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false">
             <preferred-size width="150" height="-1"/>
           </grid>
-          <gridbag weightx="1.0" weighty="0.5"/>
+          <gridbag weightx="1.0" weighty="0.1"/>
         </constraints>
         <properties>
           <horizontalAlignment value="10"/>
@@ -123,8 +120,8 @@
       </component>
       <component id="dc59f" class="javax.swing.JLabel">
         <constraints>
-          <grid row="2" column="4" row-span="1" col-span="5" vsize-policy="0" hsize-policy="0" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
-          <gridbag top="1" left="0" bottom="0" right="0" weightx="1.0" weighty="0.2"/>
+          <grid row="2" column="4" row-span="1" col-span="5" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="1.0" weighty="0.0"/>
         </constraints>
         <properties>
           <text value="Local Schema"/>
@@ -133,7 +130,7 @@
       <component id="6dc38" class="javax.swing.JLabel" binding="helpLabel">
         <constraints>
           <grid row="1" column="0" row-span="1" col-span="9" vsize-policy="0" hsize-policy="0" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-          <gridbag top="5" left="0" bottom="0" right="0" weightx="1.0" weighty="0.1"/>
+          <gridbag top="1" left="0" bottom="0" right="0" weightx="1.0" weighty="0.1"/>
         </constraints>
         <properties>
           <alignmentX value="0.5"/>
@@ -156,8 +153,8 @@
       </component>
       <component id="8331" class="javax.swing.JLabel" binding="globalSchemaLabel">
         <constraints>
-          <grid row="2" column="0" row-span="1" col-span="4" vsize-policy="0" hsize-policy="0" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
-          <gridbag top="1" left="0" bottom="0" right="0" weightx="0.0" weighty="0.2"/>
+          <grid row="2" column="0" row-span="1" col-span="4" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="0.0" weighty="0.0"/>
         </constraints>
         <properties>
           <text value="Global Schema Configuration"/>
@@ -165,8 +162,8 @@
       </component>
       <component id="93780" class="javax.swing.JButton" binding="resetFilterLocalSchemaBtn">
         <constraints>
-          <grid row="3" column="8" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="10" fill="0" indent="0" use-parent-layout="false"/>
-          <gridbag weightx="0.5" weighty="0.5"/>
+          <grid row="3" column="8" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="0.5" weighty="0.1"/>
         </constraints>
         <properties>
           <preferredSize width="78" height="25"/>
@@ -177,8 +174,8 @@
       </component>
       <component id="a48ef" class="javax.swing.JButton" binding="searchLocalButton">
         <constraints>
-          <grid row="3" column="7" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="10" fill="0" indent="0" use-parent-layout="false"/>
-          <gridbag weightx="1.0" weighty="0.5"/>
+          <grid row="3" column="7" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="1.0" weighty="0.1"/>
         </constraints>
         <properties>
           <horizontalAlignment value="0"/>
@@ -189,8 +186,8 @@
       </component>
       <component id="73ad6" class="javax.swing.JButton" binding="resetFilterGlobalSchemaBtn">
         <constraints>
-          <grid row="3" column="3" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="10" fill="0" indent="0" use-parent-layout="false"/>
-          <gridbag weightx="0.5" weighty="0.5"/>
+          <grid row="3" column="3" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="0.5" weighty="0.1"/>
         </constraints>
         <properties>
           <preferredSize width="78" height="25"/>

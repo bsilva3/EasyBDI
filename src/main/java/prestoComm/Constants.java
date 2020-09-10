@@ -156,6 +156,13 @@ public class Constants {
     public static final String SUCCESS_STR = "Success";
 
 
+    //states of operations
+    public static final int SUCCESS = 1;
+    public static final int CANCELED = 0;
+    public static final int FAILED = -1;
+
+
+
 
     //SCHEMA exclusions that are database characteristic and have no interest in a business analytics context
     public static final String[] PSQL_SCHEMA_EXCL = new String[] {"schema_info", "pg_catalog"};

@@ -70,6 +70,7 @@ public class QueryUI extends JPanel{
     private JLabel filtersLabel;
     private JLabel aggrFiltersLabel;
     private JCheckBox countCheckBox;
+    private JCheckBox distinctCheckBox;
 
     private StarSchema starSchema;
     private GlobalTableQuery globalTableQueries;//used to store all queries for each global table, and their columns
@@ -87,7 +88,7 @@ public class QueryUI extends JPanel{
     private MetaDataManager metaDataManager;
     private PrestoMediator prestoMediator;
     private final String[] aggregationsMeasures = { "no aggregation", "count", "sum", "average"};
-    private final String[] aggregationsRows = {"COUNT", "COUNT DISTINCT", "SUM", "AVERAGE", "MAX", "MIN"};
+    private final String[] aggregationsRows = {"COUNT", "SUM", "AVERAGE", "MAX", "MIN"};
     private final String[] numberOperations = { "=", "!=", ">", "=>", "<", "<="};
     private final String[] stringOperations = { "=", "!=", "like"};
 
@@ -98,6 +99,7 @@ public class QueryUI extends JPanel{
         this.metaDataManager = new MetaDataManager(projectName);
         this.prestoMediator = new PrestoMediator();
 
+        mainMenu.setTitle("Analytical Query Environment");
         mainPanel.setSize(mainMenu.getSize());
         MouseAdapter adapterTooltip = new MouseAdapter(){
             final int defaultTimeout = ToolTipManager.sharedInstance().getInitialDelay();
@@ -294,6 +296,12 @@ public class QueryUI extends JPanel{
             }
         });
         exportResultsToCSVButton.setEnabled(false); //initially, no results on screen, will be enable when clicking on execute query
+        countCheckBox.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                addCountAllToRowsAggr();
+            }
+        });
     }
 
     private void clearAllFieldsAndQueryElements(){
@@ -831,6 +839,30 @@ public class QueryUI extends JPanel{
         };
     }
 
+    private ActionListener getChangeAggregateDistinctActionListener(int index) {
+        return new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent arg0) {
+
+                //adds/removes the distinct clause
+                if (index < 0)
+                    return;
+                ListElementWrapper element = (ListElementWrapper) rowsAggListModel.getElementAt(index);
+                if (!element.getName().contains("    ")){
+                    return;//a table was selected, do nothing
+                }
+                GlobalColumnData c = (GlobalColumnData) element.getObj();
+                c.changeDistinct();
+                element.setObj(c);
+                element.setName("    " + c.getAggrOpName());
+                rowsAggListModel.setElementAt(element, index);
+                rowsAggregationsList.revalidate();
+                rowsAggregationsList.updateUI();
+            }
+        };
+    }
+
     private ActionListener getAddNOTActionListenerOnNestedExprssion(JTree tree, FilterNode node) {
         return new ActionListener() {
 
@@ -1093,8 +1125,8 @@ public class QueryUI extends JPanel{
                 if (results == null){
                     LoadingScreenAnimator.closeGeneralLoadingAnimation();
                     backButton.setEnabled(true);
-                    JOptionPane.showMessageDialog(mainMenu, "Query returned with no results. Check if Presto is running and\nthat the data source is also available.",
-                            "Query empty", JOptionPane.ERROR_MESSAGE);
+                    //JOptionPane.showMessageDialog(mainMenu, "Query returned with no results. Check if Presto is running and\nthat the data source is also available.",
+                     //       "Query empty", JOptionPane.ERROR_MESSAGE);
                     return null;
                 }
                 setResultsAndCreateLog(results, localQuery, beginTime);
@@ -1135,7 +1167,7 @@ public class QueryUI extends JPanel{
                 }
             }
         });
-        backButton.setEnabled(false);
+        //backButton.setEnabled(false);
     }
 
     private void setResultsAndCreateLog(ResultSet results, String localQuery, DateTime beginTime){
@@ -1465,13 +1497,11 @@ public class QueryUI extends JPanel{
                 subMenu.add(subItem3);
                 JMenu subMenu2 = new JMenu("Change aggregate");
                 JMenuItem subItem21 = new JMenuItem("Count");
-                JMenuItem subItem22 = new JMenuItem("Count Distinct");
                 JMenuItem subItem23 = new JMenuItem("Sum");
                 JMenuItem subItem24 = new JMenuItem("Average");
                 JMenuItem subItem25 = new JMenuItem("Max");
                 JMenuItem subItem26 = new JMenuItem("Min");
                 subMenu2.add(subItem21);
-                subMenu2.add(subItem22);
                 subMenu2.add(subItem23);
                 subMenu2.add(subItem24);
                 subMenu2.add(subItem25);
@@ -1481,15 +1511,25 @@ public class QueryUI extends JPanel{
                 subItem2.addActionListener(getAddGroupByListenerRows(index, false, true));
                 subItem3.addActionListener(getRemoveGroupByListenerRows(index));
                 subItem21.addActionListener(getChangeAggregateActionListener(index, "COUNT"));
-                subItem22.addActionListener(getChangeAggregateActionListener(index, "COUNT DISTINCT "));
                 subItem23.addActionListener(getChangeAggregateActionListener(index, "SUM"));
                 subItem24.addActionListener(getChangeAggregateActionListener(index, "AVG"));
                 subItem25.addActionListener(getChangeAggregateActionListener(index, "MAX"));
                 subItem26.addActionListener(getChangeAggregateActionListener(index, "MIN"));
+
+                //add/remove distinct
+                String menuDistinctTitle = "";
+                if (rowsAggListModel.getElementAt(index).toString().contains("DISTINCT")){
+                    menuDistinctTitle = "Remove DISTINCT";
+                }
+                else
+                    menuDistinctTitle = "Add DISTINCT";
+                JMenuItem item3 = new JMenuItem(menuDistinctTitle);
+                item3.addActionListener(getChangeAggregateDistinctActionListener(index));
                 //item1.addActionListener(getRemoveActionListener());
                 menu.add(item1);
                 menu.add(subMenu);
                 menu.add(subMenu2);
+                menu.add(item3);
                 rowsAggregationsList.setComponentPopupMenu(menu);
                 //}
                 super.mousePressed(arg0);
@@ -1677,6 +1717,10 @@ public class QueryUI extends JPanel{
         }
     }
 
+    private void addCountAllToRowsAggr(){
+
+    }
+
     private void addMeasure(DefaultListModel listModel, String measureStr){
         //make sure this measure is not added already
         for (int i = 0; i < listModel.size(); i++){
@@ -1836,7 +1880,7 @@ public class QueryUI extends JPanel{
                 }
                 else if (list.equals(rowsAggregationsList)){
                     //select rows list
-                    col.setAggrOp(rowsAggregationsComboBox.getSelectedItem().toString());
+                    col.setAggrOp(rowsAggregationsComboBox.getSelectedItem().toString(), distinctCheckBox.isSelected());
                     addRowsAggToList(listModel, col, tab) ;
                 }
                 else if (list.equals(measuresList)){

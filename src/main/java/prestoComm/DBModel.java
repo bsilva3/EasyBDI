@@ -15,6 +15,10 @@ public enum DBModel {
             return "postgresql";
         }
         @Override
+        public int getDefaultPort() {
+            return 5432;
+        }
+        @Override
         public String getMetaDataQuery() {
             return "show columns in ";
         }
@@ -35,6 +39,10 @@ public enum DBModel {
         @Override
         public String getConnectorName() {
             return "sqlserver";
+        }
+        @Override
+        public int getDefaultPort() {
+            return 1433;
         }
         @Override
         public String getMetaDataQuery() {
@@ -58,6 +66,11 @@ public enum DBModel {
         @Override
         public String getConnectorName() {
             return "mysql";
+        }
+
+        @Override
+        public int getDefaultPort() {
+            return 3306;
         }
 
         @Override
@@ -86,6 +99,11 @@ public enum DBModel {
         }
 
         @Override
+        public int getDefaultPort() {
+            return 6379;
+        }
+
+        @Override
         public String getMetaDataQuery() {
             return "show columns in ";
         }
@@ -110,13 +128,17 @@ public enum DBModel {
             return "cassandra";
         }
         @Override
+        public int getDefaultPort() {
+            return 9042;
+        }
+        @Override
         public String getMetaDataQuery() {
             return "show columns in ";
         }
         @Override
         public String[] getSchemaExclusions() {
-            return new String[] {};
-        }//TODO: fill
+            return new String[] {"information_schema","system","system_auth","system_distributed","system_schema","system_traces"};
+        }
         @Override
         public String[] getTableExclusions() {
             return new String[] {};
@@ -131,6 +153,11 @@ public enum DBModel {
         @Override
         public String getConnectorName() {
             return "mongodb";
+        }
+
+        @Override
+        public int getDefaultPort() {
+            return 27017;
         }
 
         @Override
@@ -157,6 +184,11 @@ public enum DBModel {
         @Override
         public String getConnectorName() {
             return "hive-hadoop2";
+        }
+
+        @Override
+        public int getDefaultPort() {
+            return 9083;
         }
 
         @Override
@@ -200,6 +232,8 @@ public enum DBModel {
     public abstract String getMetaDataQuery();
 
     public abstract String getConnectorName();
+
+    public abstract int getDefaultPort();
 
     public abstract String[] getSchemaExclusions();
 
