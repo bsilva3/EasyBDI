@@ -738,8 +738,8 @@ public class QueryUI extends JPanel{
             if (elem.getType() != ListElementType.GLOBAL_COLUMN) {
                 return;
             }
-            String colName = "";
             String tableName = "";
+            GlobalColumnData c = (GlobalColumnData) elem.getObj();
             if (isAggrRow) {
                 rowsAggListModel.getElementAt(index).toString();
                 tableName = getTableNameOfColumnInList(rowsAggListModel, index);
@@ -748,7 +748,6 @@ public class QueryUI extends JPanel{
                 rowsListModel.getElementAt(index).toString();
                 tableName = getTableNameOfColumnInList(rowsListModel, index);
             }
-            colName = colName.replaceAll("\\s+", "");
             if (tableName == null)
                 return;
             //add to the list (ASC or DESC)
@@ -758,16 +757,18 @@ public class QueryUI extends JPanel{
             else
                 order = "DESC";
             if (isAggrRow) {
-                globalTableQueries.addOrderByRow(rowsAggListModel.getElementAt(index).toString()+" "+order);
-                rowsAggListModel.setElementAt(rowsAggListModel.getElementAt(index).toString()+ " ("+order+")", index);//update element with ASC or DESC to signal it will be ordered
+                elem.setName(c.getAggrOpName() +" ("+order+")");
+                globalTableQueries.addOrderByRow(c.getAggrOpFullName()+" "+order);//add Aggr(table.col) sortOrder to queries
+                rowsAggListModel.setElementAt(elem, index);//update element with ASC or DESC to signal it will be ordered
                 rowsAggregationsList.revalidate();
                 rowsAggregationsList.updateUI();
             }
             else {
-                rowsListModel.setElementAt(rowsListModel.getElementAt(index).toString()+ " ("+order+")", index);//update element with ASC or DESC to signal it will be ordered
+                elem.setName(c.getName()+ " ("+order+")");
+                rowsListModel.setElementAt(elem, index);//update element with ASC or DESC to signal it will be ordered
                 rowsList.revalidate();
                 rowsList.updateUI();
-                globalTableQueries.addOrderByRow(tableName+"."+colName+" "+order);
+                globalTableQueries.addOrderByRow(tableName+"."+c.getName()+" "+order);
             }
     }
 
@@ -1884,8 +1885,12 @@ public class QueryUI extends JPanel{
                     addRowsAggToList(listModel, col, tab) ;
                 }
                 else if (list.equals(measuresList)){
-                    if (data.getNodeType() != NodeType.MEASURE){
+                    /*if (data.getNodeType() != NodeType.MEASURE){
                         JOptionPane.showMessageDialog(mainMenu, "You can only drag measures to this area.", "Measures only", JOptionPane.WARNING_MESSAGE);
+                        return false;
+                    }*/
+                    if (data.getNodeType() != NodeType.MEASURE && (globalTableQueries.getMeasures().size() > 1 && globalTableQueries.getSelectColumns().size() > 0)){
+                        JOptionPane.showMessageDialog(mainMenu, "You can only use 1 measure when creating a query with pivot attributes.", "1 measure max", JOptionPane.WARNING_MESSAGE);
                         return false;
                     }
                     String measureStr = "";

@@ -299,6 +299,8 @@ public class GlobalTableQuery {
     public String buildQuerySelectRowsAndMeasures(String queryBegin, boolean selectMeasure) {
         String query = queryBegin;
         Map<GlobalTableData, List<GlobalColumnData>> tableSelectRowsWithPrimKeys = new HashMap<>();
+        boolean hasAggregations = false;
+        String selectColsNoAggr = "";
         //first add to the select the dimensions columns
         for (Map.Entry<GlobalTableData, List<GlobalColumnData>> dimTable : selectRows.entrySet()){
             List<GlobalColumnData> cols = dimTable.getValue();
@@ -309,11 +311,14 @@ public class GlobalTableQuery {
             boolean primKeyIsSelected = false;
             for (GlobalColumnData c : cols){
                 if (c.getAggrOp()!=null && !c.getAggrOp().isEmpty()){
+                    hasAggregations = true;
                     query += c.getAggrOpFullName()+" AS \""+c.getAggrOp().toLowerCase() +" of "+c.getFullName()+"\",";// aggregationOP (table.column) as "aggrOP of table.column"
                 }
                 else {
-                    query += t.getTableName() + "." + c.getName() + ",";// noo aggregation
+                    query += t.getTableName() + "." + c.getName() + ",";// no aggregation
+                    selectColsNoAggr += c.getFullName() +",";
                 }
+                //get primary keys of dimensions
                 GlobalColumnData newC = new GlobalColumnData(c.getName(), c.getDataType(), c.isPrimaryKey(), c.getLocalColumns());
                 newCols.add(newC);
                 if (c.isPrimaryKey()) {
@@ -329,8 +334,10 @@ public class GlobalTableQuery {
             tableSelectRowsWithPrimKeys.put(newt, newCols);
         }
 
+
+
         List<String> groupByMeasure = new ArrayList<>();
-        //list of measures that are not aggregated, and therefore must appear on the group bu clause
+        //list of measures that are not aggregated, and therefore must appear on the group by clause
         if (selectMeasure) {
             boolean repeatedMeasures = false;
             List<String> measureNames = new ArrayList<>();
@@ -347,10 +354,11 @@ public class GlobalTableQuery {
                 String measureOP = measureCol.split("[()]")[0]; //split on parenthesis to get the measure op (its in the form "aggr(measureName)" )
                 String measureName = measureCol.split("[()]")[1]; //split on parenthesis to get the measure name (its in the form "aggr(measureName)" )
                 String measureAlias = measureName; //alias for the measure (same name if no repeated measures)
-                if (measureOP.trim().equalsIgnoreCase("SIMPLE")){//only add measure name
+                if (measureOP.trim().equalsIgnoreCase("SIMPLE")){//no  aggregation, only add measure name
                     //query += measureName + " AS " + measureAlias + ",";
                     query += measureName + ",";
-                    groupByMeasure.add(measureName);
+                    selectColsNoAggr += factsTable.getGlobalTable().getTableName() + "." + measureName +",";
+                    //groupByMeasure.add(measureName);
                 }
                 else{
                     measureAlias = "\""+measureOP+" of "+measureName+"\"";
@@ -360,6 +368,10 @@ public class GlobalTableQuery {
         }
 
         query = query.substring(0, query.length() - 1);//last elemment without comma
+        if (selectColsNoAggr.length()> 0)
+        selectColsNoAggr = selectColsNoAggr.substring(0, selectColsNoAggr.length() - 1);//last elemment without comma
+
+
         query+= " FROM ";
 
         //check if all tables and columns of filters are selected
@@ -445,22 +457,23 @@ public class GlobalTableQuery {
         }
 
         //groupby for each dimension column (only if aggregation operation is made)
-        query += " GROUP BY ( ";
-        for (Map.Entry<GlobalTableData, List<GlobalColumnData>> tableSelectRows : selectRows.entrySet()) {
-            //for each global column create inner queries in the 'From' clause
-            GlobalTableData table = tableSelectRows.getKey();
-            List<GlobalColumnData> columns = tableSelectRows.getValue();
-            for (GlobalColumnData col : columns) {
-                if (col.getAggrOp() == null || col.getAggrOp().isEmpty())
-                    query +=table.getTableName()+"."+col.getName()+",";//no aggregation dim column, add to group by
+        if (hasAggregations && selectColsNoAggr.length() > 0) {
+            query += " GROUP BY ( ";
+            for (Map.Entry<GlobalTableData, List<GlobalColumnData>> tableSelectRows : selectRows.entrySet()) {
+                //for each global column create inner queries in the 'From' clause
+                GlobalTableData table = tableSelectRows.getKey();
+                List<GlobalColumnData> columns = tableSelectRows.getValue();
+                for (GlobalColumnData col : columns) {
+                    if (col.getAggrOp() == null || col.getAggrOp().isEmpty())
+                        query += table.getTableName() + "." + col.getName() + ",";//no aggregation dim column, add to group by
+                }
             }
+            for (String measure : groupByMeasure) {
+                query += measure + ",";
+            }
+            query = query.substring(0, query.length() - 1);//last elemment without comma
+            query += ")"; //close group by
         }
-        for (String measure : groupByMeasure){
-            query+= measure+",";
-        }
-        query = query.substring(0, query.length() - 1);//last elemment without comma
-        query += ")"; //close group by
-
         return query;
     }
 
@@ -470,6 +483,9 @@ public class GlobalTableQuery {
         int nSelectCols = 0;
         //get distinct values of columns. If multiple columns, get all distinct combinations
         List<List<String>> valuesByGlobalCol = getAllDifferentValuesOfColumn();
+
+        boolean hasAggregations = false;
+        String selectColsNoAggr = "";
 
         //add to select atributes in the 'rows' area
         Map<GlobalTableData, List<GlobalColumnData>> tableSelectRowsWithPrimKeys = new HashMap<>();
@@ -484,9 +500,11 @@ public class GlobalTableQuery {
             for (GlobalColumnData c : cols){
                 if (c.getAggrOp()!=null && !c.getAggrOp().isEmpty()){
                     query += c.getAggrOpFullName()+" AS \""+c.getAggrOp().toLowerCase() +" of "+c.getFullName()+"\",";// aggregationOP (table.column) as "aggrOP of table.column"
+                    hasAggregations = true;
                 }
                 else {
-                    query += t.getTableName() + "." + c.getName() + ",";// noo aggregation
+                    query += t.getTableName() + "." + c.getName() + ",";// no aggregation
+                    selectColsNoAggr += t.getTableName() + "." + c.getName()+",";
                 }
                 nSelectCols++;
                 GlobalColumnData newC = new GlobalColumnData(c.getName(), c.getDataType(), c.isPrimaryKey(), c.getLocalColumns());//new references so that the originals are unnaltered
@@ -504,6 +522,9 @@ public class GlobalTableQuery {
             newt.setGlobalColumnData(newCols);
             tableSelectRowsWithPrimKeys.put(newt, newCols);
         }
+
+        if (selectColsNoAggr.length()> 0)
+            selectColsNoAggr = selectColsNoAggr.substring(0, selectColsNoAggr.length() - 1);//last elemment without comma
         query+=" ";
         //get ordered list of columns's fullnames:
 
@@ -522,50 +543,58 @@ public class GlobalTableQuery {
         //clauses to create columns
         //for each measure, iterate
         List<Integer> groupByPivotCols = new ArrayList<>();
-        for (String measure : measures){
-            String measureName = getMeasureName(measure);
-            String measureOP = getMeasureOP(measure);
-            for (List<String> pairs : valuesByGlobalCol){//for each list of value of each column
-                String valueColEnumeration = ""; //colName = value AND ColName = value etc...
-                String valueAlias = ""; //as aliasName
-                List<String> valuesRaw = new ArrayList<>();
-                for (int i = 0; i < pairs.size(); i++) {//v is already escaped with ''
-                    String v = pairs.get(i);
-                    String valueRaw = ""; //value with no singe quote
-                    if (v.charAt(0)=='\'' && v.charAt(v.length()-1) == '\''){
-                        valueRaw = v.substring(1, v.length()-1);//remove the ' at the beginning and end of string
-                    }
-                    else
-                        valueRaw = v;
-                    valueRaw = valueRaw.replaceAll("''", "'");//all ' were replaced by '' to be escaped when used as column anmes for presto. Convert back to single '
-                    //valueRaw = v.replaceAll("'", "");
-                    valuesRaw.add(valueRaw);
-                    //if (valueRaw.isEmpty())
-                        //valueRaw ="''";
-                    valueColEnumeration += colNames.get(i) + " = "+v+" AND ";//building a colName = value AND ColName = value etc...
-                    valueAlias += valueRaw + MULTI_HEADER_SEPARATOR;
-                }
-                pivotValues.add(valuesRaw);
-                //remove last AND from enumerations and last _ from alias
-                valueColEnumeration = valueColEnumeration.substring(0, valueColEnumeration.length() - " AND ".length());//remove last AND from enumeration
-                valueAlias = valueAlias.substring(0, valueAlias.length() - MULTI_HEADER_SEPARATOR.length());//remove last - from alias
-                if (valueAlias.trim().isEmpty()){//empty alias name, add a new name
-                    valueAlias="empty";
-                }
-                valueAlias = "\""+valueAlias+"\"";//space between chars in alias is not allowed, add double quotes
-                nSelectCols++;
-                if (measureOP.equalsIgnoreCase("COUNT")) //inneficient, if running for every row...
-                    query+= " SUM(CASE WHEN "+ valueColEnumeration + " AND "+measureName+" IS NOT NULL THEN 1 ELSE 0 END) AS "+valueAlias+", ";
-                else if (measureOP.equalsIgnoreCase("SUM")) //inneficient, if running for every row...
-                    query+= " SUM(CASE WHEN "+ valueColEnumeration + " THEN "+measureName +" ELSE 0 END) AS "+valueAlias+", ";
-                else if (measureOP.equalsIgnoreCase("AVG")) //inneficient, if running for every row...
-                    query+= " AVG(CASE WHEN "+ valueColEnumeration + " THEN "+measureName +" ELSE NULL END) AS "+valueAlias+", ";
-                else if (measureOP.equalsIgnoreCase("SIMPLE")) {
-                    query += " (CASE WHEN " + valueColEnumeration + " THEN " + measureName + " ELSE 0 END) AS " + valueAlias + ", ";
-                    groupByPivotCols.add(nSelectCols);
-                }
-            }
+        String measure = measures.get(0); //only one measure is used here.
+        String measureName = getMeasureName(measure);
+        String measureOP = getMeasureOP(measure);
+        String pivotStatement = "";
+        if (measureOP.equalsIgnoreCase("COUNT")) {
+            pivotStatement= " SUM(CASE WHEN %s AND "+measureName+" IS NOT NULL THEN 1 ELSE 0 END) AS %s, ";
+            hasAggregations = true;
         }
+        else if (measureOP.equalsIgnoreCase("SUM")) {
+            pivotStatement = " SUM(CASE WHEN %s THEN " + measureName + " ELSE 0 END) AS %s, ";
+            hasAggregations = true;
+        }
+        else if (measureOP.equalsIgnoreCase("AVG")) {
+            pivotStatement = " AVG(CASE WHEN %s THEN " + measureName + " ELSE NULL END) AS %s, ";
+            hasAggregations = true;
+        }
+        else if (measureOP.equalsIgnoreCase("SIMPLE")) {
+            pivotStatement= " (CASE WHEN %s THEN " + measureName + " ELSE 0 END) AS %s, ";
+            groupByPivotCols.add(nSelectCols);
+        }
+        for (List<String> pairs : valuesByGlobalCol){//for each list of value of each column
+            String valueColEnumeration = ""; //colName = value AND ColName = value etc...
+            String valueAlias = ""; //as aliasName
+            List<String> valuesRaw = new ArrayList<>();
+            for (int i = 0; i < pairs.size(); i++) {//v is already escaped with ''
+                String v = pairs.get(i);
+                String valueRaw = ""; //value with no singe quote
+                if (v.charAt(0)=='\'' && v.charAt(v.length()-1) == '\''){
+                    valueRaw = v.substring(1, v.length()-1);//remove the ' at the beginning and end of string
+                }
+                else
+                    valueRaw = v;
+                valueRaw = valueRaw.replaceAll("''", "'");//all ' were replaced by '' to be escaped when used as column anmes for presto. Convert back to single '
+                //valueRaw = v.replaceAll("'", "");
+                valuesRaw.add(valueRaw);
+                //if (valueRaw.isEmpty())
+                    //valueRaw ="''";
+                valueColEnumeration += colNames.get(i) + " = "+v+" AND ";//building a colName = value AND ColName = value etc...
+                valueAlias += valueRaw + MULTI_HEADER_SEPARATOR;
+            }
+            pivotValues.add(valuesRaw);
+            //remove last AND from enumerations and last _ from alias
+            valueColEnumeration = valueColEnumeration.substring(0, valueColEnumeration.length() - " AND ".length());//remove last AND from enumeration
+            valueAlias = valueAlias.substring(0, valueAlias.length() - MULTI_HEADER_SEPARATOR.length());//remove last - from alias
+            if (valueAlias.trim().isEmpty()){//empty alias name, add a new name
+                valueAlias="empty";
+            }
+            valueAlias = "\""+valueAlias+"\"";//space between chars in alias is not allowed, add double quotes
+            nSelectCols++;
+            query+=String.format(pivotStatement, valueColEnumeration, valueAlias);
+        }
+
 
         query = query.substring(0, query.length() - ", ".length());//last elemment without comma
         query+= " FROM ";
@@ -637,8 +666,8 @@ public class GlobalTableQuery {
             GlobalColumnData col = factsCol.getKey();
             if (isMeasure){
                 for (String s : measures) {
-                    String measureName = s.split("[()]")[1];
-                    if (col.getName().equals(measureName)) {
+                    String measureN = s.split("[()]")[1];
+                    if (col.getName().equals(measureN)) {
                         factsCols.add(col);
                         break;
                     }
@@ -694,23 +723,23 @@ public class GlobalTableQuery {
         }
 
         //groupby for each dimension column (only if aggregation operation is made)
-        query += " GROUP BY ( ";
-        for (Map.Entry<GlobalTableData, List<GlobalColumnData>> tableSelectRows : selectRows.entrySet()) {
-            //for each global column create inner queries in the 'From' clause
-            GlobalTableData table = tableSelectRows.getKey();
-            List<GlobalColumnData> columns = tableSelectRows.getValue();
-            for (GlobalColumnData col : columns) {
-                if (col.getAggrOp() == null || col.getAggrOp().isEmpty())
-                    query +=table.getTableName()+"."+col.getName()+",";
+        if (hasAggregations && selectColsNoAggr.length() > 0) {
+            query += " GROUP BY ( ";
+            for (Map.Entry<GlobalTableData, List<GlobalColumnData>> tableSelectRows : selectRows.entrySet()) {
+                GlobalTableData table = tableSelectRows.getKey();
+                List<GlobalColumnData> columns = tableSelectRows.getValue();
+                for (GlobalColumnData col : columns) {
+                    if (col.getAggrOp() == null || col.getAggrOp().isEmpty())
+                        query += table.getTableName() + "." + col.getName() + ",";
+                }
             }
+            //add any pivoted columns without the aggregation
+            for (Integer pivotColNumber : groupByPivotCols) {
+                query += pivotColNumber + ",";
+            }
+            query = query.substring(0, query.length() - 1);//last elemment without comma
+            query += ")"; //close group by
         }
-        //add any pivoted columns without the aggregation
-        for (Integer pivotColNumber : groupByPivotCols){
-            query +=pivotColNumber+",";
-        }
-        query = query.substring(0, query.length() - 1);//last elemment without comma
-        query += ")"; //close group by
-
         return query;
     }
 
