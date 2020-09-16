@@ -89,6 +89,20 @@ public class GlobalTableQuery {
         }
     }
 
+    public boolean updateSelectRowFromTable(GlobalTableData table, GlobalColumnData columnName, String oldAggr, String newAggr){
+        List<GlobalColumnData> cols = selectRows.get(table);
+        for (GlobalColumnData c : cols){
+            if (c.equals(columnName)){
+                if ( (c.getAggrOpFullName() == null && oldAggr.isEmpty())
+                        || c.getAggrOpFullName().equals(oldAggr)){//check column with same aggregation and update it
+                    c.setAggrOp(newAggr);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     public void addMeasure(String measure){
         this.measures.add(measure);
     }
@@ -103,6 +117,16 @@ public class GlobalTableQuery {
 
     public boolean deleteSelectRowFromTable(GlobalTableData table, GlobalColumnData columnName){
         boolean success = selectRows.get(table).remove(columnName);
+        List<GlobalColumnData> cols = selectRows.get(table);
+        for (GlobalColumnData c : cols){
+            if (c.equals(columnName)){
+                if ( (c.getAggrOpFullName() == null && columnName.getAggrOpFullName() == null)
+                        || c.getAggrOpFullName().equals(columnName.getAggrOpFullName())){//2 columns can exist, one with aggregation and other without
+                    success = selectRows.get(table).remove(c);
+                    break;
+                }
+            }
+        }
         if (success && selectRows.get(table).size()==0){
             selectRows.remove(table);
         }
@@ -342,7 +366,7 @@ public class GlobalTableQuery {
             boolean repeatedMeasures = false;
             List<String> measureNames = new ArrayList<>();
             for (String measureCol : measures) {
-                String measureName = measureCol.split("[()]")[1];
+                String measureName = getMeasureName(measureCol);
                 if (measureNames.contains(measureName)){
                     repeatedMeasures = true;
                     break;
@@ -351,10 +375,10 @@ public class GlobalTableQuery {
             }
             //add to the select the measures with the aggregation operation (in the form 'aggr(measureName)'). This a string taken from the drop area in the interface.
             for (String measureCol : measures) {
-                String measureOP = measureCol.split("[()]")[0]; //split on parenthesis to get the measure op (its in the form "aggr(measureName)" )
-                String measureName = measureCol.split("[()]")[1]; //split on parenthesis to get the measure name (its in the form "aggr(measureName)" )
+                String measureOP = getMeasureOP(measureCol); //split on parenthesis to get the measure op (its in the form "aggr(measureName)" )
+                String measureName = getMeasureName(measureCol); //split on parenthesis to get the measure name (its in the form "aggr(measureName)" )
                 String measureAlias = measureName; //alias for the measure (same name if no repeated measures)
-                if (measureOP.trim().equalsIgnoreCase("SIMPLE")){//no  aggregation, only add measure name
+                if (measureOP.trim().equalsIgnoreCase("SIMPLE") || measureOP.isEmpty()){//no  aggregation, only add measure name
                     //query += measureName + " AS " + measureAlias + ",";
                     query += measureName + ",";
                     selectColsNoAggr += factsTable.getGlobalTable().getTableName() + "." + measureName +",";
@@ -400,7 +424,7 @@ public class GlobalTableQuery {
             GlobalColumnData col = factsCol.getKey();
             if (isMeasure){
                 for (String s : measures) {
-                    String measureName = s.split("[()]")[1];
+                    String measureName = getMeasureName(s);
                     if (col.getName().equals(measureName)) {
                         factsCols.add(col);
                         break;
@@ -474,6 +498,12 @@ public class GlobalTableQuery {
             query = query.substring(0, query.length() - 1);//last elemment without comma
             query += ")"; //close group by
         }
+
+        //add having clause if exist
+        if (filterAggrQuery.length() > 0){
+            query += " HAVING " + filterAggrQuery;//add filters to the query (if there are filters). Filters will be applied to the outer query
+        }
+
         return query;
     }
 
@@ -559,7 +589,7 @@ public class GlobalTableQuery {
             pivotStatement = " AVG(CASE WHEN %s THEN " + measureName + " ELSE NULL END) AS %s, ";
             hasAggregations = true;
         }
-        else if (measureOP.equalsIgnoreCase("SIMPLE")) {
+        else if (measureOP.equalsIgnoreCase("SIMPLE") || measureOP.isEmpty()) {
             pivotStatement= " (CASE WHEN %s THEN " + measureName + " ELSE 0 END) AS %s, ";
             groupByPivotCols.add(nSelectCols);
         }
@@ -740,6 +770,12 @@ public class GlobalTableQuery {
             query = query.substring(0, query.length() - 1);//last elemment without comma
             query += ")"; //close group by
         }
+
+        //add having clause if exist
+        if (filterAggrQuery.length() > 0){
+            query += " HAVING " + filterAggrQuery;//add filters to the query (if there are filters). Filters will be applied to the outer query
+        }
+
         return query;
     }
 
@@ -814,11 +850,17 @@ public class GlobalTableQuery {
         return values;
     }
 
-    private String getMeasureName(String measureAndOP){
-        return measureAndOP.split("[()]")[1]; //split on first space to the measure name (its in the form "aggr(measureName)" )
+    private String getMeasureName(String measureAndOP){//no aggregation
+        if (measureAndOP.contains("("))
+            return measureAndOP.split("[()]")[1]; //split on first space to the measure name (its in the form "aggr(measureName)" )
+        else
+            return measureAndOP;
     }
     private String getMeasureOP(String measureAndOP){
-        return measureAndOP.split("[\\(]")[0].trim(); //split on first space to the measure name (its in the form "aggr(measureName)" )
+        if (measureAndOP.contains("("))
+            return measureAndOP.split("[\\(]")[0].trim(); //split on first space to the measure name (its in the form "aggr(measureName)" )
+        else
+            return "";//no aggregation
     }
 
     public String buildQuery(){
@@ -830,7 +872,7 @@ public class GlobalTableQuery {
         else if (selectColumns.size() == 0 && measures.size() > 0 && selectRows.size() > 0){
             query = buildQuerySelectRowsAndMeasures(true);
         }
-        else if (selectColumns.size() > 0 && measures.size() > 0 && selectRows.size() > 0){
+        else if (selectColumns.size() > 0 && measures.size() == 1 && selectRows.size() > 0){
             query = buildQuerySelectRowsColsAndMeasures();
         }
         else

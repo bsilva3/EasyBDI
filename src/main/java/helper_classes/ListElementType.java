@@ -1,5 +1,5 @@
 package helper_classes;
 
 public enum ListElementType {
-    GLOBAL_TABLE, GLOBAL_COLUMN
+    GLOBAL_TABLE, GLOBAL_COLUMN, MEASURE
 }
