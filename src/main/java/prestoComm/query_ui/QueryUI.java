@@ -69,6 +69,7 @@ public class QueryUI extends JPanel{
     private JLabel aggrFiltersLabel;
     private JCheckBox countCheckBox;
     private JCheckBox distinctCheckBox;
+    private JLabel arrowLabel;
 
     private StarSchema starSchema;
     private GlobalTableQuery globalTableQueries;//used to store all queries for each global table, and their columns
@@ -84,7 +85,8 @@ public class QueryUI extends JPanel{
 
     private MetaDataManager metaDataManager;
     private PrestoMediator prestoMediator;
-    private final String[] aggregationsMeasures = { "no aggregation", "COUNT", "SUM", "AVG"};
+    private static final String GROUP_BY_OP = "Group By";
+    private final String[] aggregationsMeasures = { GROUP_BY_OP, "COUNT", "SUM", "AVG"};
     private final String[] aggregationsRows = {"COUNT", "SUM", "AVERAGE", "MAX", "MIN"};
     private final String[] numberOperations = { "=", "!=", ">", "=>", "<", "<="};
     private final String[] stringOperations = { "=", "!=", "like"};
@@ -138,6 +140,9 @@ public class QueryUI extends JPanel{
                     "<p>An attribute cannot be in 'aggregations' and in 'rows' at the same time.</p>" +
                     "<p>This is the equivalent as adding attributes with aggregate functions in a SQL Select statement.</p>" +
                     " <p>Order by is available by right clicking a value.</p></html>");*/
+
+            img = ImageIO.read(new File(Constants.IMAGES_DIR+"arrow_right.png"));
+            arrowLabel.setIcon(new ImageIcon(img.getScaledInstance(20, 20, 0)));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -345,7 +350,7 @@ public class QueryUI extends JPanel{
                 int index = 0;
                 boolean isAggrRow = false;
                 if (c.getAggrOp()!= null && !c.getAggrOp().isEmpty()) {
-                    addMeasure(measuresListModel, rowSelect.getKey(), c, false);
+                    addAggrRow(measuresListModel, rowSelect.getKey(), c, false);
                     index = measuresListModel.getSize()-1;
                     isAggrRow = true;
                 }
@@ -371,7 +376,7 @@ public class QueryUI extends JPanel{
 
         //place measures in UI (if any) and in data structures
         for (GlobalColumnData measure : measures) {
-            addMeasure(measuresListModel, starSchema.getFactsTable().getGlobalTable(), measure, true);
+            addAggrRow(measuresListModel, starSchema.getFactsTable().getGlobalTable(), measure, true);
         }
 
         //get regular filters
@@ -1841,45 +1846,13 @@ public class QueryUI extends JPanel{
         }
     }
 
-    private void addRowsAggToList(DefaultListModel listModel, GlobalColumnData globalCol, GlobalTableData globalTable){
-        //check if column is present in rows list
-        /*if (globalTableQueries.getSelectRows().containsKey(globalTable) && globalTableQueries.getSelectRows().get(globalTable).contains(globalCol)){//if present here, already added to rows list
-            JOptionPane.showMessageDialog(mainMenu, "This column is already present on the rows list.\nYou must first remove from there before adding it here.", "Cannot add repeated column", JOptionPane.WARNING_MESSAGE);
-            return;
-        }*/
-        //check if table name of this column exists. If true then inserted here
-        ListElementWrapper elemtTosearch = new ListElementWrapper(globalTable.getTableName(), globalTable, ListElementType.GLOBAL_TABLE);
-
-        if (listModel.contains(elemtTosearch)){
-            int index = listModel.indexOf(elemtTosearch);
-            index++;
-            //iterate the columns of this tables. insert a new one
-            for (int i = index; i < listModel.getSize(); i++) {
-                if (!String.valueOf(listModel.getElementAt(i)).contains("    ")){
-                    listModel.add(i, new ListElementWrapper("    "+globalCol.getAggrOpName(), globalCol, ListElementType.GLOBAL_COLUMN));//add row
-                    globalTableQueries.addSelectRow(globalTable, globalCol);
-                    return;
-                }
-            }
-            //maybe this table is the last one, insert at last position
-            listModel.addElement(new ListElementWrapper("    "+globalCol.getAggrOpName(), globalCol, ListElementType.GLOBAL_COLUMN));//add row
-            globalTableQueries.addSelectRow(globalTable, globalCol);
-            return;
-        }
-        else{
-            listModel.addElement(new ListElementWrapper(globalTable.getTableName(), globalTable, ListElementType.GLOBAL_TABLE)); //add table name
-            listModel.addElement(new ListElementWrapper("    "+globalCol.getAggrOpName(), globalCol, ListElementType.GLOBAL_COLUMN));//add row
-            globalTableQueries.addSelectRow(globalTable, globalCol);
-        }
-    }
-
     private void addCountAllToRowsAggr(){
 
     }
 
-    private void addMeasure(DefaultListModel listModel, GlobalTableData globalTable, GlobalColumnData attribute, boolean isMeasure){
+    private void addAggrRow(DefaultListModel listModel, GlobalTableData globalTable, GlobalColumnData attribute, boolean isMeasure){
 
-        if ((attribute.getAggrOp() == null || attribute.getAggrOp().isEmpty()) && !aggregationOpComboBox.getSelectedItem().toString().equalsIgnoreCase("no aggregation"))//if attribute
+        if ((attribute.getAggrOp() == null || attribute.getAggrOp().isEmpty()) )//if attribute
             attribute.setAggrOp(aggregationOpComboBox.getSelectedItem().toString(), distinctCheckBox.isSelected());
 
         if (isMeasure) {
@@ -2097,7 +2070,7 @@ public class QueryUI extends JPanel{
                         JOptionPane.showMessageDialog(mainMenu, "You can only use 1 measure when creating a query with pivot attributes.", "1 measure max", JOptionPane.WARNING_MESSAGE);
                         return false;
                     }
-                    addMeasure(listModel, tab, col, data.getNodeType() == NodeType.MEASURE);
+                    addAggrRow(listModel, tab, col, data.getNodeType() == NodeType.MEASURE);
                 }
                 return true;
             }

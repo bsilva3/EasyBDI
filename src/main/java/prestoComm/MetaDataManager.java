@@ -235,36 +235,40 @@ public class MetaDataManager {
                 + "    FOREIGN KEY ("+ QUERY_CUBE_ID +") REFERENCES "+CUBE_TABLE+"("+CUBE_ID_FIELD+")); ";
 
         String sql12 = "CREATE TABLE IF NOT EXISTS "+ QUERY_ROW +" (\n"
+                + "    "+ QUERY_ROW_ID +" integer,\n"
                 + "    "+ QUERY_ID +" integer,\n"
                 + "    "+ QUERY_GLOBAL_TABLE_ID +" integer ,\n"
                 + "    "+ QUERY_GLOBAL_ROW_OBJ +" blob ,\n"
-                + "    "+ "PRIMARY KEY("+ QUERY_ID+", "+QUERY_GLOBAL_TABLE_ID+", "+ QUERY_GLOBAL_ROW_OBJ+") ON CONFLICT IGNORE, \n"
+                + "    "+ "PRIMARY KEY("+ QUERY_ID+", "+QUERY_ROW_ID+") ON CONFLICT IGNORE, \n"
                 + "    FOREIGN KEY ("+ QUERY_GLOBAL_TABLE_ID +") REFERENCES "+GLOBAL_TABLE_DATA+"("+GLOBAL_TABLE_DATA_ID_FIELD+"), "
                 //+ "    FOREIGN KEY ("+ QUERY_GLOBAL_COLUMN_ID +") REFERENCES "+GLOBAL_COLUMN_DATA+"("+GLOBAL_COLUMN_DATA_TABLE_FIELD+"), "
                 + "    FOREIGN KEY ("+ QUERY_ID +") REFERENCES "+QUERY_SAVE+"("+QUERY_ID+")); ";
 
         String sql13 = "CREATE TABLE IF NOT EXISTS "+ QUERY_COLS +" (\n"
+                + "    "+ QUERY_COLS_ID +" integer,\n"
                 + "    "+ QUERY_ID +" integer,\n"
                 + "    "+ QUERY_GLOBAL_TABLE_ID +" integer ,\n"
                 + "    "+ QUERY_GLOBAL_COLUMN_OBJ +" blob ,\n"
-                + "    "+ "PRIMARY KEY("+ QUERY_ID+", "+QUERY_GLOBAL_TABLE_ID+", "+ QUERY_GLOBAL_COLUMN_OBJ+") ON CONFLICT IGNORE, \n"
+                + "    "+ "PRIMARY KEY("+ QUERY_ID+", "+QUERY_COLS_ID+") ON CONFLICT IGNORE, \n"
                 + "    FOREIGN KEY ("+ QUERY_GLOBAL_TABLE_ID +") REFERENCES "+GLOBAL_TABLE_DATA+"("+GLOBAL_TABLE_DATA_ID_FIELD+"), "
                 //+ "    FOREIGN KEY ("+ QUERY_GLOBAL_COLUMN_ID +") REFERENCES "+GLOBAL_COLUMN_DATA+"("+GLOBAL_COLUMN_DATA_TABLE_FIELD+"), "
                 + "    FOREIGN KEY ("+ QUERY_ID +") REFERENCES "+QUERY_SAVE+"("+QUERY_ID+")); ";
 
         String sql14 = "CREATE TABLE IF NOT EXISTS "+ QUERY_MEASURES +" (\n"
+                + "    "+ QUERY_MEASURES_ID +" integer,\n"
                 + "    "+ QUERY_ID +" integer,\n"
                 + "    "+ QUERY_MEASURE_OBJ +" blob ,\n"
-                + "    "+ "PRIMARY KEY("+ QUERY_ID+", "+ QUERY_MEASURE_OBJ+") ON CONFLICT IGNORE, \n"
+                + "    "+ "PRIMARY KEY("+ QUERY_ID+", "+ QUERY_MEASURES_ID+") ON CONFLICT IGNORE, \n"
                 //+ "    FOREIGN KEY ("+ QUERY_GLOBAL_COLUMN_ID +") REFERENCES "+GLOBAL_COLUMN_DATA+"("+GLOBAL_COLUMN_DATA_TABLE_FIELD+"), "
                 + "    FOREIGN KEY ("+ QUERY_ID +") REFERENCES "+QUERY_SAVE+"("+QUERY_ID+")); ";
 
         String sql15 = "CREATE TABLE IF NOT EXISTS "+ QUERY_FILTERS +" (\n"
-                + "    "+ QUERY_FILTER_ID +" integer PRIMARY KEY,\n"
+                + "    "+ QUERY_FILTER_ID +" integer ,\n"
                 + "    "+ QUERY_ID +" integer ,\n"
                 + "    "+ QUERY_FILTERS_OBJ +" blob ,\n"
                 + "    "+ QUERY_FILTERS_LIST +" text ,\n"
                 + "    "+ QUERY_AGGR_FILTERS_OBJ +" blob ,\n"
+                + "    "+ "PRIMARY KEY("+ QUERY_ID+", "+ QUERY_FILTER_ID+") ON CONFLICT IGNORE, \n"
                 + "    FOREIGN KEY ("+ QUERY_ID +") REFERENCES "+QUERY_SAVE+"("+QUERY_ID+")); ";
 
         executeStatements(new String[] {sql1, sql2, sql3, sql4, sql5, sql6, sql7, sql8, sql9, sql10, sql11, sql12, sql13, sql14, sql15});

@@ -107,6 +107,7 @@ public class Constants {
     public static final String QUERY_CUBE_ID = "cube_id";
     //query save: rows
     public static final String QUERY_ROW = "query_row";
+    public static final String QUERY_ROW_ID = "query_row_id";
     public static final String QUERY_GLOBAL_TABLE_ID = "global_table_id";//table the column belongs to
     public static final String QUERY_GLOBAL_ROW_OBJ = "global_column_row_object";//table the column belongs to
     public static final String QUERY_GLOBAL_COLUMN_ID = "global_column_id";
@@ -114,9 +115,11 @@ public class Constants {
 
     //query save: columns
     public static final String QUERY_COLS = "query_columns";
+    public static final String QUERY_COLS_ID = "query_columns_id";
 
     //query save: measures
     public static final String QUERY_MEASURES = "query_measures";
+    public static final String QUERY_MEASURES_ID = "query_measures_id";
     public static final String QUERY_MEASURE_OBJ = "query_measure_obj";
     public static final String QUERY_AGGR_OP = "operation";
 

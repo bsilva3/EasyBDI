@@ -261,13 +261,15 @@ public class GlobalTableQuery {
             List<GlobalColumnData> cols = dimTable.getValue();
             GlobalTableData t = dimTable.getKey();
             for (GlobalColumnData c : cols){
-                if (c.getAggrOp()!=null && !c.getAggrOp().isEmpty()){
+                if (c.getAggrOp()!=null && !c.getAggrOp().isEmpty()  &&!c.getAggrOp().equalsIgnoreCase("Group By")){
                     query += c.getAggrOpFullName()+" AS \""+c.getAggrOp().toLowerCase() +" of "+c.getFullName()+"\",";// aggregationOP (table.column) as "aggrOP of table.column"
                     hasAggregations = true;
                 }
                 else {
                     query += t.getTableName() + "." + c.getName() + ",";// or c.getFullname();
                     selectColsNoAggr += t.getTableName() + "." + c.getName() +",";
+                    if (c.getAggrOp().equalsIgnoreCase("Group By"))
+                        hasAggregations = true;
                 }
             }
         }
@@ -334,7 +336,7 @@ public class GlobalTableQuery {
             List<GlobalColumnData> newCols = new ArrayList<>();
             boolean primKeyIsSelected = false;
             for (GlobalColumnData c : cols){
-                if (c.getAggrOp()!=null && !c.getAggrOp().isEmpty()){
+                if (c.getAggrOp()!=null && !c.getAggrOp().isEmpty()  && !c.getAggrOp().equalsIgnoreCase("Group By")){
                     hasAggregations = true;
                     query += c.getAggrOpFullName()+" AS \""+c.getAggrOp().toLowerCase() +" of "+c.getFullName()+"\",";// aggregationOP (table.column) as "aggrOP of table.column"
                 }
@@ -523,7 +525,7 @@ public class GlobalTableQuery {
             List<GlobalColumnData> newCols = new ArrayList<>();
             boolean primKeyIsSelected = false;
             for (GlobalColumnData c : cols){
-                if (c.getAggrOp()!=null && !c.getAggrOp().isEmpty()){
+                if (c.getAggrOp()!=null && !c.getAggrOp().isEmpty() && !c.getAggrOp().equalsIgnoreCase("Group By")){
                     query += c.getAggrOpFullName()+" AS \""+c.getAggrOp().toLowerCase() +" of "+c.getFullName()+"\",";// aggregationOP (table.column) as "aggrOP of table.column"
                     hasAggregations = true;
                 }
@@ -840,19 +842,6 @@ public class GlobalTableQuery {
         }
 
         return values;
-    }
-
-    private String getMeasureName(String measureAndOP){//no aggregation
-        if (measureAndOP.contains("("))
-            return measureAndOP.split("[()]")[1]; //split on first space to the measure name (its in the form "aggr(measureName)" )
-        else
-            return measureAndOP;
-    }
-    private String getMeasureOP(String measureAndOP){
-        if (measureAndOP.contains("("))
-            return measureAndOP.split("[\\(]")[0].trim(); //split on first space to the measure name (its in the form "aggr(measureName)" )
-        else
-            return "";//no aggregation
     }
 
     public String buildQuery(){
