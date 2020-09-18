@@ -84,7 +84,7 @@ public class QueryUI extends JPanel{
 
     private MetaDataManager metaDataManager;
     private PrestoMediator prestoMediator;
-    private final String[] aggregationsMeasures = { "no aggregation", "count", "sum", "average"};
+    private final String[] aggregationsMeasures = { "no aggregation", "COUNT", "SUM", "AVG"};
     private final String[] aggregationsRows = {"COUNT", "SUM", "AVERAGE", "MAX", "MIN"};
     private final String[] numberOperations = { "=", "!=", ">", "=>", "<", "<="};
     private final String[] stringOperations = { "=", "!=", "like"};
@@ -335,19 +335,29 @@ public class QueryUI extends JPanel{
         }
         Map<GlobalTableData, List<GlobalColumnData>> rows = metaDataManager.getQueryRows(queryID);
         Map<GlobalTableData, List<GlobalColumnData>> cols = metaDataManager.getQueryColumns(queryID);
-        Map<GlobalColumnData, String> measures = metaDataManager.getQueryMeasures(queryID);
+        List<GlobalColumnData> measures = metaDataManager.getQueryMeasures(queryID);
         //clear all fields in ui
         clearAllFieldsAndQueryElements();
 
         //place rows in UI and in data structures and add group by's (if any)
         for (Map.Entry<GlobalTableData, List<GlobalColumnData>> rowSelect : rows.entrySet()){
             for (GlobalColumnData c : rowSelect.getValue()){
-                addRowsToList(rowsListModel, c, rowSelect.getKey());
+                int index = 0;
+                boolean isAggrRow = false;
+                if (c.getAggrOp()!= null && !c.getAggrOp().isEmpty()) {
+                    addMeasure(measuresListModel, rowSelect.getKey(), c, false);
+                    index = measuresListModel.getSize()-1;
+                    isAggrRow = true;
+                }
+                else {
+                    addRowsToList(rowsListModel, c, rowSelect.getKey());
+                    index = rowsListModel.getSize()-1;
+                }
                 if (c.getOrderBy() != null && c.getOrderBy().equalsIgnoreCase("ASC")){
-                    this.addGroupBy(rowsListModel.getSize()-1, true, false);
+                    this.addOrderBy(index, true, isAggrRow);
                 }
                 else if (c.getOrderBy() != null && c.getOrderBy().equalsIgnoreCase("DESC")){
-                    this.addGroupBy(rowsListModel.getSize()-1, false, false);
+                    this.addOrderBy(index, false, isAggrRow);
                 }
             }
         }
@@ -360,20 +370,36 @@ public class QueryUI extends JPanel{
         }
 
         //place measures in UI (if any) and in data structures
-        for (Map.Entry<GlobalColumnData, String> measure : measures.entrySet()) {
-            String measureItem = measure.getValue()+"("+measure.getKey().getName()+")";
-            addMeasure(measuresListModel, starSchema.getFactsTable().getGlobalTable(), measure.getKey(), true);
+        for (GlobalColumnData measure : measures) {
+            addMeasure(measuresListModel, starSchema.getFactsTable().getGlobalTable(), measure, true);
         }
+
+        //get regular filters
         Object[] filters = metaDataManager.getQueryFilters(queryID);
-        this.filterTreeModel = new DefaultTreeModel((FilterNode) filters[1]);
-        this.filterTree.setModel(filterTreeModel);
-        String filtersStr = (String) filters[0];
-        Set<String> filtersList = new HashSet<>();
-        String[] filtersSplit = filtersStr.split(";");
-        for (String s : filtersSplit){
-            filtersList.add(s);
+        if (filters != null && filters.length > 0 && filters[1] != null) {
+            this.filterTreeModel = new DefaultTreeModel((FilterNode) filters[1]);
+            this.filterTree.setModel(filterTreeModel);
+            filterTree.setRootVisible(false);
+            FilterNode root = (FilterNode) filterTreeModel.getRoot();
+            expandAllFilterNodes(filterTree, new TreePath(root), true);
+            String filtersStr = (String) filters[0];
+            Set<String> filtersList = new HashSet<>();
+            String[] filtersSplit = filtersStr.split(";");
+            for (String s : filtersSplit) {
+                filtersList.add(s);
+            }
+            globalTableQueries.setFilters(filtersList);
         }
-        globalTableQueries.setFilters(filtersList);
+
+        //get aggr filters
+        FilterNode filtersNodeRoot = metaDataManager.getQueryAggrFilters(queryID);
+        if (filtersNodeRoot != null) {
+            this.aggrFilterTreeModel = new DefaultTreeModel(filtersNodeRoot);
+            this.aggrFiltersTree.setModel(aggrFilterTreeModel);
+            aggrFiltersTree.setRootVisible(false);
+            FilterNode root = (FilterNode) aggrFilterTreeModel.getRoot();
+            expandAllFilterNodes(aggrFiltersTree, new TreePath(root), true);
+        }
 
     }
 
@@ -400,7 +426,7 @@ public class QueryUI extends JPanel{
         Map<GlobalTableData, List<GlobalColumnData>> rows = globalTableQueries.getSelectRows();
         //get all select cols:
         Map<GlobalTableData, List<GlobalColumnData>> columns = globalTableQueries.getSelectColumns();
-        Map<Integer, String> measures = globalTableQueries.getMeasuresWithID();
+        List<GlobalColumnData> measures = globalTableQueries.getMeasures();
         List<String> orderBy = globalTableQueries.getOrderBy(); //each order by is in the form 'tableName.column (ASC/DESC)'
         for (Map.Entry<GlobalTableData, List<GlobalColumnData>> r : rows.entrySet()){
             String tName = r.getKey().getTableName();
@@ -418,8 +444,19 @@ public class QueryUI extends JPanel{
                 }
             }
         }
+
+        FilterNode filterRoot = null;
+        if (filterTreeModel != null){
+            filterRoot = (FilterNode) filterTreeModel.getRoot();
+        }
+
+        FilterNode aggrFilterRoot = null;
+        if (aggrFilterTreeModel != null){
+            aggrFilterRoot = (FilterNode) aggrFilterTreeModel.getRoot();
+        }
+
         boolean success = metaDataManager.insertNewQuerySave(nameTxt.getText(), cubeSelectionComboBox.getSelectedItem().toString(), rows, columns,
-                measures, (FilterNode) filterTreeModel.getRoot(), globalTableQueries.getFilters() );
+                measures, filterRoot, globalTableQueries.getFilters(), aggrFilterRoot );
         if (success){
             JOptionPane.showMessageDialog(mainMenu, "Query "+nameTxt.getText()+" save successfully!", "Query saved", JOptionPane.PLAIN_MESSAGE);
         }
@@ -709,12 +746,12 @@ public class QueryUI extends JPanel{
         return new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent arg0) {
-                addGroupBy(index, isAsc, isAggrRow);
+                addOrderBy(index, isAsc, isAggrRow);
             }
         };
     }
 
-    public void addGroupBy(int index, boolean isAsc, boolean isAggrRow){
+    public void addOrderBy(int index, boolean isAsc, boolean isAggrRow){
             if (index < 0)
                 return;
             ListElementWrapper elem = null;
@@ -830,7 +867,7 @@ public class QueryUI extends JPanel{
                 }
 
                 if (elem.getType() == ListElementType.MEASURE){
-                    globalTableQueries.removeMeasure(col.getAggrOpFullName());
+                    globalTableQueries.removeMeasure(col);
                     //no more measures in facts tale group, delete it
                     /*ListElementWrapper e = (ListElementWrapper) measuresListModel.getElementAt(1);
                     if (e.getType()==ListElementType.GLOBAL_TABLE)
@@ -862,13 +899,13 @@ public class QueryUI extends JPanel{
                 //update query
                 if (element.getType() == ListElementType.GLOBAL_COLUMN){
                     globalTableQueries.updateSelectRowFromTable(t, c, oldAggr, aggregate);
+                    c.setAggrOp(aggregate);
                 }
                 else if (element.getType() == ListElementType.MEASURE){
-                    globalTableQueries.removeMeasure(c.getAggrOpName());
+                    globalTableQueries.removeMeasure(c);
                     c.setAggrOp(aggregate);
-                    globalTableQueries.addMeasure(c.getAggrOpName());
+                    globalTableQueries.addMeasure(c);
                 }
-                c.setAggrOp(aggregate);//do it again in cause it wasn't a measure
                 element.setObj(c);
                 element.setName("    " + c.getAggrOpName());
 
@@ -895,14 +932,15 @@ public class QueryUI extends JPanel{
                 GlobalColumnData c = (GlobalColumnData) element.getObj();
                 GlobalTableData t = getTableInRowIndex(measuresListModel, index);
                 String oldAggr = c.getAggrOp();
-                c.changeDistinct();
                 //update query
                 if (element.getType() == ListElementType.GLOBAL_COLUMN){
+                    c.changeDistinct();
                     globalTableQueries.updateSelectRowFromTable(t, c, oldAggr, c.getAggrOp());
                 }
                 else if (element.getType() == ListElementType.MEASURE){
-                    globalTableQueries.removeMeasure(c.getAggrOpName());
-                    globalTableQueries.addMeasure(c.getAggrOpName());
+                    globalTableQueries.removeMeasure(c);
+                    c.changeDistinct();
+                    globalTableQueries.addMeasure(c);
                 }
 
                 element.setObj(c);
@@ -987,9 +1025,7 @@ public class QueryUI extends JPanel{
                     }
                     treeModel.removeNodeFromParent(node);
                     GlobalColumnData c = (GlobalColumnData) node.getObj();
-                    if (isAggrFilter)
-                        globalTableQueries.removeAggrFilter(c.getFullName());
-                    else
+                    if (!isAggrFilter)
                         globalTableQueries.removeFilter(c.getFullName());
                     tree.repaint();
                     tree.updateUI();
@@ -1072,6 +1108,25 @@ public class QueryUI extends JPanel{
         }
     }
 
+    private void expandAllFilterNodes(JTree tree, TreePath path, boolean expand) {
+        FilterNode node = (FilterNode) path.getLastPathComponent();
+        if (node.getChildCount() >= 0) {
+            Enumeration enumeration = node.children();
+            while (enumeration.hasMoreElements()) {
+                FilterNode n = (FilterNode) enumeration.nextElement();
+                TreePath p = path.pathByAddingChild(n);
+
+                expandAllFilterNodes(tree, p, expand);
+            }
+        }
+
+        if (expand) {
+            tree.expandPath(path);
+        } else {
+            tree.collapsePath(path);
+        }
+    }
+
     public String getFilterQuery(boolean isAggrFilter){
         DefaultTreeModel treeModel = null;
         if (isAggrFilter)
@@ -1115,6 +1170,8 @@ public class QueryUI extends JPanel{
     }
 
     private boolean filterTableExistsInRows(){
+        if (globalTableQueries.getFilters().size() == 0)
+            return true;
         for (String s : globalTableQueries.getFilters()){
             String tableName = s.split("\\.")[0];
             //String columnName = s.split("\\.")[1];
@@ -1148,6 +1205,7 @@ public class QueryUI extends JPanel{
             protected Void doInBackground() throws InterruptedException {
                 DateTime beginTime = new DateTime();
                 //validate query string
+                System.out.println(filterTableExistsInRows());
                 if (!filterTableExistsInRows()){
                     LoadingScreenAnimator.closeGeneralLoadingAnimation();
                     backButton.setEnabled(true);
@@ -1634,7 +1692,8 @@ public class QueryUI extends JPanel{
                 subItem26.addActionListener(getChangeAggregateActionListener(index, "MIN", measuresListModel, measuresList));
                 //add/remove distinct
                 String menuDistinctTitle = "";
-                if (measuresListModel.getElementAt(index).toString().contains("DISTINCT")){
+                String selectedElem = measuresListModel.getElementAt(index).toString();
+                if (selectedElem.contains("DISTINCT")){
                     menuDistinctTitle = "Remove DISTINCT";
                 }
                 else
@@ -1645,7 +1704,8 @@ public class QueryUI extends JPanel{
                 menu.add(item1);
                 menu.add(subMenu);
                 menu.add(subMenu2);
-                menu.add(item3);
+                if (selectedElem.contains("SUM") ||selectedElem.contains("AVG") || selectedElem.contains("COUNT"))
+                    menu.add(item3);
                 measuresList.setComponentPopupMenu(menu);
                 //}
                 super.mousePressed(arg0);
@@ -1844,12 +1904,12 @@ public class QueryUI extends JPanel{
                 ListElementWrapper currElem = (ListElementWrapper) listModel.getElementAt(i);
                 if (currElem.getType() == ListElementType.GLOBAL_TABLE){
                     listModel.add(i, new ListElementWrapper("    "+attribute.getAggrOpName(), attribute, ListElementType.MEASURE));
-                    globalTableQueries.addMeasure(attribute.getAggrOpName());
+                    globalTableQueries.addMeasure(attribute);
                     return;
                 }
             }
             listModel.add(listModel.getSize(), new ListElementWrapper("    "+attribute.getAggrOpName(), attribute, ListElementType.MEASURE));
-            globalTableQueries.addMeasure(attribute.getAggrOpName());
+            globalTableQueries.addMeasure(attribute);
         }
         else{
             //check if table name of this column exists. If true then inserted here
@@ -2165,7 +2225,6 @@ public class QueryUI extends JPanel{
                 //no filters added yet
                 FilterNode root = new FilterNode("", null, null);
                 root.add(new FilterNode(s[1], column, FilterNodeType.CONDITION));
-                globalTableQueries.addFilter(column.getFullName());//for validation purposes
                 aggrFilterTreeModel = new DefaultTreeModel(root);
                 aggrFiltersTree.setModel(aggrFilterTreeModel);
                 aggrFiltersTree.setRootVisible(false);
@@ -2190,7 +2249,6 @@ public class QueryUI extends JPanel{
                     return false;
                 //aggrFilterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION), parent, parent.getChildCount());
                 aggrFilterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), parent, parent.getChildCount());
-                globalTableQueries.addAggrFilter(column.getFullName());//for validation purposes
                 path = new TreePath(parent.getPath());
             }
             else if (parent.getNodeType() == null && parent.getChildCount() > 0){
@@ -2201,7 +2259,6 @@ public class QueryUI extends JPanel{
                     return false;
                 aggrFilterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION), parent, parent.getChildCount());
                 aggrFilterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), parent, parent.getChildCount());
-                globalTableQueries.addAggrFilter(column.getAggrOpFullName());//for validation purposes
                 path = new TreePath(parent.getPath());
             }
             else if (parent.getNodeType() == FilterNodeType.CONDITION ){
@@ -2221,14 +2278,12 @@ public class QueryUI extends JPanel{
                     FilterNode booleanNode = new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION);
                     aggrFilterTreeModel.insertNodeInto(booleanNode, parentOfParent, indexOfParent+1);// create this condition between the condition and the inner expression
                     aggrFilterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), booleanNode, booleanNode.getChildCount());//Must be child of the bolean operator
-                    globalTableQueries.addAggrFilter(column.getAggrOpFullName());//for validation purposes
                     path = new TreePath(booleanNode.getPath());
                 }
                 else {
                     //inserting on an already existent boolean node with inner expr. IF it has an inner expr, add the operator and cond, else only the cond as childs
                     aggrFilterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION), boleanNodeParent, boleanNodeParent.getChildCount());
                     aggrFilterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), boleanNodeParent, boleanNodeParent.getChildCount());
-                    globalTableQueries.addAggrFilter(column.getAggrOpFullName());//for validation purposes
                     path = new TreePath(boleanNodeParent.getPath());
                 }
             }
@@ -2242,10 +2297,9 @@ public class QueryUI extends JPanel{
                 //get the boolean operator next to it and check if it has childs
                 aggrFilterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION), parent, parent.getChildCount());
                 aggrFilterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), parent, parent.getChildCount());
-                globalTableQueries.addAggrFilter(column.getAggrOpFullName());//for validation purposes
                 path = new TreePath(parent.getPath());
             }
-            System.out.println(globalTableQueries.getAggrFilters());
+
             aggrFiltersTree.expandPath(path);
             aggrFiltersTree.revalidate();
             aggrFiltersTree.updateUI();

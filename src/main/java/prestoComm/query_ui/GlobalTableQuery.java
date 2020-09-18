@@ -13,12 +13,11 @@ public class GlobalTableQuery {
 
     private Map<GlobalTableData, List<GlobalColumnData>> selectRows;
     private Map<GlobalTableData, List<GlobalColumnData>> selectColumns;
-    private List<String> measures;
+    private List<GlobalColumnData> measures;
     private List<String> orderBy;
     private String filterQuery;
     private String filterAggrQuery;
     private Set<String> filters;
-    private Set<String> aggrFilters;
     private FactsTable factsTable;
     private List<GlobalTableData> dimensions;
     private PrestoMediator presto;
@@ -39,7 +38,6 @@ public class GlobalTableQuery {
         orderBy = new ArrayList<>();
         pivotValues = new ArrayList<>();
         filters = new HashSet<>();
-        aggrFilters = new HashSet<>();
         filterQuery = "";
         filterAggrQuery = "";
     }
@@ -103,7 +101,7 @@ public class GlobalTableQuery {
         return false;
     }
 
-    public void addMeasure(String measure){
+    public void addMeasure(GlobalColumnData measure){
         this.measures.add(measure);
     }
 
@@ -151,20 +149,22 @@ public class GlobalTableQuery {
         filters.add(column);
     }
 
-    public void addAggrFilter(String column){
-        aggrFilters.add(column);
-    }
 
-    public void removeMeasure(String measure){
-        this.measures.remove(measure);
+    public void removeMeasure(GlobalColumnData column){
+        for (GlobalColumnData c : measures){
+            if (c.equals(column)){
+                if ( (c.getAggrOpFullName() == null && column.getAggrOpFullName() == null)
+                        || c.getAggrOpName().equals(column.getAggrOpName())){//2 columns can exist, one with aggregation and other without
+
+                    break;
+                }
+            }
+        }
+        removeOrderByIfPresent(column.getName());
     }
 
     public void removeFilter(String column){
         filters.remove(column);
-    }
-
-    public void removeAggrFilter(String column){
-        aggrFilters.remove(column);
     }
 
     public String getLocalTableQuery(GlobalTableData t, List<GlobalColumnData> selectCols){
@@ -363,29 +363,25 @@ public class GlobalTableQuery {
         List<String> groupByMeasure = new ArrayList<>();
         //list of measures that are not aggregated, and therefore must appear on the group by clause
         if (selectMeasure) {
-            boolean repeatedMeasures = false;
             List<String> measureNames = new ArrayList<>();
-            for (String measureCol : measures) {
-                String measureName = getMeasureName(measureCol);
+            for (GlobalColumnData measureCol : measures) {
+                String measureName = measureCol.getName();
                 if (measureNames.contains(measureName)){
-                    repeatedMeasures = true;
                     break;
                 }
                 measureNames.add(measureName);
             }
             //add to the select the measures with the aggregation operation (in the form 'aggr(measureName)'). This a string taken from the drop area in the interface.
-            for (String measureCol : measures) {
-                String measureOP = getMeasureOP(measureCol); //split on parenthesis to get the measure op (its in the form "aggr(measureName)" )
-                String measureName = getMeasureName(measureCol); //split on parenthesis to get the measure name (its in the form "aggr(measureName)" )
-                String measureAlias = measureName; //alias for the measure (same name if no repeated measures)
-                if (measureOP.trim().equalsIgnoreCase("SIMPLE") || measureOP.isEmpty()){//no  aggregation, only add measure name
+            for (GlobalColumnData measureCol : measures) {
+                String measureAlias = measureCol.getName(); //alias for the measure (same name if no repeated measures)
+                if (measureCol.getAggrOp().trim().equalsIgnoreCase("SIMPLE") || measureCol.getAggrOp().isEmpty()){//no  aggregation, only add measure name
                     //query += measureName + " AS " + measureAlias + ",";
-                    query += measureName + ",";
-                    selectColsNoAggr += factsTable.getGlobalTable().getTableName() + "." + measureName +",";
+                    query += measureCol.getName() + ",";
+                    selectColsNoAggr += factsTable.getGlobalTable().getTableName() + "." + measureCol.getName() +",";
                     //groupByMeasure.add(measureName);
                 }
                 else{
-                    measureAlias = "\""+measureOP+" of "+measureName+"\"";
+                    measureAlias = "\""+measureCol.getAggrOp()+" of "+measureCol.getName()+"\"";
                     query += measureCol + " AS " + measureAlias + ",";
                 }
             }
@@ -423,9 +419,8 @@ public class GlobalTableQuery {
             Boolean isMeasure = factsCol.getValue();
             GlobalColumnData col = factsCol.getKey();
             if (isMeasure){
-                for (String s : measures) {
-                    String measureName = getMeasureName(s);
-                    if (col.getName().equals(measureName)) {
+                for (GlobalColumnData m : measures) {
+                    if (col.getName().equals(m.getName())) {
                         factsCols.add(col);
                         break;
                     }
@@ -573,24 +568,22 @@ public class GlobalTableQuery {
         //clauses to create columns
         //for each measure, iterate
         List<Integer> groupByPivotCols = new ArrayList<>();
-        String measure = measures.get(0); //only one measure is used here.
-        String measureName = getMeasureName(measure);
-        String measureOP = getMeasureOP(measure);
+        GlobalColumnData measure = measures.get(0); //only one measure is used here.
         String pivotStatement = "";
-        if (measureOP.equalsIgnoreCase("COUNT")) {
-            pivotStatement= " SUM(CASE WHEN %s AND "+measureName+" IS NOT NULL THEN 1 ELSE 0 END) AS %s, ";
+        if (measure.getAggrOp().contains("COUNT")) {
+            pivotStatement= " SUM(CASE WHEN %s AND "+measure.getName()+" IS NOT NULL THEN 1 ELSE 0 END) AS %s, ";
             hasAggregations = true;
         }
-        else if (measureOP.equalsIgnoreCase("SUM")) {
-            pivotStatement = " SUM(CASE WHEN %s THEN " + measureName + " ELSE 0 END) AS %s, ";
+        else if (measure.getAggrOp().contains("SUM")) {
+            pivotStatement = " SUM(CASE WHEN %s THEN " + measure.getName() + " ELSE 0 END) AS %s, ";
             hasAggregations = true;
         }
-        else if (measureOP.equalsIgnoreCase("AVG")) {
-            pivotStatement = " AVG(CASE WHEN %s THEN " + measureName + " ELSE NULL END) AS %s, ";
+        else if (measure.getAggrOp().contains("AVG")) {
+            pivotStatement = " AVG(CASE WHEN %s THEN " + measure.getName() + " ELSE NULL END) AS %s, ";
             hasAggregations = true;
         }
-        else if (measureOP.equalsIgnoreCase("SIMPLE") || measureOP.isEmpty()) {
-            pivotStatement= " (CASE WHEN %s THEN " + measureName + " ELSE 0 END) AS %s, ";
+        else if (measure.getAggrOp().contains("SIMPLE") || measure.getAggrOp().isEmpty()) {
+            pivotStatement= " (CASE WHEN %s THEN " + measure.getName() + " ELSE 0 END) AS %s, ";
             groupByPivotCols.add(nSelectCols);
         }
         for (List<String> pairs : valuesByGlobalCol){//for each list of value of each column
@@ -695,9 +688,8 @@ public class GlobalTableQuery {
             Boolean isMeasure = factsCol.getValue();
             GlobalColumnData col = factsCol.getKey();
             if (isMeasure){
-                for (String s : measures) {
-                    String measureN = s.split("[()]")[1];
-                    if (col.getName().equals(measureN)) {
+                for (GlobalColumnData m : measures) {
+                    if (col.getName().equals(m.getName())) {
                         factsCols.add(col);
                         break;
                     }
@@ -1157,27 +1149,6 @@ public class GlobalTableQuery {
         filterAggrQuery = "";
     }
 
-    public Map<Integer, String> getMeasuresWithID() {
-        Map<Integer, String> measuresWithOP = new HashMap<>();
-        factsTable.getColumns().keySet();
-        for (String m : measures){
-            String measureName = getMeasureName(m);
-            String measureOP = getMeasureOP(m);
-            int id = getIDofMeasure(measureName);
-            measuresWithOP.put(id, measureOP);
-        }
-        return measuresWithOP;
-    }
-
-    private int getIDofMeasure(String measureName){
-        Set<GlobalColumnData> cols = factsTable.getColumns().keySet();
-        for (GlobalColumnData c : cols){
-            if (c.getName().equals(measureName))
-                return c.getColumnID();
-        }
-        return -1;
-    }
-
     public Map<GlobalTableData, List<GlobalColumnData>> getSelectRows() {
         return this.selectRows;
     }
@@ -1202,11 +1173,11 @@ public class GlobalTableQuery {
         this.selectColumns = selectColumns;
     }
 
-    public List<String> getMeasures() {
+    public List<GlobalColumnData> getMeasures() {
         return this.measures;
     }
 
-    public void setMeasures(List<String> measures) {
+    public void setMeasures(List<GlobalColumnData> measures) {
         this.measures = measures;
     }
 
@@ -1250,11 +1221,4 @@ public class GlobalTableQuery {
         this.filterAggrQuery = filterAggrQuery;
     }
 
-    public Set<String> getAggrFilters() {
-        return aggrFilters;
-    }
-
-    public void setAggrFilters(Set<String> aggrFilters) {
-        this.aggrFilters = aggrFilters;
-    }
 }

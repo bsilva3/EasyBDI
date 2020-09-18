@@ -192,7 +192,7 @@ public class GlobalColumnData implements Serializable {
     }
 
     public void setAggrOp(String aggrOp) {
-        if (aggrOp.contains("DISTINCT")|| (this.aggrOp!=null && this.aggrOp.contains("DISTINCT"))){
+        if (this.aggrOp!=null && this.aggrOp.contains("DISTINCT")){//keep distinct
             this.aggrOp = aggrOp;
             this.aggrOp+=" DISTINCT";
         }

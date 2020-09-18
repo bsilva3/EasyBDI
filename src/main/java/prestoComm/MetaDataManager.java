@@ -3,11 +3,9 @@ package prestoComm;
 import helper_classes.*;
 import prestoComm.query_ui.FilterNode;
 
-import javax.swing.tree.DefaultTreeModel;
 import java.io.*;
 import java.sql.*;
 import java.util.*;
-import java.util.logging.Filter;
 
 import static prestoComm.Constants.*;
 
@@ -238,35 +236,35 @@ public class MetaDataManager {
 
         String sql12 = "CREATE TABLE IF NOT EXISTS "+ QUERY_ROW +" (\n"
                 + "    "+ QUERY_ID +" integer,\n"
-                + "    "+ QUERY_ORDER_BY +" text ,\n"
                 + "    "+ QUERY_GLOBAL_TABLE_ID +" integer ,\n"
-                + "    "+ QUERY_GLOBAL_COLUMN_ID +" integer ,\n"
-                + "    "+ "PRIMARY KEY("+ QUERY_ID+", "+QUERY_GLOBAL_TABLE_ID+", "+ QUERY_GLOBAL_COLUMN_ID+") ON CONFLICT IGNORE, \n"
+                + "    "+ QUERY_GLOBAL_ROW_OBJ +" blob ,\n"
+                + "    "+ "PRIMARY KEY("+ QUERY_ID+", "+QUERY_GLOBAL_TABLE_ID+", "+ QUERY_GLOBAL_ROW_OBJ+") ON CONFLICT IGNORE, \n"
                 + "    FOREIGN KEY ("+ QUERY_GLOBAL_TABLE_ID +") REFERENCES "+GLOBAL_TABLE_DATA+"("+GLOBAL_TABLE_DATA_ID_FIELD+"), "
-                + "    FOREIGN KEY ("+ QUERY_GLOBAL_COLUMN_ID +") REFERENCES "+GLOBAL_COLUMN_DATA+"("+GLOBAL_COLUMN_DATA_TABLE_FIELD+"), "
+                //+ "    FOREIGN KEY ("+ QUERY_GLOBAL_COLUMN_ID +") REFERENCES "+GLOBAL_COLUMN_DATA+"("+GLOBAL_COLUMN_DATA_TABLE_FIELD+"), "
                 + "    FOREIGN KEY ("+ QUERY_ID +") REFERENCES "+QUERY_SAVE+"("+QUERY_ID+")); ";
 
         String sql13 = "CREATE TABLE IF NOT EXISTS "+ QUERY_COLS +" (\n"
                 + "    "+ QUERY_ID +" integer,\n"
                 + "    "+ QUERY_GLOBAL_TABLE_ID +" integer ,\n"
-                + "    "+ QUERY_GLOBAL_COLUMN_ID +" integer ,\n"
-                + "    "+ "PRIMARY KEY("+ QUERY_ID+", "+QUERY_GLOBAL_TABLE_ID+", "+ QUERY_GLOBAL_COLUMN_ID+") ON CONFLICT IGNORE, \n"
+                + "    "+ QUERY_GLOBAL_COLUMN_OBJ +" blob ,\n"
+                + "    "+ "PRIMARY KEY("+ QUERY_ID+", "+QUERY_GLOBAL_TABLE_ID+", "+ QUERY_GLOBAL_COLUMN_OBJ+") ON CONFLICT IGNORE, \n"
                 + "    FOREIGN KEY ("+ QUERY_GLOBAL_TABLE_ID +") REFERENCES "+GLOBAL_TABLE_DATA+"("+GLOBAL_TABLE_DATA_ID_FIELD+"), "
-                + "    FOREIGN KEY ("+ QUERY_GLOBAL_COLUMN_ID +") REFERENCES "+GLOBAL_COLUMN_DATA+"("+GLOBAL_COLUMN_DATA_TABLE_FIELD+"), "
+                //+ "    FOREIGN KEY ("+ QUERY_GLOBAL_COLUMN_ID +") REFERENCES "+GLOBAL_COLUMN_DATA+"("+GLOBAL_COLUMN_DATA_TABLE_FIELD+"), "
                 + "    FOREIGN KEY ("+ QUERY_ID +") REFERENCES "+QUERY_SAVE+"("+QUERY_ID+")); ";
 
         String sql14 = "CREATE TABLE IF NOT EXISTS "+ QUERY_MEASURES +" (\n"
                 + "    "+ QUERY_ID +" integer,\n"
-                + "    "+ QUERY_GLOBAL_COLUMN_ID +" integer ,\n"
-                + "    "+ QUERY_AGGR_OP +" text ,\n"
-                + "    "+ "PRIMARY KEY("+ QUERY_ID+", "+ QUERY_GLOBAL_COLUMN_ID+") ON CONFLICT IGNORE, \n"
-                + "    FOREIGN KEY ("+ QUERY_GLOBAL_COLUMN_ID +") REFERENCES "+GLOBAL_COLUMN_DATA+"("+GLOBAL_COLUMN_DATA_TABLE_FIELD+"), "
+                + "    "+ QUERY_MEASURE_OBJ +" blob ,\n"
+                + "    "+ "PRIMARY KEY("+ QUERY_ID+", "+ QUERY_MEASURE_OBJ+") ON CONFLICT IGNORE, \n"
+                //+ "    FOREIGN KEY ("+ QUERY_GLOBAL_COLUMN_ID +") REFERENCES "+GLOBAL_COLUMN_DATA+"("+GLOBAL_COLUMN_DATA_TABLE_FIELD+"), "
                 + "    FOREIGN KEY ("+ QUERY_ID +") REFERENCES "+QUERY_SAVE+"("+QUERY_ID+")); ";
 
         String sql15 = "CREATE TABLE IF NOT EXISTS "+ QUERY_FILTERS +" (\n"
-                + "    "+ QUERY_ID +" integer PRIMARY KEY,\n"
-                + "    "+ QUERY_FILTERS_STR +" blob ,\n"
+                + "    "+ QUERY_FILTER_ID +" integer PRIMARY KEY,\n"
+                + "    "+ QUERY_ID +" integer ,\n"
+                + "    "+ QUERY_FILTERS_OBJ +" blob ,\n"
                 + "    "+ QUERY_FILTERS_LIST +" text ,\n"
+                + "    "+ QUERY_AGGR_FILTERS_OBJ +" blob ,\n"
                 + "    FOREIGN KEY ("+ QUERY_ID +") REFERENCES "+QUERY_SAVE+"("+QUERY_ID+")); ";
 
         executeStatements(new String[] {sql1, sql2, sql3, sql4, sql5, sql6, sql7, sql8, sql9, sql10, sql11, sql12, sql13, sql14, sql15});
@@ -1367,7 +1365,8 @@ public class MetaDataManager {
     }
 
     public boolean insertNewQuerySave(String queryName, String cubeName, Map<GlobalTableData, List<GlobalColumnData>> rows,
-                                   Map<GlobalTableData, List<GlobalColumnData>> columns, Map<Integer, String> measures, FilterNode filters, Set<String> filtersColsStr){
+                                   Map<GlobalTableData, List<GlobalColumnData>> columns, List<GlobalColumnData> measures,
+                                      FilterNode filters, Set<String> filtersColsStr, FilterNode aggrFilters){
         int cubeID = getOrcreateCube(cubeName);
         String sql = "INSERT INTO "+ QUERY_SAVE + "("+QUERY_CUBE_ID+", "+QUERY_NAME+") VALUES(?,?)";
         int queryID = -1;
@@ -1390,17 +1389,16 @@ public class MetaDataManager {
             return false;
         }
         //insert rows
-        sql = "INSERT INTO "+ QUERY_ROW + "("+QUERY_ID+", "+QUERY_GLOBAL_TABLE_ID+", "+QUERY_GLOBAL_COLUMN_ID+", "+QUERY_ORDER_BY+") VALUES(?,?,?,?)";
+        sql = "INSERT INTO "+ QUERY_ROW + "("+QUERY_ID+", "+QUERY_GLOBAL_TABLE_ID+", "+QUERY_GLOBAL_ROW_OBJ+") VALUES(?,?,?)";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             for (Map.Entry<GlobalTableData, List<GlobalColumnData>> tableSelects : rows.entrySet()){
                 int tableID = tableSelects.getKey().getId();
                 for (GlobalColumnData c : tableSelects.getValue()){
-                    int colID = c.getColumnID();
+                    byte[] rowByte = makebyteFromGlobalCol(c);
 
                     pstmt.setInt(1, queryID);
                     pstmt.setInt(2, tableID);
-                    pstmt.setInt(3, colID);
-                    pstmt.setString(4, c.getOrderBy());
+                    pstmt.setBytes(3, rowByte);
                     pstmt.executeUpdate();
                 }
             }
@@ -1410,16 +1408,16 @@ public class MetaDataManager {
         }
         //insert cols (if any)
         if (columns != null && columns.size() > 0) {
-            sql = "INSERT INTO " + QUERY_COLS + "(" + QUERY_ID + ", " + QUERY_GLOBAL_TABLE_ID + ", " + QUERY_GLOBAL_COLUMN_ID + ") VALUES(?,?,?)";
+            sql = "INSERT INTO " + QUERY_COLS + "(" + QUERY_ID + ", " + QUERY_GLOBAL_TABLE_ID + ", " + QUERY_GLOBAL_COLUMN_OBJ + ") VALUES(?,?,?)";
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 for (Map.Entry<GlobalTableData, List<GlobalColumnData>> tableSelects : columns.entrySet()) {
                     int tableID = tableSelects.getKey().getId();
                     for (GlobalColumnData c : tableSelects.getValue()) {
-                        int colID = c.getColumnID();
+                        byte[] columnByte = makebyteFromGlobalCol(c);
 
                         pstmt.setInt(1, queryID);
                         pstmt.setInt(2, tableID);
-                        pstmt.setInt(3, colID);
+                        pstmt.setBytes(3, columnByte);
                         pstmt.executeUpdate();
                     }
                 }
@@ -1431,12 +1429,12 @@ public class MetaDataManager {
 
         //insert measures (if any)
         if (measures != null && measures.size() > 0) {
-            sql = "INSERT INTO " + QUERY_MEASURES + "(" + QUERY_ID + ", " + QUERY_GLOBAL_COLUMN_ID + ", " + QUERY_AGGR_OP + ") VALUES(?,?,?)";
+            sql = "INSERT INTO " + QUERY_MEASURES + "(" + QUERY_ID + ", " + QUERY_MEASURE_OBJ + ") VALUES(?,?)";
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-                for (Map.Entry<Integer, String> measure : measures.entrySet()) {
+                for (GlobalColumnData c : measures) {
                     pstmt.setInt(1, queryID);
-                    pstmt.setInt(2, measure.getKey());
-                    pstmt.setString(3, measure.getValue());
+                    byte[] measureByte = makebyteFromGlobalCol(c);
+                    pstmt.setBytes(2,  measureByte);
                     pstmt.executeUpdate();
                 }
             } catch (SQLException e) {
@@ -1446,24 +1444,33 @@ public class MetaDataManager {
         }
 
         //insert filters (if any)
-        byte[] filtersByte = makebyteFromTreeModel(filters);
-        if (filters != null) {
-            String filtersStr = "";
-            for (String s : filtersColsStr){
-                filtersStr +=s+";";//list of tablename.colname separated by ; in the filters
-            }
+        byte[] filtersByte = new byte[0];
+        byte[] aggrFiltersByte = new byte[0];
+        if (filters != null)
+            filtersByte = makebyteFromTreeModel(filters);
+        if (aggrFilters != null)
+            aggrFiltersByte = makebyteFromTreeModel(aggrFilters);
+
+        String filtersStr = "";
+        for (String s : filtersColsStr){
+            filtersStr +=s+";";//list of tablename.colname separated by ; in the filters
             filtersStr = filtersStr.substring(0, filtersStr.length() - 1); //remove last ;
-            sql = "INSERT INTO " + QUERY_FILTERS + "(" + QUERY_ID + ", " + QUERY_FILTERS_STR + ", "+QUERY_FILTERS_LIST+") VALUES(?,?,?)";
-            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-                    pstmt.setInt(1, queryID);
-                    pstmt.setBytes(2, filtersByte);
-                    pstmt.setString(3, filtersStr);
-                    pstmt.executeUpdate();
-            } catch (SQLException e) {
-                System.out.println(e.getMessage());
-                return false;
-            }
         }
+
+
+        sql = "INSERT INTO " + QUERY_FILTERS + "(" + QUERY_ID + ", " + QUERY_FILTERS_OBJ + ", "+QUERY_FILTERS_LIST+
+                ", "+ QUERY_AGGR_FILTERS_OBJ +") VALUES(?,?,?,?)";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, queryID);
+            pstmt.setBytes(2, filtersByte);
+            pstmt.setString(3, filtersStr);
+            pstmt.setBytes(4, aggrFiltersByte);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+            return false;
+        }
+
         return true;
     }
 
@@ -1544,15 +1551,13 @@ public class MetaDataManager {
         Map<GlobalTableData, List<GlobalColumnData>> rows = new HashMap<>();
         try {
             Statement stmt = conn.createStatement();
-            String sql = "SELECT "+ QUERY_GLOBAL_TABLE_ID +", "+QUERY_GLOBAL_COLUMN_ID+", "+ QUERY_ORDER_BY+" FROM " + QUERY_ROW + " WHERE "+QUERY_ID+" = " +queryID+";";
+            String sql = "SELECT "+ QUERY_GLOBAL_TABLE_ID +", "+QUERY_GLOBAL_ROW_OBJ+" FROM " + QUERY_ROW + " WHERE "+QUERY_ID+" = " +queryID+";";
             ResultSet rs = stmt.executeQuery(sql);
             // loop through the result set
             while (rs.next()) {
                 int tableID = rs.getInt(QUERY_GLOBAL_TABLE_ID);
-                int colID = rs.getInt(QUERY_GLOBAL_COLUMN_ID);
+                GlobalColumnData c = readGlobalCol(rs.getBytes(QUERY_GLOBAL_ROW_OBJ));
                 GlobalTableData t = this.getGlobalTableFromID(tableID);
-                GlobalColumnData c = this.getGlobalColumnByID(colID);
-                c.setOrderBy(rs.getString(QUERY_ORDER_BY));
                 if (rows.containsKey(t)){
                     List<GlobalColumnData> cols = rows.get(t);
                     cols.add(c);
@@ -1574,14 +1579,13 @@ public class MetaDataManager {
         Map<GlobalTableData, List<GlobalColumnData>> colums = new HashMap<>();
         try {
             Statement stmt = conn.createStatement();
-            String sql = "SELECT "+ QUERY_GLOBAL_TABLE_ID +", "+QUERY_GLOBAL_COLUMN_ID+" FROM " + QUERY_COLS + " WHERE "+QUERY_ID+" = " +queryID+";";
+            String sql = "SELECT "+ QUERY_GLOBAL_TABLE_ID +", "+QUERY_GLOBAL_COLUMN_OBJ+" FROM " + QUERY_COLS + " WHERE "+QUERY_ID+" = " +queryID+";";
             ResultSet rs = stmt.executeQuery(sql);
             // loop through the result set
             while (rs.next()) {
                 int tableID = rs.getInt(QUERY_GLOBAL_TABLE_ID);
-                int colID = rs.getInt(QUERY_GLOBAL_COLUMN_ID);
+                GlobalColumnData c = readGlobalCol(rs.getBytes(QUERY_GLOBAL_COLUMN_OBJ));
                 GlobalTableData t = this.getGlobalTableFromID(tableID);
-                GlobalColumnData c = this.getGlobalColumnByID(colID);
                 if (colums.containsKey(t)){
                     List<GlobalColumnData> cols = colums.get(t);
                     cols.add(c);
@@ -1599,18 +1603,16 @@ public class MetaDataManager {
         return colums;
     }
 
-    public Map<GlobalColumnData, String> getQueryMeasures(int queryID){
-        Map<GlobalColumnData, String> measures = new HashMap<>();
+    public List<GlobalColumnData> getQueryMeasures(int queryID){
+        List<GlobalColumnData> measures = new ArrayList<>();
         try {
             Statement stmt = conn.createStatement();
-            String sql = "SELECT "+ QUERY_GLOBAL_COLUMN_ID +", "+QUERY_AGGR_OP+" FROM " + QUERY_MEASURES + " WHERE "+QUERY_ID+" = " +queryID+";";
+            String sql = "SELECT "+ QUERY_MEASURE_OBJ+" FROM " + QUERY_MEASURES + " WHERE "+QUERY_ID+" = " +queryID+";";
             ResultSet rs = stmt.executeQuery(sql);
             // loop through the result set
             while (rs.next()) {
-                int colID = rs.getInt(QUERY_GLOBAL_COLUMN_ID);
-                String aggrOp = rs.getString(QUERY_AGGR_OP);
-                GlobalColumnData c = this.getGlobalColumnByID(colID);
-                measures.put(c, aggrOp);
+                GlobalColumnData measure = readGlobalCol(rs.getBytes(QUERY_MEASURE_OBJ));
+                measures.add(measure);
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
@@ -1621,14 +1623,29 @@ public class MetaDataManager {
     public Object[] getQueryFilters(int queryID){
         try {
             Statement stmt = conn.createStatement();
-            String sql = "SELECT "+ QUERY_FILTERS_STR+", "+QUERY_FILTERS_LIST+" FROM " + QUERY_FILTERS + " WHERE "+QUERY_ID+" = " +queryID+";";
+            String sql = "SELECT "+ QUERY_FILTERS_OBJ +", "+QUERY_FILTERS_LIST+" FROM " + QUERY_FILTERS + " WHERE "+QUERY_ID+" = " +queryID+";";
             ResultSet rs = stmt.executeQuery(sql);
             // loop through the result set
             if (rs.next()) {
                 Object[] filters = new Object[2];
                 filters[0] = rs.getString(QUERY_FILTERS_LIST);
-                filters[1] = readTreeModel(rs.getBytes(QUERY_FILTERS_STR));
+                filters[1] = readTreeModel(rs.getBytes(QUERY_FILTERS_OBJ));
                 return filters;
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return null;
+    }
+
+    public FilterNode getQueryAggrFilters(int queryID){
+        try {
+            Statement stmt = conn.createStatement();
+            String sql = "SELECT "+ QUERY_AGGR_FILTERS_OBJ +" FROM " + QUERY_FILTERS + " WHERE "+QUERY_ID+" = " +queryID+";";
+            ResultSet rs = stmt.executeQuery(sql);
+            // loop through the result set
+            if (rs.next()) {
+                return readTreeModel(rs.getBytes(QUERY_AGGR_FILTERS_OBJ));
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
@@ -1655,11 +1672,45 @@ public class MetaDataManager {
 
     //adpated from: https://stackoverflow.com/a/55487151
     public FilterNode readTreeModel(byte[] data) {
+        if (data.length == 0)
+            return null;
         try {
             ByteArrayInputStream baip = new ByteArrayInputStream(data);
             ObjectInputStream ois = new ObjectInputStream(baip);
             FilterNode filterNode = (FilterNode ) ois.readObject();
             return filterNode ;
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private byte[] makebyteFromGlobalCol(GlobalColumnData columnData) {
+        try {
+
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ObjectOutputStream oos = new ObjectOutputStream(baos);
+            oos.writeObject(columnData);
+            byte[] bytes = baos.toByteArray();
+            //ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
+            return bytes;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public GlobalColumnData readGlobalCol(byte[] data) {
+        if (data.length == 0)
+            return null;
+        try {
+            ByteArrayInputStream baip = new ByteArrayInputStream(data);
+            ObjectInputStream ois = new ObjectInputStream(baip);
+            GlobalColumnData globalCol = (GlobalColumnData) ois.readObject();
+            return globalCol ;
 
         } catch (IOException e) {
             e.printStackTrace();

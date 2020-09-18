@@ -108,20 +108,24 @@ public class Constants {
     //query save: rows
     public static final String QUERY_ROW = "query_row";
     public static final String QUERY_GLOBAL_TABLE_ID = "global_table_id";//table the column belongs to
+    public static final String QUERY_GLOBAL_ROW_OBJ = "global_column_row_object";//table the column belongs to
     public static final String QUERY_GLOBAL_COLUMN_ID = "global_column_id";
-    public static final String QUERY_ORDER_BY = "query_orderby";
+    public static final String QUERY_GLOBAL_COLUMN_OBJ = "global_column_col_object";
 
     //query save: columns
     public static final String QUERY_COLS = "query_columns";
 
     //query save: measures
     public static final String QUERY_MEASURES = "query_measures";
+    public static final String QUERY_MEASURE_OBJ = "query_measure_obj";
     public static final String QUERY_AGGR_OP = "operation";
 
     //query save: filters
     public static final String QUERY_FILTERS = "query_filters";
-    public static final String QUERY_FILTERS_STR = "filters_str";
+    public static final String QUERY_FILTER_ID = "query_filter_id";
+    public static final String QUERY_FILTERS_OBJ = "filters_obj";
     public static final String QUERY_FILTERS_LIST = "filters_list";
+    public static final String QUERY_AGGR_FILTERS_OBJ = "aggr_filters_obj";
 
     public static final String GLOBAL_TABLE_DATA_MULTI_TYPE_FIELD = "multidimensional_type";
     public static final String CUBE_TABLE = "cube";
