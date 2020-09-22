@@ -50,6 +50,7 @@ public class MainWizardPanel extends JPanel{
     private boolean isEdit;
 
     public MainWizardPanel(MainMenu mainMenu, String projectName, boolean isEdit){
+        this.setLayout(new BorderLayout());
         this.isEdit = isEdit;
         this.mainMenu = mainMenu;
         this.projectName = projectName;

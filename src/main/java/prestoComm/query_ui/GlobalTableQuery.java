@@ -18,6 +18,7 @@ public class GlobalTableQuery {
     private String filterQuery;
     private String filterAggrQuery;
     private Set<String> filters;
+    private boolean hasCountAll;
     private FactsTable factsTable;
     private List<GlobalTableData> dimensions;
     private PrestoMediator presto;
@@ -40,6 +41,7 @@ public class GlobalTableQuery {
         filters = new HashSet<>();
         filterQuery = "";
         filterAggrQuery = "";
+        hasCountAll = false;
     }
 
     public void addOrderByRow(String groupByRow){
@@ -91,7 +93,7 @@ public class GlobalTableQuery {
         List<GlobalColumnData> cols = selectRows.get(table);
         for (GlobalColumnData c : cols){
             if (c.equals(columnName)){
-                if ( (c.getAggrOpFullName() == null && oldAggr.isEmpty())
+                if ( ((c.getAggrOpFullName() == null && c.getAggrOpFullName().isEmpty()) && oldAggr.isEmpty())
                         || c.getAggrOpFullName().equals(oldAggr)){//check column with same aggregation and update it
                     c.setAggrOp(newAggr);
                     return true;
@@ -101,8 +103,60 @@ public class GlobalTableQuery {
         return false;
     }
 
-    public void addMeasure(GlobalColumnData measure){
-        this.measures.add(measure);
+    public boolean rowExists(GlobalTableData table, GlobalColumnData columnName, String aggr){
+        List<GlobalColumnData> cols = selectRows.get(table);
+        for (GlobalColumnData c : cols){
+            if (c.equals(columnName)){
+                if ( ((c.getAggrOpFullName() == null && c.getAggrOpFullName().isEmpty()) && aggr.isEmpty())
+                        || c.getAggrOpFullName().equals(aggr)){//column with same name, same aggreate
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    //Adds measure, but checks if measures with same name and aggrOP exist, in this case it does not add
+    public boolean addMeasure(GlobalColumnData measure){
+        for (GlobalColumnData c : measures){
+            if (c.equals(measure) && ((c.getAggrOp() == null && c.getAggrOp().isEmpty()) && measure.getAggrOp().isEmpty()
+                    || c.getAggrOp().equals(measure.getAggrOp())) ){
+                return false; //exact same column exists, return and do not add anything
+            }
+        }
+        measures.add(measure);
+        return true;
+    }
+
+    //searches for measure, and sets the aggrop given
+    public void addAndReplaceMeasureAggrOP(GlobalColumnData measure, String olAggr, String newAggr){
+        for (GlobalColumnData c : measures){
+            if (c.equals(measure) &&  (((c.getAggrOp() == null && c.getAggrOp().isEmpty()) && olAggr.isEmpty() )
+                    || c.getAggrOp().equals(olAggr)) ){
+                c.setAggrOp(newAggr); //change aggr op of measure
+                return;
+            }
+        }
+    }
+
+    public boolean measureExists(GlobalColumnData measure){
+        for (GlobalColumnData c : measures){
+            if (c.equals(measure) && ((c.getAggrOp() == null && c.getAggrOp().isEmpty()) && measure.getAggrOp().isEmpty()
+                    || c.getAggrOp().equals(measure.getAggrOp())) ){
+                return true; //exact same column exists, return and do not add anything
+            }
+        }
+        return false;
+    }
+
+    public boolean measureExists(GlobalColumnData measure, String aggrOP){
+        for (GlobalColumnData c : measures){
+            if (c.equals(measure) && ((c.getAggrOp() == null && c.getAggrOp().isEmpty()) && aggrOP.isEmpty()
+                    || c.getAggrOp().equals(aggrOP)) ){
+                return true; //exact same column exists, return and do not add anything
+            }
+        }
+        return false;
     }
 
     public boolean deleteSelectColumnFromTable(GlobalTableData table, GlobalColumnData columnName){
@@ -155,7 +209,7 @@ public class GlobalTableQuery {
             if (c.equals(column)){
                 if ( (c.getAggrOpFullName() == null && column.getAggrOpFullName() == null)
                         || c.getAggrOpName().equals(column.getAggrOpName())){//2 columns can exist, one with aggregation and other without
-
+                    measures.remove(c);
                     break;
                 }
             }
@@ -252,8 +306,11 @@ public class GlobalTableQuery {
     }
 
     //Creates a SELECT XXX FROM () with the necessary inner queries to get local schema data
-    public String buildQuerySelectRowsOnly(){
+    public String buildQuerySelectRowsOnly(boolean includeInnerQueries){
         String query = "SELECT ";
+        //add "count(*)" if selected
+        if (hasCountAll)
+            query+="Count(*),";
         //first add to the select the dimensions columns
         boolean hasAggregations = false;
         String selectColsNoAggr = "";
@@ -288,13 +345,18 @@ public class GlobalTableQuery {
             GlobalTableData t = tableSelectRows.getKey();
             List<GlobalColumnData> rowsForSelect = tableSelectRows.getValue();
             //query+= "FROM (";
-            String subQueries = "("+getLocalTableQuery(t, rowsForSelect);
+            if (includeInnerQueries) {
+                String subQueries = "(" + getLocalTableQuery(t, rowsForSelect);
 
-            if(subQueries.contains("Error")){
-                return subQueries;//propagate error
+                if (subQueries.contains("Error")) {
+                    return subQueries;//propagate error
+                }
+                query += subQueries;
+                query += ") AS " + t.getTableName() + ",";
             }
-            query+=subQueries;
-            query+= ") AS "+t.getTableName()+",";
+            else{
+                query += t.getTableName() + ",";
+            }
         }
         query = query.substring(0, query.length() - 1);//last elemment without comma
 
@@ -316,17 +378,18 @@ public class GlobalTableQuery {
     }
 
 
-    //Creates a 'SELECT XXX FROM ( ) join fatcs with dims foreign keys' with the necessary inner queries to get local schema data and join facts foreign keys with dims. Also
+    //Creates a 'SELECT XXX FROM ( )  with the necessary inner queries to get local schema data and join facts foreign keys with dims. Also
     //performs aggregations on the measures and groups the dimensions rows
-    public String buildQuerySelectRowsAndMeasures(boolean selectMeasure) {
-        return buildQuerySelectRowsAndMeasures("SELECT ", selectMeasure);
-    }
 
-    public String buildQuerySelectRowsAndMeasures(String queryBegin, boolean selectMeasure) {
-        String query = queryBegin;
+    public String buildQuerySelectRowsAndMeasures(boolean selectMeasure, boolean includeInnerQueries) {
+        String query = "SELECT ";
+        //add "count(*)" if selected
+        if (hasCountAll)
+            query+="Count(*),";
         Map<GlobalTableData, List<GlobalColumnData>> tableSelectRowsWithPrimKeys = new HashMap<>();
         boolean hasAggregations = false;
-        String selectColsNoAggr = "";
+        Set<String> selectColsNoAggr = new HashSet<>(); //elements that need to be added to group by because there are other elements containing aggregate functions
+        Set<String> selectColsGroupBy = new HashSet<>(); //elements that need to be added to group by because user selected them to be part of there are other elements containing aggregate functions
         //first add to the select the dimensions columns
         for (Map.Entry<GlobalTableData, List<GlobalColumnData>> dimTable : selectRows.entrySet()){
             List<GlobalColumnData> cols = dimTable.getValue();
@@ -336,13 +399,16 @@ public class GlobalTableQuery {
             List<GlobalColumnData> newCols = new ArrayList<>();
             boolean primKeyIsSelected = false;
             for (GlobalColumnData c : cols){
-                if (c.getAggrOp()!=null && !c.getAggrOp().isEmpty()  && !c.getAggrOp().equalsIgnoreCase("Group By")){
+                if (c.getAggrOp()!=null && !c.getAggrOp().isEmpty()  && !c.getAggrOp().equalsIgnoreCase("Group By")){ //agregations
                     hasAggregations = true;
                     query += c.getAggrOpFullName()+" AS \""+c.getAggrOp().toLowerCase() +" of "+c.getFullName()+"\",";// aggregationOP (table.column) as "aggrOP of table.column"
                 }
                 else {
                     query += t.getTableName() + "." + c.getName() + ",";// no aggregation
-                    selectColsNoAggr += c.getFullName() +",";
+                    selectColsNoAggr.add(c.getFullName());
+                    if (c.getAggrOp().equalsIgnoreCase("Group By")) {//no aggregate but selected to be added to group by
+                        selectColsGroupBy.add(c.getFullName());
+                    }
                 }
                 //get primary keys of dimensions
                 GlobalColumnData newC = new GlobalColumnData(c.getName(), c.getDataType(), c.isPrimaryKey(), c.getLocalColumns());
@@ -362,7 +428,6 @@ public class GlobalTableQuery {
 
 
 
-        List<String> groupByMeasure = new ArrayList<>();
         //list of measures that are not aggregated, and therefore must appear on the group by clause
         if (selectMeasure) {
             List<String> measureNames = new ArrayList<>();
@@ -375,24 +440,23 @@ public class GlobalTableQuery {
             }
             //add to the select the measures with the aggregation operation (in the form 'aggr(measureName)'). This a string taken from the drop area in the interface.
             for (GlobalColumnData measureCol : measures) {
-                String measureAlias = measureCol.getName(); //alias for the measure (same name if no repeated measures)
-                if (measureCol.getAggrOp().trim().equalsIgnoreCase("SIMPLE") || measureCol.getAggrOp().isEmpty()){//no  aggregation, only add measure name
+                if (measureCol.getAggrOp()!=null && !measureCol.getAggrOp().isEmpty() && !measureCol.getAggrOp().equalsIgnoreCase("Group By")){//no  aggregation, only add measure name
                     //query += measureName + " AS " + measureAlias + ",";
-                    query += measureCol.getName() + ",";
-                    selectColsNoAggr += factsTable.getGlobalTable().getTableName() + "." + measureCol.getName() +",";
-                    //groupByMeasure.add(measureName);
+                    String measureAlias = "\"" + measureCol.getAggrOp() + " of " + measureCol.getName() + "\"";
+                    query += measureCol.getAggrOp() + " AS " + measureAlias + ",";
+                    hasAggregations = true;
                 }
                 else{
-                    measureAlias = "\""+measureCol.getAggrOp()+" of "+measureCol.getName()+"\"";
-                    query += measureCol + " AS " + measureAlias + ",";
+                    query += measureCol.getName() + ",";
+                    if( measureCol.getAggrOp().equalsIgnoreCase("Group By"))
+                        selectColsGroupBy.add(factsTable.getGlobalTable().getTableName() + "." + measureCol.getName());
+                    else
+                        selectColsNoAggr.add(factsTable.getGlobalTable().getTableName() + "." + measureCol.getName());
                 }
             }
         }
 
         query = query.substring(0, query.length() - 1);//last elemment without comma
-        if (selectColsNoAggr.length()> 0)
-        selectColsNoAggr = selectColsNoAggr.substring(0, selectColsNoAggr.length() - 1);//last elemment without comma
-
 
         query+= " FROM ";
 
@@ -403,15 +467,20 @@ public class GlobalTableQuery {
             //for each global column create inner queries in the 'From' clause
             GlobalTableData t = tableSelectRows.getKey();
             List<GlobalColumnData> rowsForSelect = tableSelectRows.getValue();
+            if (includeInnerQueries) {
 
-            String subQueries = getLocalTableQuery(t, rowsForSelect);
+                String subQueries = getLocalTableQuery(t, rowsForSelect);
 
-            if(subQueries.contains("Error")){
-                return subQueries;//propagate error
+                if (subQueries.contains("Error")) {
+                    return subQueries;//propagate error
+                }
+                query += "(" + subQueries;
+                //Join on facts table
+                query += ") AS " + t.getTableName() + ",";
             }
-            query+="("+subQueries;
-            //Join on facts table
-            query+= ") AS " + t.getTableName()+",";
+            else{
+                query += t.getTableName() + ",";
+            }
         }
         //get facts table in from clause
         //get necessary attributes of facts table
@@ -439,12 +508,17 @@ public class GlobalTableQuery {
                 }
             }
         }
-        String subQueries = "("+getLocalTableQuery(factsTable.getGlobalTable(),factsCols);
-        if(subQueries.contains("Error")){
-            return subQueries;//propagate error
+        if (includeInnerQueries) {
+            String subQueries = "(" + getLocalTableQuery(factsTable.getGlobalTable(), factsCols);
+            if (subQueries.contains("Error")) {
+                return subQueries;//propagate error
+            }
+            query += subQueries;
+            query += ") AS " + factsTable.getGlobalTable().getTableName() + " ";
         }
-        query+=subQueries;
-        query+= ") AS "+factsTable.getGlobalTable().getTableName()+" ";
+        else{
+            query += factsTable.getGlobalTable().getTableName() + " ";
+        }
 
         //perform Where on facts foreign key fields = dimensions referenced primary keys
         query+= " WHERE (";
@@ -478,19 +552,18 @@ public class GlobalTableQuery {
         }
 
         //groupby for each dimension column (only if aggregation operation is made)
-        if (hasAggregations && selectColsNoAggr.length() > 0) {
+        if ( (hasAggregations && selectColsNoAggr.size() > 0) || selectColsGroupBy.size()>0) {
             query += " GROUP BY ( ";
-            for (Map.Entry<GlobalTableData, List<GlobalColumnData>> tableSelectRows : selectRows.entrySet()) {
-                //for each global column create inner queries in the 'From' clause
-                GlobalTableData table = tableSelectRows.getKey();
-                List<GlobalColumnData> columns = tableSelectRows.getValue();
-                for (GlobalColumnData col : columns) {
-                    if (col.getAggrOp() == null || col.getAggrOp().isEmpty())
-                        query += table.getTableName() + "." + col.getName() + ",";//no aggregation dim column, add to group by
-                }
+
+            if (hasAggregations){
+                //add to groupby columns that do not have aggregation and other specified to be on group by
+                selectColsNoAggr.addAll(selectColsGroupBy); //combine all in order to remove duplicates
+                for (String s : selectColsNoAggr)
+                    query += s +",";
             }
-            for (String measure : groupByMeasure) {
-                query += measure + ",";
+            else { //add specified to be on group by (if any)
+                for (String s : selectColsGroupBy)
+                    query += s + ",";
             }
             query = query.substring(0, query.length() - 1);//last elemment without comma
             query += ")"; //close group by
@@ -504,15 +577,20 @@ public class GlobalTableQuery {
         return query;
     }
 
-    public String buildQuerySelectRowsColsAndMeasures() {
+    public String buildQuerySelectRowsColsAndMeasures(boolean includeInnerQueries) {
 
         String query = "SELECT ";
+        //add "count(*)" if selected
+        if (hasCountAll)
+            query+="Count(*),";
         int nSelectCols = 0;
         //get distinct values of columns. If multiple columns, get all distinct combinations
         List<List<String>> valuesByGlobalCol = getAllDifferentValuesOfColumn();
 
         boolean hasAggregations = false;
-        String selectColsNoAggr = "";
+        Set<String> selectColsNoAggr = new HashSet<>(); //elements that need to be added to group by because there are other elements containing aggregate functions
+        Set<String> selectColsGroupBy = new HashSet<>(); //elements that need to be added to group by because user selected them to be part of there are other elements containing aggregate functions
+
 
         //add to select atributes in the 'rows' area
         Map<GlobalTableData, List<GlobalColumnData>> tableSelectRowsWithPrimKeys = new HashMap<>();
@@ -525,13 +603,16 @@ public class GlobalTableQuery {
             List<GlobalColumnData> newCols = new ArrayList<>();
             boolean primKeyIsSelected = false;
             for (GlobalColumnData c : cols){
-                if (c.getAggrOp()!=null && !c.getAggrOp().isEmpty() && !c.getAggrOp().equalsIgnoreCase("Group By")){
-                    query += c.getAggrOpFullName()+" AS \""+c.getAggrOp().toLowerCase() +" of "+c.getFullName()+"\",";// aggregationOP (table.column) as "aggrOP of table.column"
+                if (c.getAggrOp()!=null && !c.getAggrOp().isEmpty()  && !c.getAggrOp().equalsIgnoreCase("Group By")){ //agregations
                     hasAggregations = true;
+                    query += c.getAggrOpFullName()+" AS \""+c.getAggrOp().toLowerCase() +" of "+c.getFullName()+"\",";// aggregationOP (table.column) as "aggrOP of table.column"
                 }
                 else {
                     query += t.getTableName() + "." + c.getName() + ",";// no aggregation
-                    selectColsNoAggr += t.getTableName() + "." + c.getName()+",";
+                    selectColsNoAggr.add(c.getFullName());
+                    if (c.getAggrOp().equalsIgnoreCase("Group By")) {//no aggregate but selected to be added to group by
+                        selectColsGroupBy.add(c.getFullName());
+                    }
                 }
                 nSelectCols++;
                 GlobalColumnData newC = new GlobalColumnData(c.getName(), c.getDataType(), c.isPrimaryKey(), c.getLocalColumns());//new references so that the originals are unnaltered
@@ -550,8 +631,6 @@ public class GlobalTableQuery {
             tableSelectRowsWithPrimKeys.put(newt, newCols);
         }
 
-        if (selectColsNoAggr.length()> 0)
-            selectColsNoAggr = selectColsNoAggr.substring(0, selectColsNoAggr.length() - 1);//last elemment without comma
         query+=" ";
         //get ordered list of columns's fullnames:
 
@@ -572,19 +651,19 @@ public class GlobalTableQuery {
         List<Integer> groupByPivotCols = new ArrayList<>();
         GlobalColumnData measure = measures.get(0); //only one measure is used here.
         String pivotStatement = "";
-        if (measure.getAggrOp().contains("COUNT")) {
+        if (measure.getAggrOp().equalsIgnoreCase("COUNT")) {
             pivotStatement= " SUM(CASE WHEN %s AND "+measure.getName()+" IS NOT NULL THEN 1 ELSE 0 END) AS %s, ";
             hasAggregations = true;
         }
-        else if (measure.getAggrOp().contains("SUM")) {
+        else if (measure.getAggrOp().equalsIgnoreCase("SUM")) {
             pivotStatement = " SUM(CASE WHEN %s THEN " + measure.getName() + " ELSE 0 END) AS %s, ";
             hasAggregations = true;
         }
-        else if (measure.getAggrOp().contains("AVG")) {
+        else if (measure.getAggrOp().equalsIgnoreCase("AVG")) {
             pivotStatement = " AVG(CASE WHEN %s THEN " + measure.getName() + " ELSE NULL END) AS %s, ";
             hasAggregations = true;
         }
-        else if (measure.getAggrOp().contains("SIMPLE") || measure.getAggrOp().isEmpty()) {
+        else if (measure.getAggrOp().equalsIgnoreCase("SIMPLE") || measure.getAggrOp().isEmpty() ||measure.getAggrOp().equalsIgnoreCase("Group By") ) {
             pivotStatement= " (CASE WHEN %s THEN " + measure.getName() + " ELSE 0 END) AS %s, ";
             groupByPivotCols.add(nSelectCols);
         }
@@ -639,14 +718,18 @@ public class GlobalTableQuery {
                 }
             }
 
-            String subQueries = getLocalTableQuery(t, rowsForSelect);
+            if (includeInnerQueries) {
+                String subQueries = getLocalTableQuery(t, rowsForSelect);
 
-            if(subQueries.contains("Error")){
-                return subQueries;//propagate error
+                if (subQueries.contains("Error")) {
+                    return subQueries;//propagate error
+                }
+                query += "(" + subQueries;
+                query += ") AS " + t.getTableName() + ",";
             }
-            query+="("+subQueries;
-            //Join on facts table
-            query+= ") AS " + t.getTableName()+",";
+            else{
+                query += t.getTableName() + ",";
+            }
         }
 
         Map<GlobalTableData, List<GlobalColumnData>> selectColsCopy = new HashMap<>(selectColumns);
@@ -672,14 +755,19 @@ public class GlobalTableQuery {
             GlobalTableData t = tableSelectCols.getKey();
             List<GlobalColumnData> colsForSelect = tableSelectCols.getValue();
 
-            String subQueries = getLocalTableQuery(t, colsForSelect);
+            if (includeInnerQueries) {
+                String subQueries = getLocalTableQuery(t, colsForSelect);
 
-            if(subQueries.contains("Error")){
-                return subQueries;//propagate error
+                if (subQueries.contains("Error")) {
+                    return subQueries;//propagate error
+                }
+                query += "(" + subQueries;
+                //Join on facts table
+                query += ") AS " + t.getTableName() + ",";
             }
-            query+="("+subQueries;
-            //Join on facts table
-            query+= ") AS " + t.getTableName()+",";
+            else{
+                query += t.getTableName() + ",";
+            }
         }
 
         //get facts table in from clause
@@ -708,12 +796,18 @@ public class GlobalTableQuery {
                 }
             }
         }
-        String subQueries = "("+getLocalTableQuery(factsTable.getGlobalTable(), factsCols);
-        if(subQueries.contains("Error")){
-            return subQueries;//propagate error
+
+        if (includeInnerQueries) {
+            String subQueries = "(" + getLocalTableQuery(factsTable.getGlobalTable(), factsCols);
+            if (subQueries.contains("Error")) {
+                return subQueries;//propagate error
+            }
+            query += subQueries;
+            query += ") AS " + factsTable.getGlobalTable().getTableName() + " ";
         }
-        query+=subQueries;
-        query+= ") AS "+factsTable.getGlobalTable().getTableName()+" ";
+        else{
+            query += factsTable.getGlobalTable().getTableName() + " ";
+        }
 
         //perform Where on facts foreign key fields = dimensions referenced primary keys
         query+= " WHERE (";
@@ -747,7 +841,26 @@ public class GlobalTableQuery {
         }
 
         //groupby for each dimension column (only if aggregation operation is made)
-        if (hasAggregations && selectColsNoAggr.length() > 0) {
+        if ( (hasAggregations && selectColsNoAggr.size() > 0) || selectColsGroupBy.size()>0) {
+            query += " GROUP BY ( ";
+
+            if (hasAggregations){
+                //add to groupby columns that do not have aggregation and other specified to be on group by
+                selectColsNoAggr.addAll(selectColsGroupBy); //combine all in order to remove duplicates
+                for (String s : selectColsNoAggr)
+                    query += s +",";
+                for (Integer pivotColNumber : groupByPivotCols) {
+                    query += pivotColNumber + ",";
+                }
+            }
+            else { //add specified to be on group by (if any)
+                for (String s : selectColsGroupBy)
+                    query += s + ",";
+            }
+            query = query.substring(0, query.length() - 1);//last elemment without comma
+            query += ")"; //close group by
+        }
+        /*if (hasAggregations && selectColsNoAggr.size() > 0 || selectColsGroupBy.size() > 0) {
             query += " GROUP BY ( ";
             for (Map.Entry<GlobalTableData, List<GlobalColumnData>> tableSelectRows : selectRows.entrySet()) {
                 GlobalTableData table = tableSelectRows.getKey();
@@ -763,7 +876,7 @@ public class GlobalTableQuery {
             }
             query = query.substring(0, query.length() - 1);//last elemment without comma
             query += ")"; //close group by
-        }
+        }*/
 
         //add having clause if exist
         if (filterAggrQuery.length() > 0){
@@ -844,17 +957,17 @@ public class GlobalTableQuery {
         return values;
     }
 
-    public String buildQuery(){
+    public String buildQuery(boolean includeInnerQueries){
         this.pivotValues.clear();//reset elements
         String query = "";
         if (selectColumns.size() == 0 && measures.size() == 0 && selectRows.size() > 0){
-            query = buildQuerySelectRowsOnly();
+            query = buildQuerySelectRowsOnly(includeInnerQueries);
         }
         else if (selectColumns.size() == 0 && measures.size() > 0 && selectRows.size() > 0){
-            query = buildQuerySelectRowsAndMeasures(true);
+            query = buildQuerySelectRowsAndMeasures(true, includeInnerQueries);
         }
         else if (selectColumns.size() > 0 && measures.size() == 1 && selectRows.size() > 0){
-            query = buildQuerySelectRowsColsAndMeasures();
+            query = buildQuerySelectRowsColsAndMeasures(includeInnerQueries);
         }
         else
             return "Error invalid query elements given";
@@ -867,7 +980,8 @@ public class GlobalTableQuery {
             query = query.substring(0, query.length() - 1);//last elemment without comma
         }
         //Add limit of max lines
-        query += " LIMIT "+LIMIT_NUMBER;
+        if (includeInnerQueries)
+            query += " LIMIT "+LIMIT_NUMBER;
         return query;
     }
 
@@ -1210,4 +1324,11 @@ public class GlobalTableQuery {
         this.filterAggrQuery = filterAggrQuery;
     }
 
+    public void setCountAll(boolean countAll){
+        hasCountAll = countAll;
+    }
+
+    public boolean getCountAll(){
+        return hasCountAll;
+    }
 }

@@ -59,7 +59,7 @@ public class MainMenu extends JFrame{
         setContentPane(mainPanel);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setTitle(mainMenuTitle);
-        pack();
+        this.pack();
         this.setVisible(true);
     }
 
@@ -205,12 +205,14 @@ public class MainMenu extends JFrame{
 
     private void placePanelInFrame(JPanel panel){
         setContentPane(panel);
+        this.pack();
         revalidate();
     }
 
     public void returnToMainMenu(){
         changeTitle(mainMenuTitle);
         placePanelInFrame(mainPanel);
+        this.pack();
         refreshProjectsInComboBox();
         checkProject();
     }

@@ -6,6 +6,8 @@ import io.github.qualtagh.swing.table.model.*;
 import io.github.qualtagh.swing.table.view.JBroTable;
 import io.github.qualtagh.swing.table.view.JBroTableModel;
 import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import prestoComm.*;
 import wizards.global_schema_config.CustomTreeNode;
 import wizards.global_schema_config.CustomeTreeCellRenderer;
@@ -43,6 +45,7 @@ public class QueryUI extends JPanel{
     private JBroTable queryResultsTableGroupable;
     private JTree schemaTree;
     private JTree filterTree;
+    private JTextArea editFilters;
     private JList measuresList;
     private JComboBox aggregationOpComboBox;
     private JList rowsList;
@@ -63,13 +66,12 @@ public class QueryUI extends JPanel{
     private JTree aggrFiltersTree;
     private JLabel rowsLabel;
     private JLabel columnLabel;
-    private JLabel aggrLabel;
     private JLabel measuresLabel;
     private JLabel filtersLabel;
     private JLabel aggrFiltersLabel;
-    private JCheckBox countCheckBox;
-    private JCheckBox distinctCheckBox;
     private JLabel arrowLabel;
+    private JScrollPane filterPane;
+    private JList queryGenLogList;
 
     private StarSchema starSchema;
     private GlobalTableQuery globalTableQueries;//used to store all queries for each global table, and their columns
@@ -80,12 +82,14 @@ public class QueryUI extends JPanel{
     private DefaultListModel measuresListModel;
     private DefaultListModel columnListModel;
     private DefaultListModel rowsListModel;
-    private DefaultListModel queryLogModel;
+    private DefaultListModel queryStatusLogModel;
+    private DefaultListModel queryGenLogModel;
     private JBroTableModel defaultTableModel;
 
     private MetaDataManager metaDataManager;
     private PrestoMediator prestoMediator;
     private static final String GROUP_BY_OP = "Group By";
+    private boolean countAllAdded;
     private final String[] aggregationsMeasures = { GROUP_BY_OP, "COUNT", "SUM", "AVG"};
     private final String[] aggregationsRows = {"COUNT", "SUM", "AVERAGE", "MAX", "MIN"};
     private final String[] numberOperations = { "=", "!=", ">", "=>", "<", "<="};
@@ -97,9 +101,10 @@ public class QueryUI extends JPanel{
         this.mainMenu = mainMenu;
         this.metaDataManager = new MetaDataManager(projectName);
         this.prestoMediator = new PrestoMediator();
+        countAllAdded = false;
 
         mainMenu.setTitle("Analytical Query Environment");
-        mainPanel.setSize(mainMenu.getSize());
+        //mainPanel.setSize(mainMenu.getSize());
         MouseAdapter adapterTooltip = new MouseAdapter(){
             final int defaultTimeout = ToolTipManager.sharedInstance().getInitialDelay();
 
@@ -132,14 +137,25 @@ public class QueryUI extends JPanel{
                     " <p>A maximum of 3 attributes can be dropped here.</p></html>");
             measuresLabel.setIcon(new ImageIcon(img.getScaledInstance(20, 20, 0)));
             measuresLabel.addMouseListener(adapterTooltip);
-            measuresLabel.setToolTipText("<html><p>Measures dropped here will be used with the aggregate operation selected in the selection box (if any).</p> " +
-                    "<p>At least one attribute must appear in the 'rows' area. If values in both 'rows' and 'columns' are present, the values of the measures will be displayed accordingly with the attributes placed as columns.</p></html>");
-            //aggrLabel.setIcon(new ImageIcon(img.getScaledInstance(20, 20, 0)));
-            //aggrLabel.addMouseListener(adapterTooltip);
-            /*aggrLabel.setToolTipText("<html><p>Attributes from dimension tables dropped here will be used to view records as rows and aggregated accordingly with the select function.</p> " +
-                    "<p>An attribute cannot be in 'aggregations' and in 'rows' at the same time.</p>" +
-                    "<p>This is the equivalent as adding attributes with aggregate functions in a SQL Select statement.</p>" +
-                    " <p>Order by is available by right clicking a value.</p></html>");*/
+            measuresLabel.setToolTipText("<html><p>Attributes from dimension tables or measures dropped here will be used to view records as rows and aggregated accordingly with the selected function.</p> " +
+                    "<p>Measures can only be dropped on this area.</p>" +
+                    "<p>Distinct can only be added to attributes with aggregate functions. For attributes with no aggregate functions, the group by will produce a similar" +
+                    "effect as distinct.</p>" +
+                    "<p>Order by is available by right clicking on an attribute.</p></html>");
+            aggrFiltersLabel.setIcon(new ImageIcon(img.getScaledInstance(20, 20, 0)));
+            aggrFiltersLabel.addMouseListener(adapterTooltip);
+            aggrFiltersLabel.setToolTipText("<html><p>Drag attributes from the aggregations area to create conditions with those attributes.</p> " +
+                    "<p>You cannot drag attributes from the star schema to this area, as only conditions with aggregations are allowed here.</p>" +
+                    "<p>This is equivalent as to adding a condition on a SQL Having statement.</p></html>");
+            filtersLabel.setIcon(new ImageIcon(img.getScaledInstance(20, 20, 0)));
+            filtersLabel.addMouseListener(adapterTooltip);
+            filtersLabel.setToolTipText("<html><p>Drag attributes from the star schema to create conditions.</p> " +
+                    "<p>Attributes used here are assumed to be part of the same tables as the attributes selected in the 'rows' and aggregations' areas.</p>" +
+                    "<p>Any attributes that belongs to a table not listed on those 2 areas will result in an invalid SQL.</p> " +
+                    "<p>It is however possible to use attributes even if that attribute is not selected in any of those areas if the table from the attribute is listed on at least one of the areas.</p>" +
+                    "<p>This is equivalent as to adding a condition on a SQL Where statement.</p>" +
+                    "<p>It is possible to write the filters instead of a dragging and droppingt then by selecting the 'change to manual edit' option on the pop up menu.</p></html>");
+            filtersLabel.setText(filtersLabel.getText() + " - Normal Edit Mode");
 
             img = ImageIO.read(new File(Constants.IMAGES_DIR+"arrow_right.png"));
             arrowLabel.setIcon(new ImageIcon(img.getScaledInstance(20, 20, 0)));
@@ -174,7 +190,8 @@ public class QueryUI extends JPanel{
             measuresListModel = new DefaultListModel();
             columnListModel = new DefaultListModel();
             rowsListModel = new DefaultListModel();
-            queryLogModel = new DefaultListModel();
+            queryStatusLogModel = new DefaultListModel();
+            queryGenLogModel = new DefaultListModel();
             filterTree.setModel(filterTreeModel);
             filterTree.setCellRenderer(new FilterNodeCellRenderer());
             filterTree.addMouseListener(getMouseListenerForFilterTree());
@@ -185,7 +202,8 @@ public class QueryUI extends JPanel{
             measuresList.setCellRenderer(new CustomGroupCellRendererList());
             rowsList.setModel(rowsListModel);
             columnsList.setModel(columnListModel);
-            queryLogList.setModel(queryLogModel);
+            queryLogList.setModel(queryStatusLogModel);
+            queryGenLogList.setModel(queryGenLogModel);
 
             filterTree.setTransferHandler(new TreeTransferHandler());
             measuresList.setTransferHandler(new TreeTransferHandler());
@@ -193,6 +211,14 @@ public class QueryUI extends JPanel{
             columnsList.setTransferHandler(new TreeTransferHandler());
             aggrFiltersTree.setTransferHandler(new TreeTransferHandler());
 
+            editFilters = new JTextArea(80, 100);
+            editFilters.setVisible(false);
+            editFilters.setWrapStyleWord(true);
+            editFilters.setLineWrap(true);
+            editFilters.addMouseListener(getMouseListenerEditFilterTextArea());
+
+            queryLogList.setCellRenderer(new StripeRenderer());
+            queryGenLogList.setCellRenderer(new StripeRenderer());
             //jtable
             //this.defaultTableModel = new JBroTableModel(new ModelData());
             //queryResultsTableGroupable = new JBroTable();
@@ -244,7 +270,7 @@ public class QueryUI extends JPanel{
                         if (index < 0){
                             return;
                         }
-                        QueryLog queryLog = (QueryLog) queryLogModel.get(index);
+                        QueryLog queryLog = (QueryLog) queryStatusLogModel.get(index);
                         JOptionPane optionPane = new NarrowOptionPane();
                         optionPane.setMessage(queryLog.toString());
                         optionPane.setMessageType(JOptionPane.INFORMATION_MESSAGE);
@@ -254,7 +280,11 @@ public class QueryUI extends JPanel{
                 }
             });
 
+            this.setLayout(new BorderLayout());
             this.globalTableQueries = new GlobalTableQuery(prestoMediator, starSchema.getFactsTable(), starSchema.getDimsTables());
+            this.setSize(mainMenu.getSize());
+            mainPanel.setSize(mainMenu.getSize());
+            this.revalidate();
             add(mainPanel);
             this.setVisible(true);
         }
@@ -293,12 +323,6 @@ public class QueryUI extends JPanel{
             }
         });
         exportResultsToCSVButton.setEnabled(false); //initially, no results on screen, will be enable when clicking on execute query
-        countCheckBox.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent actionEvent) {
-                addCountAllToRowsAggr();
-            }
-        });
     }
 
     private void clearAllFieldsAndQueryElements(){
@@ -324,6 +348,12 @@ public class QueryUI extends JPanel{
 
         //clear all query elements in structures
         globalTableQueries.clearAllElements();
+    }
+
+    private void clearFilters(){
+        filterTree.setModel(null);
+        filterTree.revalidate();
+        filterTree.updateUI();
     }
 
     private void selectQueryToLoad(){
@@ -508,7 +538,7 @@ public class QueryUI extends JPanel{
             if (multiline)
                 success = saveAllQueriesLog(fileToSave);
             else
-                success = saveLogToFile(queryLogModel.get(queryLogList.getSelectedIndex()).toString(), fileToSave);
+                success = saveLogToFile(queryStatusLogModel.get(queryLogList.getSelectedIndex()).toString(), fileToSave);
             if (success){
                 JOptionPane.showMessageDialog(mainMenu, "Query Log Saved!", "Success", JOptionPane.INFORMATION_MESSAGE);
             }
@@ -522,9 +552,9 @@ public class QueryUI extends JPanel{
         BufferedWriter writer = null;
         try {
             writer = new BufferedWriter(new FileWriter(file));
-            for (int i = 0; i < queryLogModel.getSize(); i++) {
+            for (int i = 0; i < queryStatusLogModel.getSize(); i++) {
                 //saveLogToFile(queryLogModel.get(i).toString(), folder);
-                List<String> limitLine = textLimiter(queryLogModel.get(i).toString(), 80);
+                List<String> limitLine = textLimiter(queryStatusLogModel.get(i).toString(), 80);
                 for (String s : limitLine)
                     writer.write(s+"\n");
                 writer.write("\n ------------------------------------------------------------------------------- \n");
@@ -680,32 +710,37 @@ public class QueryUI extends JPanel{
                 if (index < 0)
                     return;
                 ListElementWrapper elem = (ListElementWrapper)columnListModel.get(index);
-                GlobalColumnData col = null;
-                if (elem.getType() == ListElementType.GLOBAL_COLUMN){
-                    col = (GlobalColumnData) elem.getObj();
-                }
-                else{
+                if (elem.getType() == ListElementType.GLOBAL_TABLE){
                     return;
                 }
+                GlobalColumnData col = (GlobalColumnData) elem.getObj();
                 GlobalTableData table = getTableInRowIndex(columnListModel, index);
-                boolean success = globalTableQueries.deleteSelectColumnFromTable(table, col);
-                if (success){
-                    int indexBefore = index - 1;
-                    int indexAfter = index + 1;
-                    if (columnListModel.size()==2){
-                        //remove the table name from the list (if only one table was present and all its columns was deleted)
-                        columnListModel.remove(index);
-                        columnListModel.remove(0);
-                    }
-                    else if (!columnListModel.get(indexBefore).toString().contains("    ") && indexAfter < columnListModel.size()-1 && !columnListModel.get(indexAfter).toString().contains("    ")){
-                        columnListModel.remove(index);
-                        columnListModel.remove(indexBefore);
-                    }
-                    else{
-                        columnListModel.remove(index);
-                    }
-                    columnsList.revalidate();
+                columnListModel.removeElementAt(index);
+
+                //remove table group if last element or no other elements in that group
+                ListElementWrapper el = (ListElementWrapper) columnListModel.getElementAt(columnListModel.size()-1);
+                if (columnListModel.size() == 1)
+                    columnListModel.removeElementAt(0);
+                    //check if last element is a table
+                else if (el.getType() == ListElementType.GLOBAL_TABLE ){
+                    columnListModel.removeElementAt(columnListModel.size()-1);
                 }
+                else{
+                    //iterate all tables and check if any tabe has no groups and remove it. Empty tables are followed together.
+                    for (int i = 1; i < columnListModel.size(); i++){
+                        ListElementWrapper e1 = (ListElementWrapper) columnListModel.getElementAt(i-1);
+                        ListElementWrapper e2 = (ListElementWrapper) columnListModel.getElementAt(i);
+                        if (e1.getType()==ListElementType.GLOBAL_TABLE && e2.getType()==ListElementType.GLOBAL_TABLE){
+                            columnListModel.removeElementAt(i-1);
+                            break; //end here, because only one emoty table can exist
+                        }
+
+                    }
+                }
+
+                globalTableQueries.deleteSelectColumnFromTable(table, col);
+                columnsList.updateUI();
+                columnsList.revalidate();
             }
         };
     }
@@ -717,32 +752,37 @@ public class QueryUI extends JPanel{
                 if (index < 0)
                     return;
                 ListElementWrapper elem = (ListElementWrapper)listModel.get(index);
-                GlobalColumnData col = null;
-                if (elem.getType() == ListElementType.GLOBAL_COLUMN){
-                    col = (GlobalColumnData) elem.getObj();
-                }
-                else{
+                if (elem.getType() == ListElementType.GLOBAL_TABLE){
                     return;
                 }
+                GlobalColumnData col = (GlobalColumnData) elem.getObj();
                 GlobalTableData table = getTableInRowIndex(listModel, index);
-                boolean success = globalTableQueries.deleteSelectRowFromTable(table, col);
-                if (success){
-                    int indexBefore = index - 1;
-                    int indexAfter = index + 1;
-                    if (listModel.size()==2){
-                        //remove the table name from the list (if only one table was present and all its columns was deleted)
-                        listModel.remove(index);
-                        listModel.remove(0);
-                    }
-                    else if (!listModel.get(indexBefore).toString().contains("    ") && indexAfter < listModel.size()-1 && !listModel.get(indexAfter).toString().contains("    ")){
-                        listModel.remove(index);
-                        listModel.remove(indexBefore);
-                    }
-                    else{
-                        listModel.remove(index);
-                    }
-                    list.revalidate();
+                listModel.removeElementAt(index);
+
+                //remove table group if last element or no other elements in that group
+                ListElementWrapper el = (ListElementWrapper) listModel.getElementAt(listModel.size()-1);
+                if (listModel.size() == 1)
+                    listModel.removeElementAt(0);
+                    //check if last element is a table
+                else if (el.getType() == ListElementType.GLOBAL_TABLE ){
+                    listModel.removeElementAt(listModel.size()-1);
                 }
+                else{
+                    //iterate all tables and check if any tabe has no groups and remove it. Empty tables are followed together.
+                    for (int i = 1; i < listModel.size(); i++){
+                        ListElementWrapper e1 = (ListElementWrapper) listModel.getElementAt(i-1);
+                        ListElementWrapper e2 = (ListElementWrapper) listModel.getElementAt(i);
+                        if (e1.getType()==ListElementType.GLOBAL_TABLE && e2.getType()==ListElementType.GLOBAL_TABLE){
+                            listModel.removeElementAt(i-1);
+                            break; //end here, because only one emoty table can exist
+                        }
+
+                    }
+                }
+
+                globalTableQueries.deleteSelectRowFromTable(table, col);
+                list.updateUI();
+                list.revalidate();
             }
         };
     }
@@ -851,8 +891,10 @@ public class QueryUI extends JPanel{
 
                 //remove table group if last element or no other elements in that group
                 ListElementWrapper el = (ListElementWrapper) measuresListModel.getElementAt(measuresListModel.size()-1);
-                if (measuresListModel.size() == 1)
+                if (measuresListModel.size() == 1 && !countAllAdded)
                     measuresListModel.removeElementAt(0);
+                else if (measuresListModel.size() == 2 && countAllAdded)
+                    measuresListModel.removeElementAt(1);
                 //check if last element is a table
                 else if (el.getType() == ListElementType.GLOBAL_TABLE ){
                     measuresListModel.removeElementAt(measuresListModel.size()-1);
@@ -903,14 +945,20 @@ public class QueryUI extends JPanel{
                 String oldAggr = c.getAggrOp();
                 //update query
                 if (element.getType() == ListElementType.GLOBAL_COLUMN){
+                    if(globalTableQueries.rowExists(t,c, aggregate)){
+                        JOptionPane.showMessageDialog(mainMenu, "The same attribute already exists with the selected aggregate. Please select another aggregate function, or remove the other attribute", "Cannot add measure", JOptionPane.WARNING_MESSAGE);
+                        return;
+                    }
                     globalTableQueries.updateSelectRowFromTable(t, c, oldAggr, aggregate);
-                    c.setAggrOp(aggregate);
                 }
                 else if (element.getType() == ListElementType.MEASURE){
-                    globalTableQueries.removeMeasure(c);
-                    c.setAggrOp(aggregate);
-                    globalTableQueries.addMeasure(c);
+                    if(globalTableQueries.measureExists(c, aggregate)){
+                        JOptionPane.showMessageDialog(mainMenu, "Measure already present. Cannot add repeated Measure with same Aggregate Function.", "Cannot add measure", JOptionPane.WARNING_MESSAGE);
+                        return;
+                    }
+                    globalTableQueries.addAndReplaceMeasureAggrOP(c, oldAggr, aggregate);
                 }
+                c.setAggrOp(aggregate);
                 element.setObj(c);
                 element.setName("    " + c.getAggrOpName());
 
@@ -951,6 +999,33 @@ public class QueryUI extends JPanel{
                 element.setObj(c);
                 element.setName("    " + c.getAggrOpName());
                 model.setElementAt(element, index);
+                list.revalidate();
+                list.updateUI();
+            }
+        };
+    }
+    private ActionListener addRemoveCountAll(DefaultListModel model, JList list) {
+        return new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent arg0) {
+
+                //adds/removes count all
+                if(countAllAdded){
+                    //remove it
+                    model.removeElementAt(0);
+                    globalTableQueries.setCountAll(false);
+                    countAllAdded = false;
+                }
+                else{
+                    //add it
+                    if (model.size() == 0)
+                        model.addElement(new ListElementWrapper("Count(*)", null, ListElementType.COUNTALL));
+                    else
+                        model.insertElementAt(new ListElementWrapper("Count(*)", null, ListElementType.COUNTALL), 0);
+                    globalTableQueries.setCountAll(true);
+                    countAllAdded = true;
+                }
                 list.revalidate();
                 list.updateUI();
             }
@@ -1134,10 +1209,16 @@ public class QueryUI extends JPanel{
 
     public String getFilterQuery(boolean isAggrFilter){
         DefaultTreeModel treeModel = null;
+        JTextArea textArea = null;
         if (isAggrFilter)
             treeModel = aggrFilterTreeModel;
-        else
+        else {
             treeModel = filterTreeModel;
+            textArea = editFilters;
+        }
+        if (textArea != null && textArea.isVisible()) //manual edit mode
+            return textArea.getText();
+        //normal mode
         if (treeModel == null) //easy fix
             return "";
         FilterNode root = (FilterNode) treeModel.getRoot();
@@ -1221,11 +1302,11 @@ public class QueryUI extends JPanel{
                 globalTableQueries.setFilterQuery(getFilterQuery(false));
                 globalTableQueries.setFilterAggrQuery(getFilterQuery(true));
 
-                String localQuery = globalTableQueries.buildQuery();//create query with inner query to get local table data
+                String localQuery = globalTableQueries.buildQuery(true);//create query with inner query to get local table data
                 System.out.println(localQuery);
                 if (localQuery.contains("Error")){
                     JOptionPane.showMessageDialog(null, "Could not execute query:\n"+localQuery, "Query Error", JOptionPane.ERROR_MESSAGE);
-                    queryLogModel.addElement(new QueryLog(localQuery, beginTime, null, 0));
+                    queryStatusLogModel.addElement(new QueryLog(localQuery, beginTime, null, 0));
                     LoadingScreenAnimator.closeGeneralLoadingAnimation();
                     backButton.setEnabled(true);
                     return null;
@@ -1355,7 +1436,7 @@ public class QueryUI extends JPanel{
             return;
         }
         DateTime endTime = new DateTime();
-        queryLogModel.addElement(new QueryLog(localQuery, beginTime, endTime, nRows));
+        queryStatusLogModel.addElement(new QueryLog(localQuery, beginTime, endTime, nRows));
         queryResultsTableGroupable.revalidate();
     }
 
@@ -1538,7 +1619,8 @@ public class QueryUI extends JPanel{
             public void mousePressed(MouseEvent arg0) {
                 if (SwingUtilities.isRightMouseButton(arg0)){
                     int index = rowsList.locationToIndex(arg0.getPoint());
-
+                    if (index < 0)
+                        return;
                     JPopupMenu menu = new JPopupMenu();
                     JMenuItem item1 = new JMenuItem("Delete");
                     item1.addActionListener(getRemoveActionListenerForColumnList(index));
@@ -1587,84 +1669,34 @@ public class QueryUI extends JPanel{
         };
     }
 
-    private MouseListener getMouseListenerForRowsAggList() {
-        return new MouseAdapter() {
-            @Override
-            public void mousePressed(MouseEvent arg0) {
-                /*//if (SwingUtilities.isRightMouseButton(arg0)){
-                int index = rowsAggregationsList.locationToIndex(arg0.getPoint());
-                if (index < 0)
-                    return;
-                if (!rowsAggListModel.getElementAt(index).toString().contains("    ")){
-                    rowsAggregationsList.setComponentPopupMenu(null);
-                    return;
-                }
-                rowsAggregationsList.setSelectedIndex(index);
-                JPopupMenu menu = new JPopupMenu();
-                JMenuItem item1 = new JMenuItem("Delete");
-                JMenu subMenu = new JMenu("Order by");
-                JMenuItem subItem = new JMenuItem("Ascending");
-                JMenuItem subItem2 = new JMenuItem("Descending");
-                JMenuItem subItem3 = new JMenuItem("No order");
-                subMenu.add(subItem);
-                subMenu.add(subItem2);
-                subMenu.add(subItem3);
-                JMenu subMenu2 = new JMenu("Change aggregate");
-                JMenuItem subItem21 = new JMenuItem("Count");
-                JMenuItem subItem23 = new JMenuItem("Sum");
-                JMenuItem subItem24 = new JMenuItem("Average");
-                JMenuItem subItem25 = new JMenuItem("Max");
-                JMenuItem subItem26 = new JMenuItem("Min");
-                subMenu2.add(subItem21);
-                subMenu2.add(subItem23);
-                subMenu2.add(subItem24);
-                subMenu2.add(subItem25);
-                subMenu2.add(subItem26);
-                item1.addActionListener(getRemoveActionListenerForRowsList(rowsAggregationsList, rowsAggListModel, index));
-                subItem.addActionListener(getAddGroupByListenerRows(index, true, true));
-                subItem2.addActionListener(getAddGroupByListenerRows(index, false, true));
-                subItem3.addActionListener(getRemoveGroupByListenerRows(index));
-                subItem21.addActionListener(getChangeAggregateActionListener(index, "COUNT"));
-                subItem23.addActionListener(getChangeAggregateActionListener(index, "SUM"));
-                subItem24.addActionListener(getChangeAggregateActionListener(index, "AVG"));
-                subItem25.addActionListener(getChangeAggregateActionListener(index, "MAX"));
-                subItem26.addActionListener(getChangeAggregateActionListener(index, "MIN"));
-
-                //add/remove distinct
-                String menuDistinctTitle = "";
-                if (rowsAggListModel.getElementAt(index).toString().contains("DISTINCT")){
-                    menuDistinctTitle = "Remove DISTINCT";
-                }
-                else
-                    menuDistinctTitle = "Add DISTINCT";
-                JMenuItem item3 = new JMenuItem(menuDistinctTitle);
-                item3.addActionListener(getChangeAggregateDistinctActionListener(index));
-                //item1.addActionListener(getRemoveActionListener());
-                menu.add(item1);
-                menu.add(subMenu);
-                menu.add(subMenu2);
-                menu.add(item3);
-                rowsAggregationsList.setComponentPopupMenu(menu);*/
-                //}
-                super.mousePressed(arg0);
-            }
-        };
-    }
-
     private MouseListener getMouseListenerForMeasuresList() {
         return new MouseAdapter() {
 
             @Override
             public void mousePressed(MouseEvent arg0) {
-                //if (SwingUtilities.isRightMouseButton(arg0)){
                 int index = measuresList.locationToIndex(arg0.getPoint());
+
+                //add (add count(*) ) option even if no element selected
+                //count *
+                String menuCountTitle = "";
+                if (countAllAdded){
+                    menuCountTitle = "Remove Count(*)";
+                }
+                else
+                    menuCountTitle = "Add Count(*)";
+                JPopupMenu menu = new JPopupMenu();
+                JMenuItem countAllItem = new JMenuItem(menuCountTitle);
+                countAllItem.addActionListener(addRemoveCountAll(measuresListModel, measuresList));
+                menu.add(countAllItem);
+                if (index < 0) {
+                    measuresList.setComponentPopupMenu(menu);
+                    return;
+                }
                 measuresList.setSelectedIndex(index);
                 ListElementWrapper elem = (ListElementWrapper)measuresListModel.get(index);
                 if (elem.getType() == ListElementType.GLOBAL_TABLE){
                     return;
                 }
-                JPopupMenu menu = new JPopupMenu();
-
                 JMenuItem item1 = new JMenuItem("Delete");
                 item1.addActionListener(getRemoveActionListenerForMeasuresList(index));
                 menu.add(item1);
@@ -1677,11 +1709,13 @@ public class QueryUI extends JPanel{
                 subMenu.add(subItem2);
                 subMenu.add(subItem3);
                 JMenu subMenu2 = new JMenu("Change aggregate");
+                JMenuItem subItem20 = new JMenuItem(GROUP_BY_OP);
                 JMenuItem subItem21 = new JMenuItem("Count");
                 JMenuItem subItem23 = new JMenuItem("Sum");
                 JMenuItem subItem24 = new JMenuItem("Average");
                 JMenuItem subItem25 = new JMenuItem("Max");
                 JMenuItem subItem26 = new JMenuItem("Min");
+                subMenu2.add(subItem20);
                 subMenu2.add(subItem21);
                 subMenu2.add(subItem23);
                 subMenu2.add(subItem24);
@@ -1690,11 +1724,12 @@ public class QueryUI extends JPanel{
                 subItem.addActionListener(getAddGroupByListenerRows(index, true, true));
                 subItem2.addActionListener(getAddGroupByListenerRows(index, false, true));
                 subItem3.addActionListener(getRemoveGroupByListenerRows(index));
+                subItem20.addActionListener(getChangeAggregateActionListener(index, GROUP_BY_OP, measuresListModel, measuresList));
                 subItem21.addActionListener(getChangeAggregateActionListener(index, "COUNT", measuresListModel, measuresList));
                 subItem23.addActionListener(getChangeAggregateActionListener(index, "SUM", measuresListModel, measuresList));
                 subItem24.addActionListener(getChangeAggregateActionListener(index, "AVG", measuresListModel, measuresList));
-                subItem25.addActionListener(getChangeAggregateActionListener(index, "MAX", measuresListModel, measuresList));
-                subItem26.addActionListener(getChangeAggregateActionListener(index, "MIN", measuresListModel, measuresList));
+                subItem25.addActionListener(getChangeAggregateActionListener(index, "MAX", measuresListModel, measuresList));//not added
+                subItem26.addActionListener(getChangeAggregateActionListener(index, "MIN", measuresListModel, measuresList));//not added
                 //add/remove distinct
                 String menuDistinctTitle = "";
                 String selectedElem = measuresListModel.getElementAt(index).toString();
@@ -1705,14 +1740,15 @@ public class QueryUI extends JPanel{
                     menuDistinctTitle = "Add DISTINCT";
                 JMenuItem item3 = new JMenuItem(menuDistinctTitle);
                 item3.addActionListener(getChangeAggregateDistinctActionListener(index, measuresListModel, measuresList));
+
                 //item1.addActionListener(getRemoveActionListener());
                 menu.add(item1);
                 menu.add(subMenu);
                 menu.add(subMenu2);
-                if (selectedElem.contains("SUM") ||selectedElem.contains("AVG") || selectedElem.contains("COUNT"))
+                if (selectedElem.contains("SUM") ||selectedElem.contains("AVG") || selectedElem.contains("COUNT"))//cannot add distinct if current attribute does not have aggregate function
                     menu.add(item3);
+                menu.add(countAllItem);
                 measuresList.setComponentPopupMenu(menu);
-                //}
                 super.mousePressed(arg0);
             }
         };
@@ -1730,24 +1766,39 @@ public class QueryUI extends JPanel{
         };
     }
 
+    private MouseListener getMouseListenerEditFilterTextArea() {
+        return new MouseAdapter() {
+
+            @Override
+            public void mousePressed(MouseEvent arg0) {
+                JPopupMenu menu = new JPopupMenu();
+                JMenuItem editItem = new JMenuItem("Change to Normal Edit");
+                editItem.addActionListener(changeToNormalEditFilter());
+                menu.add(editItem);
+                editFilters.setComponentPopupMenu(menu);
+                super.mousePressed(arg0);
+            }
+        };
+    }
+
     private void handleFilterClickMenus(JTree tree, DefaultTreeModel model, TreePath pathForLocation, boolean isAggrFilter){
         tree.setSelectionPath(pathForLocation);
         FilterNode selectedNode = null;
+        JPopupMenu menu = new JPopupMenu();
+        JMenuItem editItem = new JMenuItem("Manual Edit");
+        editItem.addActionListener(changeToManualEditFilter());
         if(pathForLocation != null) {
             selectedNode = (FilterNode) pathForLocation.getLastPathComponent();
             if (selectedNode.getNodeType() == FilterNodeType.CONDITION) {
                 //menu for a condition
-                JPopupMenu menu = new JPopupMenu();
                 JMenuItem item1 = new JMenuItem("Delete");
                 JMenuItem item2 = new JMenuItem("NOT");
                 item1.addActionListener(getRemoveFilterNodActionListener(tree, model, selectedNode, isAggrFilter));
                 item2.addActionListener(getAddNOTActionListener(tree, selectedNode));
                 menu.add(item1);
                 menu.add(item2);
-                tree.setComponentPopupMenu(menu);
             } else if (selectedNode.getNodeType() == FilterNodeType.BOOLEAN_OPERATION) {
                 //menu for a boolean op
-                JPopupMenu menu = new JPopupMenu();
                 JMenuItem item1 = new JMenuItem("AND");
                 JMenuItem item2 = new JMenuItem("OR");
                 JMenuItem item3 = new JMenuItem("NOT on nested expression");
@@ -1758,9 +1809,10 @@ public class QueryUI extends JPanel{
                 menu.add(item2);
                 if (selectedNode.getChildCount() > 0)
                     menu.add(item3);
-                tree.setComponentPopupMenu(menu);
             }
         }
+        menu.add(editItem);
+        tree.setComponentPopupMenu(menu);
     }
 
     private MouseListener getMouseListenerForAggFilterTree() {
@@ -1777,7 +1829,7 @@ public class QueryUI extends JPanel{
         };
     }
 
-    private void addColumnsToList(DefaultListModel listModel, GlobalColumnData globalCol, GlobalTableData globalTable){
+    private boolean addColumnsToList(DefaultListModel listModel, GlobalColumnData globalCol, GlobalTableData globalTable){
         //first iterate to check if maximum value of columns is achieved:
         int nCols = 0;
         for (int i = 0; i < listModel.getSize(); i++) {
@@ -1787,7 +1839,7 @@ public class QueryUI extends JPanel{
         }
         if (nCols >= MAX_SELECT_COLS){
             JOptionPane.showMessageDialog(mainMenu, "Maximum number of columns Reached", "Maximum number of columns Reached.\nDelete columns to add new ones.", JOptionPane.WARNING_MESSAGE);
-            return;
+            return false;
         }
         String[] s = null;
         //check if table name of this column exists. If true then inserted here
@@ -1800,27 +1852,22 @@ public class QueryUI extends JPanel{
                 if (!String.valueOf(listModel.getElementAt(i)).contains("    ")){
                     listModel.add(i, new ListElementWrapper("    "+globalCol.getName(), globalCol, ListElementType.GLOBAL_COLUMN));//add column
                     globalTableQueries.addSelectColumn(globalTable, globalCol);
-                    return;
+                    return true;
                 }
             }
             //maybe this table is the last one, insert at last position
             listModel.addElement(new ListElementWrapper("    "+globalCol.getName(), globalCol, ListElementType.GLOBAL_COLUMN));//add column
             globalTableQueries.addSelectColumn(globalTable, globalCol);
-            return;
         }
         else{
             listModel.addElement(new ListElementWrapper(globalTable.getTableName(), globalTable, ListElementType.GLOBAL_TABLE)); //add table name
             listModel.addElement(new ListElementWrapper("    "+globalCol.getName(), globalCol, ListElementType.GLOBAL_COLUMN));//add column
             globalTableQueries.addSelectColumn(globalTable, globalCol);
         }
+        return true;
     }
 
-    private void addRowsToList(DefaultListModel listModel, GlobalColumnData globalCol, GlobalTableData globalTable){
-        //check if column is present in rows Aggregate list
-        /*if (globalTableQueries.getSelectRows().containsKey(globalTable) && globalTableQueries.getSelectRows().get(globalTable).contains(globalCol)){//if present here, already added to rows agg list
-            JOptionPane.showMessageDialog(mainMenu, "This column is already present on the rows aggregation list.\nYou must first remove from there before adding it here.", "Cannot add repeated column", JOptionPane.WARNING_MESSAGE);
-            return;
-        }*/
+    private boolean addRowsToList(DefaultListModel listModel, GlobalColumnData globalCol, GlobalTableData globalTable){
         //check if table name of this column exists. If true then inserted here
         ListElementWrapper elemtTosearch = new ListElementWrapper(globalTable.getTableName(), globalTable, ListElementType.GLOBAL_TABLE);
         if (listModel.contains(elemtTosearch)){
@@ -1831,54 +1878,53 @@ public class QueryUI extends JPanel{
                 if (!String.valueOf(listModel.getElementAt(i)).contains("    ")){
                     listModel.add(i, new ListElementWrapper("    "+globalCol.getName(), globalCol, ListElementType.GLOBAL_COLUMN));//add row
                     globalTableQueries.addSelectRow(globalTable, globalCol);
-                    return;
+                    return true;
                 }
             }
             //maybe this table is the last one, insert at last position
             listModel.addElement(new ListElementWrapper("    "+globalCol.getName(), globalCol, ListElementType.GLOBAL_COLUMN));//add row
             globalTableQueries.addSelectRow(globalTable, globalCol);
-            return;
         }
         else{
             listModel.addElement(new ListElementWrapper(globalTable.getTableName(), globalTable, ListElementType.GLOBAL_TABLE)); //add table name
             listModel.addElement(new ListElementWrapper("    "+globalCol.getName(), globalCol, ListElementType.GLOBAL_COLUMN));//add row
             globalTableQueries.addSelectRow(globalTable, globalCol);
         }
+        return true;
     }
 
-    private void addCountAllToRowsAggr(){
 
-    }
-
-    private void addAggrRow(DefaultListModel listModel, GlobalTableData globalTable, GlobalColumnData attribute, boolean isMeasure){
+    private boolean addAggrRow(DefaultListModel listModel, GlobalTableData globalTable, GlobalColumnData attribute, boolean isMeasure){
 
         if ((attribute.getAggrOp() == null || attribute.getAggrOp().isEmpty()) )//if attribute
-            attribute.setAggrOp(aggregationOpComboBox.getSelectedItem().toString(), distinctCheckBox.isSelected());
+            attribute.setAggrOp(aggregationOpComboBox.getSelectedItem().toString(), false);
 
         if (isMeasure) {
-            String measureStr = attribute.getName();
-            for (int i = 0; i < listModel.size(); i++) {
-                if (listModel.get(i).toString().equals(measureStr)) {
-                    JOptionPane.showMessageDialog(mainMenu, "Measure already present. Cannot add repeated Measure.", "Cannot add measure", JOptionPane.WARNING_MESSAGE);
-                    return;
-                }
+            if(globalTableQueries.measureExists(attribute)){
+                JOptionPane.showMessageDialog(mainMenu, "Measure already present. Cannot add repeated measure with same Aggregate Function.", "Cannot add measure", JOptionPane.WARNING_MESSAGE);
+                return false;
             }
             //ADD measures group if not present: check if first item is measures title
+            int indexForFactsTable = 0;
+            if (countAllAdded)
+                indexForFactsTable = 1;
             if (listModel.isEmpty())
-                listModel.add(0, new ListElementWrapper("Measures of "+globalTable.getTableName(), globalTable, ListElementType.GLOBAL_TABLE));
+                listModel.add(indexForFactsTable, new ListElementWrapper("Measures of "+globalTable.getTableName(), globalTable, ListElementType.GLOBAL_TABLE));
             else {
-                ListElementWrapper firstElem = (ListElementWrapper) listModel.getElementAt(0);
-                if (!firstElem.getName().contains(globalTable.getTableName())) {
-                    listModel.add(0, new ListElementWrapper(globalTable.getTableName(), globalTable, ListElementType.GLOBAL_TABLE));
+                //add measures table at first or second position (second if count(*) is added)
+                ListElementWrapper firstElem = (ListElementWrapper) listModel.getElementAt(indexForFactsTable);
+                GlobalTableData t = (GlobalTableData)firstElem.getObj();
+                if (!t.equals(globalTable)) {
+                    listModel.add(indexForFactsTable, new ListElementWrapper("Measures of "+globalTable.getTableName(), globalTable, ListElementType.GLOBAL_TABLE));
                 }
             }
             //add on last element below measures group
-            for (int i = 1; i < listModel.size(); i++){
+            for (int i = (indexForFactsTable+1); i < listModel.size(); i++){
                 ListElementWrapper currElem = (ListElementWrapper) listModel.getElementAt(i);
                 if (currElem.getType() == ListElementType.GLOBAL_TABLE){
                     listModel.add(i, new ListElementWrapper("    "+attribute.getAggrOpName(), attribute, ListElementType.MEASURE));
                     globalTableQueries.addMeasure(attribute);
-                    return;
+                    return true;
                 }
             }
             listModel.add(listModel.getSize(), new ListElementWrapper("    "+attribute.getAggrOpName(), attribute, ListElementType.MEASURE));
@@ -1897,13 +1943,13 @@ public class QueryUI extends JPanel{
                     if (currElem.getType() == ListElementType.GLOBAL_TABLE){
                         listModel.add(i, new ListElementWrapper("    "+attribute.getAggrOpName(), attribute, ListElementType.GLOBAL_COLUMN));//add row
                         globalTableQueries.addSelectRow(globalTable, attribute);
-                        return;
+                        return true;
                     }
                 }
                 //maybe this table is the last one, insert at last position
                 listModel.addElement(new ListElementWrapper("    "+attribute.getAggrOpName(), attribute, ListElementType.GLOBAL_COLUMN));//add row
                 globalTableQueries.addSelectRow(globalTable, attribute);
-                return;
+
             }
             else{
                 listModel.addElement(new ListElementWrapper(globalTable.getTableName(), globalTable, ListElementType.GLOBAL_TABLE)); //add table name
@@ -1911,15 +1957,62 @@ public class QueryUI extends JPanel{
                 globalTableQueries.addSelectRow(globalTable, attribute);
             }
         }
+        return true;
     }
 
+    private ActionListener changeToManualEditFilter(){
+            return new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent arg0) {
+                    int dialogResult = JOptionPane.showConfirmDialog (mainMenu, "If you switch to manual mode, all current filters will be converted to SQL and you can manually edit them.\n" +
+                            "However, you cannot drop items from the star schema to these filters. To do this you must change back to normal mode on the pop up menu \n" +
+                            "Would you like to continue?","Warning",JOptionPane.YES_NO_OPTION);
+                    if(dialogResult == JOptionPane.YES_OPTION){
+                        //change to edit mode
+                        String filtersStr = getFilterQuery(false);
+                        filterTree.setVisible(false);
+                        editFilters.setVisible(true);
+                        filterPane.getViewport().remove(filterTree);
+                        filterPane.getViewport().add(editFilters);
+                        editFilters.setText(filtersStr);
+                        filtersLabel.setText("Filters - Manual Edit Mode");
+                    }
 
+                }
+            };
+    }
+
+    private ActionListener changeToNormalEditFilter(){
+        return new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent arg0) {
+                int dialogResult = JOptionPane.showConfirmDialog (mainMenu, "Changing back to normal mode will reset all filters created.\n Would you like to continue?","Warning",JOptionPane.YES_NO_OPTION);
+                if(dialogResult == JOptionPane.YES_OPTION){
+                    //change to normal mode
+                    editFilters.setVisible(false);
+                    filterTree.setVisible(true);
+                    clearFilters();
+                    globalTableQueries.setFilterQuery("");
+                    filterPane.getViewport().remove(editFilters);
+                    filterPane.getViewport().add(filterTree);
+                    filtersLabel.setText("Filters - Normal Edit Mode");
+                }
+
+            }
+        };
+    }
+
+    public void addQueryGenLog(){
+        globalTableQueries.setFilterQuery(getFilterQuery(false));
+        globalTableQueries.setFilterAggrQuery(getFilterQuery(true));
+        String query = globalTableQueries.buildQuery(false);
+        DateTime currentTime = new DateTime();
+        DateTimeFormatter formatter = DateTimeFormat.forPattern("HH:mm:ss");
+        queryGenLogModel.addElement(formatter.print(currentTime)+ " - "+query);
+    }
 
     class TreeTransferHandler extends TransferHandler {
         DataFlavor[] flavors = new DataFlavor[2];
-        private int[] indices = null;
-        private int addIndex = -1; //Location where items were added
-        private int addCount = 0;  //Number of items added.
 
         public TreeTransferHandler() {
             flavors[0] = new DataFlavor(CustomTreeNode.class, "custom node");
@@ -1988,13 +2081,19 @@ public class QueryUI extends JPanel{
 
             try {
                 CustomTreeNode data = (CustomTreeNode) t.getTransferData(flavors[0]);
-                return handleNodeTransfer(data, info);
+                boolean added = handleNodeTransfer(data, info);
+                if (added)
+                    addQueryGenLog();
+                return added;
             } catch (Exception e) {
                 if (e.getLocalizedMessage().contains("custom node")) {
                     //it may be a transfer from list to filter aggregate area
                     try {
                         ListElementWrapper listElem = (ListElementWrapper) t.getTransferData(flavors[1]);
-                        return handleListTransfer(listElem, info);
+                        boolean added = handleListTransfer(listElem, info);
+                        if (added)
+                            addQueryGenLog();
+                        return added;
                     } catch (Exception ex) {
                         ex.printStackTrace();
                     }
@@ -2021,7 +2120,7 @@ public class QueryUI extends JPanel{
                 if (tree.equals(aggrFiltersTree)){
                     //user drops in the filter aggr tree
                     if (tree.equals(aggrFiltersTree)){
-                        insertAggrFilterNode(dest, column);
+                        return insertAggrFilterNode(dest, column);
                     }
 
                 }
@@ -2039,6 +2138,7 @@ public class QueryUI extends JPanel{
             CustomTreeNode globalTable = (CustomTreeNode) data.getParent();
             GlobalTableData gt = (GlobalTableData) globalTable.getObj();
             column.setFullName(gt.getTableName()+"."+column.getName());
+            boolean added = false;
 
             if (info.getComponent() instanceof JList){
                 JList list = (JList) info.getComponent();
@@ -2048,31 +2148,26 @@ public class QueryUI extends JPanel{
                 if (index == -1)
                     index = 0;
 
-                addIndex = index;
                 CustomTreeNode parentNode = (CustomTreeNode) data.getParent();//global table
                 GlobalTableData tab = (GlobalTableData) parentNode.getObj();
                 GlobalColumnData col = (GlobalColumnData)data.getObj();
 
                 if (list.equals(columnsList)){
                     //select columns list
-                    addColumnsToList(listModel, col, tab) ;
+                    added = addColumnsToList(listModel, col, tab) ;
                 }
                 else if (list.equals(rowsList)){
                     //select rows list
-                    addRowsToList(listModel, col, tab) ;
+                    added = addRowsToList(listModel, col, tab) ;
                 }
                 else if (list.equals(measuresList)){
-                    /*if (data.getNodeType() != NodeType.MEASURE){
-                        JOptionPane.showMessageDialog(mainMenu, "You can only drag measures to this area.", "Measures only", JOptionPane.WARNING_MESSAGE);
-                        return false;
-                    }*/
                     if (data.getNodeType() != NodeType.MEASURE && (globalTableQueries.getMeasures().size() > 1 && globalTableQueries.getSelectColumns().size() > 0)){
                         JOptionPane.showMessageDialog(mainMenu, "You can only use 1 measure when creating a query with pivot attributes.", "1 measure max", JOptionPane.WARNING_MESSAGE);
                         return false;
                     }
-                    addAggrRow(listModel, tab, col, data.getNodeType() == NodeType.MEASURE);
+                    added = addAggrRow(listModel, tab, col, data.getNodeType() == NodeType.MEASURE);
                 }
-                return true;
+                return added;
             }
             //user drops on jtree
             else if (info.getComponent() instanceof JTree){
@@ -2080,8 +2175,9 @@ public class QueryUI extends JPanel{
                 JTree.DropLocation dl = (JTree.DropLocation)info.getDropLocation();
                 TreePath dest = dl.getPath();
                 if (tree.equals(filterTree)){
-                    insertFilterNode(dest, column);
+                    added = insertFilterNode(dest, column);
                 }
+                return added;
             }
             return false;
         }
