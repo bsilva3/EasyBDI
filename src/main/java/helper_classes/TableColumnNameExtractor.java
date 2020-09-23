@@ -1,9 +1,6 @@
 package helper_classes;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -26,7 +23,7 @@ public class TableColumnNameExtractor {
         while (matcher.find()) {
             String tableColumn = matcher.group(0);
             String[] tableColSplit = tableColumn.split("\\.");
-            if (tableColumnStrings.containsKey(tableColSplit[0])){
+            if (tableColumnStrings.containsKey(tableColSplit[0]) && !tableColumnStrings.get(tableColSplit[0]).contains(tableColSplit[1])){
                 tableColumnStrings.get(tableColSplit[0]).add(tableColSplit[1]);
             }
             else {
@@ -34,6 +31,16 @@ public class TableColumnNameExtractor {
                 l.add(tableColSplit[1]);
                 tableColumnStrings.put(tableColSplit[0], l);
             }
+        }
+        return tableColumnStrings;
+    }
+
+    public Set<String> getColumnsFromStringSet(String text){
+        Matcher matcher = pattern.matcher(text);
+        Set<String> tableColumnStrings = new HashSet<>();
+        while (matcher.find()) {
+            String tableColumn = matcher.group(0);
+            tableColumnStrings.add(tableColumn);
         }
         return tableColumnStrings;
     }

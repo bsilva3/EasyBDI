@@ -146,8 +146,8 @@ public class QueryUI extends JPanel{
                     "<p>Distinct can only be added to attributes with aggregate functions. For attributes with no aggregate functions, the group by will produce a similar" +
                     "effect as distinct.</p>" +
                     "<p>Order by is available by right clicking on an attribute.</p></html>");
-            measuresManualEditLabel = new JLabel("<html><p>To manually insert attributes with aggregate functions identify attributes in the current star schema in the form " +
-                    "'table.attribute'</p> <p>Any attribute identified here must be used within an aggregate function. Measures and Dimension attributes can be specified here</p>");
+            measuresManualEditLabel = new JLabel("<html><p>To manually edit this area, identify attributes in the current star schema in the form " +
+                    "'table.attribute', along with an aggregate function.</p> <p>Any attribute identified here must be used within an aggregate function. Measures and Dimension attributes can be specified here.</p>");
             measuresManualEditLabel.setFont(new Font("", Font.PLAIN, 12));
             measuresLabel.setText("Aggregations - Normal Edit Mode");
             aggrFiltersLabel.setIcon(new ImageIcon(img.getScaledInstance(20, 20, 0)));
@@ -842,14 +842,14 @@ public class QueryUI extends JPanel{
             else
                 order = "DESC";
             if (isAggrRow) {
-                elem.setName(c.getAggrOpName() +" ("+order+")");
+                elem.setName(elem.getName()+" ("+order+")");
                 globalTableQueries.addOrderByRow(c.getAggrOpFullName()+" "+order);//add Aggr(table.col) sortOrder to queries
                 measuresListModel.setElementAt(elem, index);//update element with ASC or DESC to signal it will be ordered
                 aggregationsList.revalidate();
                 aggregationsList.updateUI();
             }
             else {
-                elem.setName(c.getName()+ " ("+order+")");
+                elem.setName(elem.getName()+ " ("+order+")");
                 rowsListModel.setElementAt(elem, index);//update element with ASC or DESC to signal it will be ordered
                 rowsList.revalidate();
                 rowsList.updateUI();
@@ -1230,8 +1230,13 @@ public class QueryUI extends JPanel{
             treeModel = filterTreeModel;
             textArea = editFilters;
         }
-        if (textArea != null && textArea.isVisible()) //manual edit mode
+        if (textArea != null && textArea.isVisible()) { //manual edit mode
+            if (!isAggrFilter){
+                TableColumnNameExtractor ext = new TableColumnNameExtractor();
+                globalTableQueries.setFilters(ext.getColumnsFromStringSet(textArea.getText()));
+            }
             return textArea.getText();
+        }
         //normal mode
         if (treeModel == null) //easy fix
             return "";
@@ -1284,19 +1289,23 @@ public class QueryUI extends JPanel{
                     break;
                 }
             }
+            if (globalTableQueries.getMeasures().size()>0 || globalTableQueries.getManualMeasures().size()>0){ //if measure table has filters, check if it is selected
+                if (tableName.equals(starSchema.getFactsTable().getGlobalTable().getTableName()))
+                    isSelected = true;
+            }
             //check the tables on columns selected
-            for (Map.Entry<GlobalTableData, List<GlobalColumnData>> rows : globalTableQueries.getSelectColumns().entrySet()){
+            /*for (Map.Entry<GlobalTableData, List<GlobalColumnData>> rows : globalTableQueries.getSelectColumns().entrySet()){
                 GlobalTableData gt = rows.getKey();
                 if (gt.getTableName().equals(tableName)){
                     isSelected = true;
                     break;
                 }
-            }
+            }*/
             if (!isSelected){//this filter tables is not selected in the rows
                 return false;
             }
         }
-        return true;//all filter tables are seleced in the rows
+        return true;//all filter tables are seleced in the rows or measure
     }
 
     public void executeQueryAndShowResults(){
@@ -1305,22 +1314,22 @@ public class QueryUI extends JPanel{
             protected Void doInBackground() throws InterruptedException {
                 DateTime beginTime = new DateTime();
                 //validate query string
-                System.out.println(filterTableExistsInRows());
-                if (!filterTableExistsInRows()){
-                    LoadingScreenAnimator.closeGeneralLoadingAnimation();
-                    backButton.setEnabled(true);
-                    JOptionPane.showMessageDialog(mainMenu, "There is one or more columns in filters \n not selected in the rows area.", "Invalid Query", JOptionPane.ERROR_MESSAGE);
-                    return null;
-                }
                 //buld query string
-                globalTableQueries.setFilterQuery(getFilterQuery(false));
-                globalTableQueries.setFilterAggrQuery(getFilterQuery(true));
-
                 if (manualAggregations.isVisible()){
                     globalTableQueries.setManualAggregationsStr(manualAggregations.getText());
                     TableColumnNameExtractor tExtractor = new TableColumnNameExtractor();
                     globalTableQueries.setManualRowsAndMeasuresAggr(tExtractor.getSchemaObjectsFromSQLText(manualAggregations.getText(), starSchema));
                 }
+
+                if (!filterTableExistsInRows()){
+                    LoadingScreenAnimator.closeGeneralLoadingAnimation();
+                    backButton.setEnabled(true);
+                    JOptionPane.showMessageDialog(mainMenu, "There is one or more columns in filters \n not selected in the rows area.", "Invalid Query", JOptionPane.ERROR_MESSAGE);
+                    globalTableQueries.clearFilters();
+                    return null;
+                }
+                globalTableQueries.setFilterQuery(getFilterQuery(false));
+                globalTableQueries.setFilterAggrQuery(getFilterQuery(true));
 
                 String localQuery = globalTableQueries.buildQuery(true);//create query with inner query to get local table data
                 System.out.println(localQuery);
@@ -2023,6 +2032,7 @@ public class QueryUI extends JPanel{
                     measuresLabel.setText("Aggregations - Manual Edit Mode");
 
                     aggrAreaPanel.remove(aggregationOpComboBox);
+                    measuresManualEditLabel.setVisible(true);
                     aggrAreaPanel.add(measuresManualEditLabel);
                 }
             }
@@ -2172,8 +2182,8 @@ public class QueryUI extends JPanel{
             try {
                 CustomTreeNode data = (CustomTreeNode) t.getTransferData(flavors[0]);
                 boolean added = handleNodeTransfer(data, info);
-                if (added)
-                    addQueryGenLog();
+                //if (added)
+                    //addQueryGenLog();
                 return added;
             } catch (Exception e) {
                 if (e.getLocalizedMessage().contains("custom node")) {
@@ -2181,8 +2191,8 @@ public class QueryUI extends JPanel{
                     try {
                         ListElementWrapper listElem = (ListElementWrapper) t.getTransferData(flavors[1]);
                         boolean added = handleListTransfer(listElem, info);
-                        if (added)
-                            addQueryGenLog();
+                        //if (added)
+                            //addQueryGenLog();
                         return added;
                     } catch (Exception ex) {
                         ex.printStackTrace();

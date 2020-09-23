@@ -85,7 +85,7 @@
           </grid>
           <grid id="1cab" layout-manager="GridBagLayout">
             <constraints>
-              <tabbedpane title="SQL Query Generation Log"/>
+              <tabbedpane title="Global Schema Query"/>
             </constraints>
             <properties/>
             <border type="none"/>
@@ -119,7 +119,7 @@
           <component id="a2d70" class="javax.swing.JButton" binding="loadQueryButton" default-binding="true">
             <constraints>
               <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
-              <gridbag weightx="1.0" weighty="0.1"/>
+              <gridbag weightx="0.5" weighty="0.1"/>
             </constraints>
             <properties>
               <text value="Load Query"/>
@@ -128,7 +128,7 @@
           <component id="bb871" class="javax.swing.JButton" binding="saveQueryButton" default-binding="true">
             <constraints>
               <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
-              <gridbag weightx="1.0" weighty="0.1"/>
+              <gridbag weightx="0.5" weighty="0.1"/>
             </constraints>
             <properties>
               <text value="Save Query"/>
@@ -137,7 +137,7 @@
           <component id="f1e6d" class="javax.swing.JButton" binding="exportResultsToCSVButton" default-binding="true">
             <constraints>
               <grid row="0" column="3" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
-              <gridbag weightx="1.0" weighty="0.1"/>
+              <gridbag weightx="0.5" weighty="0.1"/>
             </constraints>
             <properties>
               <text value="Export Results to CSV"/>
@@ -146,7 +146,7 @@
           <component id="ca426" class="javax.swing.JButton" binding="executeQueryButton" default-binding="true">
             <constraints>
               <grid row="0" column="4" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-              <gridbag weightx="1.0" weighty="0.1"/>
+              <gridbag weightx="0.5" weighty="0.1"/>
             </constraints>
             <properties>
               <text value="Execute Query"/>
@@ -155,7 +155,7 @@
           <component id="40a06" class="javax.swing.JButton" binding="clearAllFieldsButton" default-binding="true">
             <constraints>
               <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
-              <gridbag weightx="1.0" weighty="0.1"/>
+              <gridbag weightx="0.5" weighty="0.1"/>
             </constraints>
             <properties>
               <text value="Clear All Fields"/>
@@ -200,7 +200,7 @@
           <scrollpane id="fb405" binding="filterPane">
             <constraints>
               <grid row="3" column="0" row-span="1" col-span="2" vsize-policy="7" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-              <gridbag weightx="3.2" weighty="1.0"/>
+              <gridbag weightx="3.2" weighty="1.2"/>
             </constraints>
             <properties>
               <horizontalScrollBarPolicy value="30"/>
@@ -212,9 +212,10 @@
                 <properties>
                   <dragEnabled value="true"/>
                   <editable value="true"/>
+                  <preferredSize width="80" height="300"/>
                   <rootVisible value="false"/>
-                  <rowHeight value="20"/>
-                  <visibleRowCount value="5"/>
+                  <rowHeight value="14"/>
+                  <visibleRowCount value="20"/>
                 </properties>
               </component>
             </children>
@@ -320,19 +321,16 @@
               <text value=""/>
             </properties>
           </component>
-          <grid id="95082" binding="aggrAreaPanel" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
-            <margin top="0" left="0" bottom="0" right="0"/>
+          <grid id="95082" binding="aggrAreaPanel" layout-manager="BorderLayout" hgap="0" vgap="0">
             <constraints>
               <grid row="1" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-              <gridbag weightx="1.0" weighty="0.1"/>
+              <gridbag top="2" left="0" bottom="2" right="0" weightx="1.0" weighty="0.1"/>
             </constraints>
             <properties/>
             <border type="none"/>
             <children>
               <component id="8eee0" class="javax.swing.JComboBox" binding="aggregationOpComboBox">
-                <constraints>
-                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
-                </constraints>
+                <constraints border-constraint="Center"/>
                 <properties/>
               </component>
             </children>

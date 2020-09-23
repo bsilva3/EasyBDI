@@ -272,6 +272,47 @@ public class GlobalTableQuery {
             return "Error: Invalid Mapping Type";
     }
 
+    //add measure attributes on filters that are not on select clause
+    private Set<GlobalColumnData> addFilterColumnIfNeededToMeasures(List<GlobalColumnData> measureAttrs) {
+        Set<GlobalColumnData> measuresAttrsWithFiltersSelection = new HashSet<>(measureAttrs);
+        //for each filter  measure, add the measures to the list of selected measures if not present in the list given as parameter
+        if (filterQuery.length() > 0 && filters.size() > 0) {
+            List<String> measureFilters = new ArrayList<>();
+            for (String filterCol : filters) {
+                String[] filterSplit = filterCol.split("\\.");
+                String tableName = filterSplit[0];
+                if (tableName.equals(factsTable.getGlobalTable().getTableName())) //only cols from facts table (measures)
+                    measureFilters.add(filterCol);
+            }
+            for (String filterCol : measureFilters) {
+                String[] filterSplit = filterCol.split("\\.");
+                String colName = filterSplit[1];
+                boolean isSelected = false;
+                for (GlobalColumnData measure : measureAttrs) {
+                    if (measure.getName().equals(colName)) {
+                        isSelected = true; //already present, no need to add to the list of selected measures
+                        break;
+                    }
+                }
+                if (!isSelected){
+                    //column in filter not in user selection, add it
+                    GlobalColumnData c = getMeasureFromName(colName);
+                    if (c!= null)
+                        measuresAttrsWithFiltersSelection.add(c);
+                }
+            }
+        }
+        return measuresAttrsWithFiltersSelection;
+    }
+
+    private GlobalColumnData getMeasureFromName(String measureName){
+        for (Map.Entry<GlobalColumnData, Boolean> factCols : factsTable.getColumns().entrySet()){
+            if (factCols.getValue() == true && factCols.getKey().getName().equals(measureName))
+                return factCols.getKey();
+        }
+        return null;
+    }
+
     private Map<GlobalTableData, List<GlobalColumnData>> addFilterColumnIfNeeded(Map<GlobalTableData, List<GlobalColumnData>> selectAttrs){
         if (filterQuery.length() > 0 && filters.size() > 0){
             for (String filterCol : filters){
@@ -486,7 +527,6 @@ public class GlobalTableQuery {
         }
 
 
-
         //list of measures that are not aggregated, and therefore must appear on the group by clause
         if (selectMeasure) {
             List<String> measureNames = new ArrayList<>();
@@ -507,7 +547,7 @@ public class GlobalTableQuery {
                 }
                 else{
                     query += measureCol.getName() + ",";
-                    if( measureCol.getAggrOp().equalsIgnoreCase("Group By"))
+                    if( measureCol.getAggrOp() != null && measureCol.getAggrOp().equalsIgnoreCase("Group By"))
                         selectColsGroupBy.add(factsTable.getGlobalTable().getTableName() + "." + measureCol.getName());
                     else
                         selectColsNoAggr.add(factsTable.getGlobalTable().getTableName() + "." + measureCol.getName());
@@ -541,6 +581,14 @@ public class GlobalTableQuery {
                 query += t.getTableName() + ",";
             }
         }
+
+        List <GlobalColumnData> measuresCopy = new ArrayList<>();
+        if (measures.size() > 0)
+            measuresCopy = new ArrayList<>(measures);
+        else if (manualMeasures.size() > 0) {
+            measuresCopy = new ArrayList<>(manualMeasures);
+        }
+        measuresCopy = new ArrayList<>(addFilterColumnIfNeededToMeasures(measuresCopy));
         //get facts table in from clause
         //get necessary attributes of facts table
         List<GlobalColumnData> factsCols = new ArrayList<>();
@@ -549,7 +597,7 @@ public class GlobalTableQuery {
             Boolean isMeasure = factsCol.getValue();
             GlobalColumnData col = factsCol.getKey();
             if (isMeasure){
-                for (GlobalColumnData m : measures) {
+                for (GlobalColumnData m : measuresCopy) {
                     if (col.getName().equals(m.getName())) {
                         factsCols.add(col);
                         break;
@@ -1313,6 +1361,12 @@ public class GlobalTableQuery {
 
     public void clearMeasures(){
         measures.clear();
+    }
+
+    public void clearFilters(){
+        filters.clear();
+        filterQuery = "";
+        filterAggrQuery = "";
     }
 
     public void clearAllElements(){
