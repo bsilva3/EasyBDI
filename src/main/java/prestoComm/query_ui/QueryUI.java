@@ -46,7 +46,8 @@ public class QueryUI extends JPanel{
     private JTree schemaTree;
     private JTree filterTree;
     private JTextArea editFilters;
-    private JList measuresList;
+    private JList aggregationsList;
+    private JTextArea manualAggregations;
     private JComboBox aggregationOpComboBox;
     private JList rowsList;
     private JPanel mainPanel;
@@ -67,11 +68,14 @@ public class QueryUI extends JPanel{
     private JLabel rowsLabel;
     private JLabel columnLabel;
     private JLabel measuresLabel;
+    private JLabel measuresManualEditLabel;
     private JLabel filtersLabel;
     private JLabel aggrFiltersLabel;
     private JLabel arrowLabel;
     private JScrollPane filterPane;
     private JList queryGenLogList;
+    private JScrollPane aggregationsPane;
+    private JPanel aggrAreaPanel;
 
     private StarSchema starSchema;
     private GlobalTableQuery globalTableQueries;//used to store all queries for each global table, and their columns
@@ -142,6 +146,10 @@ public class QueryUI extends JPanel{
                     "<p>Distinct can only be added to attributes with aggregate functions. For attributes with no aggregate functions, the group by will produce a similar" +
                     "effect as distinct.</p>" +
                     "<p>Order by is available by right clicking on an attribute.</p></html>");
+            measuresManualEditLabel = new JLabel("<html><p>To manually insert attributes with aggregate functions identify attributes in the current star schema in the form " +
+                    "'table.attribute'</p> <p>Any attribute identified here must be used within an aggregate function. Measures and Dimension attributes can be specified here</p>");
+            measuresManualEditLabel.setFont(new Font("", Font.PLAIN, 12));
+            measuresLabel.setText("Aggregations - Normal Edit Mode");
             aggrFiltersLabel.setIcon(new ImageIcon(img.getScaledInstance(20, 20, 0)));
             aggrFiltersLabel.addMouseListener(adapterTooltip);
             aggrFiltersLabel.setToolTipText("<html><p>Drag attributes from the aggregations area to create conditions with those attributes.</p> " +
@@ -154,7 +162,7 @@ public class QueryUI extends JPanel{
                     "<p>Any attributes that belongs to a table not listed on those 2 areas will result in an invalid SQL.</p> " +
                     "<p>It is however possible to use attributes even if that attribute is not selected in any of those areas if the table from the attribute is listed on at least one of the areas.</p>" +
                     "<p>This is equivalent as to adding a condition on a SQL Where statement.</p>" +
-                    "<p>It is possible to write the filters instead of a dragging and droppingt then by selecting the 'change to manual edit' option on the pop up menu.</p></html>");
+                    "<p>It is possible to write the filters instead of a dragging and dropping then by selecting the 'change to manual edit' option on the pop up menu.</p></html>");
             filtersLabel.setText(filtersLabel.getText() + " - Normal Edit Mode");
 
             img = ImageIO.read(new File(Constants.IMAGES_DIR+"arrow_right.png"));
@@ -198,15 +206,15 @@ public class QueryUI extends JPanel{
             aggrFiltersTree.setModel(aggrFilterTreeModel);
             aggrFiltersTree.setCellRenderer(new FilterNodeCellRenderer());
             aggrFiltersTree.addMouseListener(getMouseListenerForAggFilterTree());
-            measuresList.setModel(measuresListModel);
-            measuresList.setCellRenderer(new CustomGroupCellRendererList());
+            aggregationsList.setModel(measuresListModel);
+            aggregationsList.setCellRenderer(new CustomGroupCellRendererList());
             rowsList.setModel(rowsListModel);
             columnsList.setModel(columnListModel);
             queryLogList.setModel(queryStatusLogModel);
             queryGenLogList.setModel(queryGenLogModel);
 
             filterTree.setTransferHandler(new TreeTransferHandler());
-            measuresList.setTransferHandler(new TreeTransferHandler());
+            aggregationsList.setTransferHandler(new TreeTransferHandler());
             rowsList.setTransferHandler(new TreeTransferHandler());
             columnsList.setTransferHandler(new TreeTransferHandler());
             aggrFiltersTree.setTransferHandler(new TreeTransferHandler());
@@ -216,6 +224,12 @@ public class QueryUI extends JPanel{
             editFilters.setWrapStyleWord(true);
             editFilters.setLineWrap(true);
             editFilters.addMouseListener(getMouseListenerEditFilterTextArea());
+
+            manualAggregations = new JTextArea(80, 100);
+            manualAggregations.setVisible(false);
+            manualAggregations.setWrapStyleWord(true);
+            manualAggregations.setLineWrap(true);
+            manualAggregations.addMouseListener(getMouseListenerEditAggrTextArea());
 
             queryLogList.setCellRenderer(new StripeRenderer());
             queryGenLogList.setCellRenderer(new StripeRenderer());
@@ -259,7 +273,7 @@ public class QueryUI extends JPanel{
             //listeners for lists left click to open menus
             columnsList.addMouseListener(getMouseListenerForColumnList());
             rowsList.addMouseListener(getMouseListenerForRowsList());
-            measuresList.addMouseListener(getMouseListenerForMeasuresList());
+            aggregationsList.addMouseListener(getMouseListenerForMeasuresList());
 
             queryLogList.addMouseListener(new MouseAdapter() {
                 public void mouseClicked(MouseEvent evt) {
@@ -337,8 +351,8 @@ public class QueryUI extends JPanel{
         rowsList.updateUI();
         columnsList.revalidate();
         columnsList.updateUI();
-        measuresList.revalidate();
-        measuresList.updateUI();
+        aggregationsList.revalidate();
+        aggregationsList.updateUI();
         aggrFiltersTree.setModel(null);
         aggrFiltersTree.revalidate();
         aggrFiltersTree.updateUI();
@@ -831,8 +845,8 @@ public class QueryUI extends JPanel{
                 elem.setName(c.getAggrOpName() +" ("+order+")");
                 globalTableQueries.addOrderByRow(c.getAggrOpFullName()+" "+order);//add Aggr(table.col) sortOrder to queries
                 measuresListModel.setElementAt(elem, index);//update element with ASC or DESC to signal it will be ordered
-                measuresList.revalidate();
-                measuresList.updateUI();
+                aggregationsList.revalidate();
+                aggregationsList.updateUI();
             }
             else {
                 elem.setName(c.getName()+ " ("+order+")");
@@ -923,8 +937,8 @@ public class QueryUI extends JPanel{
                 else if (elem.getType() == ListElementType.GLOBAL_COLUMN){
                     globalTableQueries.deleteSelectRowFromTable(table, col);
                 }
-                measuresList.updateUI();
-                measuresList.revalidate();
+                aggregationsList.updateUI();
+                aggregationsList.revalidate();
             }
         };
     }
@@ -1302,6 +1316,12 @@ public class QueryUI extends JPanel{
                 globalTableQueries.setFilterQuery(getFilterQuery(false));
                 globalTableQueries.setFilterAggrQuery(getFilterQuery(true));
 
+                if (manualAggregations.isVisible()){
+                    globalTableQueries.setManualAggregationsStr(manualAggregations.getText());
+                    TableColumnNameExtractor tExtractor = new TableColumnNameExtractor();
+                    globalTableQueries.setManualRowsAndMeasuresAggr(tExtractor.getSchemaObjectsFromSQLText(manualAggregations.getText(), starSchema));
+                }
+
                 String localQuery = globalTableQueries.buildQuery(true);//create query with inner query to get local table data
                 System.out.println(localQuery);
                 if (localQuery.contains("Error")){
@@ -1674,7 +1694,7 @@ public class QueryUI extends JPanel{
 
             @Override
             public void mousePressed(MouseEvent arg0) {
-                int index = measuresList.locationToIndex(arg0.getPoint());
+                int index = aggregationsList.locationToIndex(arg0.getPoint());
 
                 //add (add count(*) ) option even if no element selected
                 //count *
@@ -1686,13 +1706,17 @@ public class QueryUI extends JPanel{
                     menuCountTitle = "Add Count(*)";
                 JPopupMenu menu = new JPopupMenu();
                 JMenuItem countAllItem = new JMenuItem(menuCountTitle);
-                countAllItem.addActionListener(addRemoveCountAll(measuresListModel, measuresList));
-                menu.add(countAllItem);
+                countAllItem.addActionListener(addRemoveCountAll(measuresListModel, aggregationsList));
+
+                JMenuItem manualEditItem = new JMenuItem("Change to Manual Edit");
+                manualEditItem.addActionListener(changeToManualEditAggr());
                 if (index < 0) {
-                    measuresList.setComponentPopupMenu(menu);
+                    menu.add(countAllItem);
+                    menu.add(manualEditItem);
+                    aggregationsList.setComponentPopupMenu(menu);
                     return;
                 }
-                measuresList.setSelectedIndex(index);
+                aggregationsList.setSelectedIndex(index);
                 ListElementWrapper elem = (ListElementWrapper)measuresListModel.get(index);
                 if (elem.getType() == ListElementType.GLOBAL_TABLE){
                     return;
@@ -1724,12 +1748,12 @@ public class QueryUI extends JPanel{
                 subItem.addActionListener(getAddGroupByListenerRows(index, true, true));
                 subItem2.addActionListener(getAddGroupByListenerRows(index, false, true));
                 subItem3.addActionListener(getRemoveGroupByListenerRows(index));
-                subItem20.addActionListener(getChangeAggregateActionListener(index, GROUP_BY_OP, measuresListModel, measuresList));
-                subItem21.addActionListener(getChangeAggregateActionListener(index, "COUNT", measuresListModel, measuresList));
-                subItem23.addActionListener(getChangeAggregateActionListener(index, "SUM", measuresListModel, measuresList));
-                subItem24.addActionListener(getChangeAggregateActionListener(index, "AVG", measuresListModel, measuresList));
-                subItem25.addActionListener(getChangeAggregateActionListener(index, "MAX", measuresListModel, measuresList));//not added
-                subItem26.addActionListener(getChangeAggregateActionListener(index, "MIN", measuresListModel, measuresList));//not added
+                subItem20.addActionListener(getChangeAggregateActionListener(index, GROUP_BY_OP, measuresListModel, aggregationsList));
+                subItem21.addActionListener(getChangeAggregateActionListener(index, "COUNT", measuresListModel, aggregationsList));
+                subItem23.addActionListener(getChangeAggregateActionListener(index, "SUM", measuresListModel, aggregationsList));
+                subItem24.addActionListener(getChangeAggregateActionListener(index, "AVG", measuresListModel, aggregationsList));
+                subItem25.addActionListener(getChangeAggregateActionListener(index, "MAX", measuresListModel, aggregationsList));//not added
+                subItem26.addActionListener(getChangeAggregateActionListener(index, "MIN", measuresListModel, aggregationsList));//not added
                 //add/remove distinct
                 String menuDistinctTitle = "";
                 String selectedElem = measuresListModel.getElementAt(index).toString();
@@ -1739,7 +1763,7 @@ public class QueryUI extends JPanel{
                 else
                     menuDistinctTitle = "Add DISTINCT";
                 JMenuItem item3 = new JMenuItem(menuDistinctTitle);
-                item3.addActionListener(getChangeAggregateDistinctActionListener(index, measuresListModel, measuresList));
+                item3.addActionListener(getChangeAggregateDistinctActionListener(index, measuresListModel, aggregationsList));
 
                 //item1.addActionListener(getRemoveActionListener());
                 menu.add(item1);
@@ -1748,7 +1772,8 @@ public class QueryUI extends JPanel{
                 if (selectedElem.contains("SUM") ||selectedElem.contains("AVG") || selectedElem.contains("COUNT"))//cannot add distinct if current attribute does not have aggregate function
                     menu.add(item3);
                 menu.add(countAllItem);
-                measuresList.setComponentPopupMenu(menu);
+                menu.add(manualEditItem);
+                aggregationsList.setComponentPopupMenu(menu);
                 super.mousePressed(arg0);
             }
         };
@@ -1776,6 +1801,21 @@ public class QueryUI extends JPanel{
                 editItem.addActionListener(changeToNormalEditFilter());
                 menu.add(editItem);
                 editFilters.setComponentPopupMenu(menu);
+                super.mousePressed(arg0);
+            }
+        };
+    }
+
+    private MouseListener getMouseListenerEditAggrTextArea() {
+        return new MouseAdapter() {
+
+            @Override
+            public void mousePressed(MouseEvent arg0) {
+                JPopupMenu menu = new JPopupMenu();
+                JMenuItem editItem = new JMenuItem("Change to Normal Edit");
+                editItem.addActionListener(changeToNormalEditAggr());
+                menu.add(editItem);
+                manualAggregations.setComponentPopupMenu(menu);
                 super.mousePressed(arg0);
             }
         };
@@ -1960,6 +2000,55 @@ public class QueryUI extends JPanel{
         return true;
     }
 
+    private ActionListener changeToManualEditAggr(){
+        return new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent arg0) {
+                int dialogResult = JOptionPane.showConfirmDialog (mainMenu, "If you switch to manual mode, all current items in this area will be deleted.\n" +
+                        "You can type all aggregations needed, including more complex operations not possibloe to create with normal mode.\n" +
+                        "However, you cannot drop items from the star schema to this area. To do this you must change back to normal mode on the pop up menu \n" +
+                        "Would you like to continue?","Warning",JOptionPane.YES_NO_OPTION);
+                if(dialogResult == JOptionPane.YES_OPTION){
+                    //change to edit mode
+                    String filtersStr = getFilterQuery(false);
+                    aggregationsList.setVisible(false);
+                    manualAggregations.setVisible(true);
+                    measuresListModel.clear();
+                    //delete all attributes with aggregations on rows select and measures
+                    globalTableQueries.clearMeasures();
+                    globalTableQueries.deleteAllRowsWithAggregations();
+                    aggregationsPane.getViewport().remove(aggregationsList);
+                    aggregationsPane.getViewport().add(manualAggregations);
+                    editFilters.setText(filtersStr);
+                    measuresLabel.setText("Aggregations - Manual Edit Mode");
+
+                    aggrAreaPanel.remove(aggregationOpComboBox);
+                    aggrAreaPanel.add(measuresManualEditLabel);
+                }
+            }
+        };
+    }
+
+    private ActionListener changeToNormalEditAggr(){
+        return new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent arg0) {
+                int dialogResult = JOptionPane.showConfirmDialog (mainMenu, "Changing back to normal mode will delete all content on this area.\n Would you like to continue?","Warning",JOptionPane.YES_NO_OPTION);
+                if(dialogResult == JOptionPane.YES_OPTION){
+                    //change to normal mode
+                    manualAggregations.setText("");
+                    manualAggregations.setVisible(false);
+                    aggregationsList.setVisible(true);
+                    aggregationsPane.getViewport().remove(manualAggregations);
+                    aggregationsPane.getViewport().add(aggregationsList);
+                    measuresLabel.setText("Aggregations - Normal Edit Mode");
+                    aggrAreaPanel.remove(measuresManualEditLabel);
+                    aggrAreaPanel.add(aggregationOpComboBox);
+                }
+            }
+        };
+    }
+
     private ActionListener changeToManualEditFilter(){
             return new ActionListener() {
                 @Override
@@ -1990,6 +2079,7 @@ public class QueryUI extends JPanel{
                 if(dialogResult == JOptionPane.YES_OPTION){
                     //change to normal mode
                     editFilters.setVisible(false);
+                    editFilters.setText("");
                     filterTree.setVisible(true);
                     clearFilters();
                     globalTableQueries.setFilterQuery("");
@@ -2160,7 +2250,7 @@ public class QueryUI extends JPanel{
                     //select rows list
                     added = addRowsToList(listModel, col, tab) ;
                 }
-                else if (list.equals(measuresList)){
+                else if (list.equals(aggregationsList)){
                     if (data.getNodeType() != NodeType.MEASURE && (globalTableQueries.getMeasures().size() > 1 && globalTableQueries.getSelectColumns().size() > 0)){
                         JOptionPane.showMessageDialog(mainMenu, "You can only use 1 measure when creating a query with pivot attributes.", "1 measure max", JOptionPane.WARNING_MESSAGE);
                         return false;

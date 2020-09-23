@@ -13,10 +13,13 @@ public class GlobalTableQuery {
 
     private Map<GlobalTableData, List<GlobalColumnData>> selectRows;
     private Map<GlobalTableData, List<GlobalColumnData>> selectColumns;
+    private Map<GlobalTableData, List<GlobalColumnData>> manualRowsAggr;
     private List<GlobalColumnData> measures;
+    private List<GlobalColumnData> manualMeasures;
     private List<String> orderBy;
     private String filterQuery;
     private String filterAggrQuery;
+    private String manualAggregationsStr;
     private Set<String> filters;
     private boolean hasCountAll;
     private FactsTable factsTable;
@@ -35,13 +38,16 @@ public class GlobalTableQuery {
         this.dimensions = dimensions;
         selectRows = new HashMap<>();
         selectColumns = new HashMap<>();
+        manualRowsAggr = new HashMap<>();
         measures = new ArrayList<>();
+        manualMeasures = new ArrayList<>();
         orderBy = new ArrayList<>();
         pivotValues = new ArrayList<>();
         filters = new HashSet<>();
         filterQuery = "";
         filterAggrQuery = "";
         hasCountAll = false;
+        manualAggregationsStr = "";
     }
 
     public void addOrderByRow(String groupByRow){
@@ -168,6 +174,8 @@ public class GlobalTableQuery {
     }
 
     public boolean deleteSelectRowFromTable(GlobalTableData table, GlobalColumnData columnName){
+        if (selectRows.isEmpty())
+            return true;
         boolean success = selectRows.get(table).remove(columnName);
         List<GlobalColumnData> cols = selectRows.get(table);
         for (GlobalColumnData c : cols){
@@ -186,6 +194,19 @@ public class GlobalTableQuery {
         return success;
     }
 
+    public void deleteAllRowsWithAggregations(){
+        for (Map.Entry<GlobalTableData, List<GlobalColumnData>> table : selectRows.entrySet()){
+            List<GlobalColumnData> cols = table.getValue();
+            for (int i = 0; i < cols.size(); i++ ){
+                if (cols.get(i).getAggrOp()!=null && !cols.get(i).getAggrOp().isEmpty()){
+                    cols.remove(i);
+                }
+            }
+            if (cols.isEmpty())
+                selectRows.remove(table.getKey());
+        }
+    }
+
     /**
      * Removes an order by element if present. Searches for strings in the form 'tablename.columnname'
      * @param orderByElem
@@ -201,6 +222,24 @@ public class GlobalTableQuery {
 
     public void addFilter(String column){
         filters.add(column);
+    }
+
+    public Map<GlobalTableData, List<GlobalColumnData>> addRowsToListOfRows(Map<GlobalTableData, List<GlobalColumnData>> rows, Map<GlobalTableData, List<GlobalColumnData>> rowsToAdd){
+        for (Map.Entry<GlobalTableData, List<GlobalColumnData>> table : rowsToAdd.entrySet()){
+            GlobalTableData t = table.getKey();
+            if (rows.containsKey(t)){
+                for (GlobalColumnData col : table.getValue()){
+                    if (!rows.get(t).contains(col)){
+                        rows.get(t).add(col);
+                    }
+                }
+            }
+            else{
+                //add table and rows
+                rows.put(t, table.getValue());
+            }
+        }
+        return rows;
     }
 
 
@@ -308,11 +347,19 @@ public class GlobalTableQuery {
     //Creates a SELECT XXX FROM () with the necessary inner queries to get local schema data
     public String buildQuerySelectRowsOnly(boolean includeInnerQueries){
         String query = "SELECT ";
+        boolean hasAggregations = false;
+        //add manual aggregations typed by user
+        if (!manualAggregationsStr.isEmpty()) {
+            hasAggregations = true;
+            query += manualAggregationsStr.trim();
+            if (query.charAt(query.length()-1) != ',' )
+                query+=',';
+
+        }
         //add "count(*)" if selected
         if (hasCountAll)
             query+="Count(*),";
         //first add to the select the dimensions columns
-        boolean hasAggregations = false;
         String selectColsNoAggr = "";
         for (Map.Entry<GlobalTableData, List<GlobalColumnData>> dimTable : selectRows.entrySet()){
             List<GlobalColumnData> cols = dimTable.getValue();
@@ -334,11 +381,13 @@ public class GlobalTableQuery {
         query = query.substring(0, query.length() - 1);//last elemment without comma
         if (selectColsNoAggr.length()> 0)
             selectColsNoAggr = selectColsNoAggr.substring(0, selectColsNoAggr.length() - 1);//last elemment without comma
+
         query+= " FROM ";
 
         //check if all tables and columns of filters are selected
         Map<GlobalTableData, List<GlobalColumnData>> selectRowsCopy = new HashMap<>(selectRows);
         selectRowsCopy = addFilterColumnIfNeeded(selectRows);
+        selectRowsCopy = addRowsToListOfRows(selectRowsCopy, manualRowsAggr);
 
         for (Map.Entry<GlobalTableData, List<GlobalColumnData>> tableSelectRows : selectRowsCopy.entrySet()){
             //for each global table
@@ -383,11 +432,21 @@ public class GlobalTableQuery {
 
     public String buildQuerySelectRowsAndMeasures(boolean selectMeasure, boolean includeInnerQueries) {
         String query = "SELECT ";
+
+        boolean hasAggregations = false;
+        //add manual aggregations typed by user
+        if (!manualAggregationsStr.isEmpty()) {
+            hasAggregations = true;
+            query += manualAggregationsStr.trim();
+            if (query.charAt(query.length()-1) != ',' )
+                query+=',';
+        }
+
         //add "count(*)" if selected
         if (hasCountAll)
             query+="Count(*),";
+
         Map<GlobalTableData, List<GlobalColumnData>> tableSelectRowsWithPrimKeys = new HashMap<>();
-        boolean hasAggregations = false;
         Set<String> selectColsNoAggr = new HashSet<>(); //elements that need to be added to group by because there are other elements containing aggregate functions
         Set<String> selectColsGroupBy = new HashSet<>(); //elements that need to be added to group by because user selected them to be part of there are other elements containing aggregate functions
         //first add to the select the dimensions columns
@@ -960,17 +1019,22 @@ public class GlobalTableQuery {
     public String buildQuery(boolean includeInnerQueries){
         this.pivotValues.clear();//reset elements
         String query = "";
-        if (selectColumns.size() == 0 && measures.size() == 0 && selectRows.size() > 0){
+        if ((selectColumns.size() == 0 || manualRowsAggr.size()>0) && (measures.size() == 0 && manualMeasures.size() == 0) && selectRows.size() > 0){
             query = buildQuerySelectRowsOnly(includeInnerQueries);
         }
-        else if (selectColumns.size() == 0 && measures.size() > 0 && selectRows.size() > 0){
+        else if (selectColumns.size() == 0 && (measures.size() > 0 || manualMeasures.size() > 0) && selectRows.size() > 0){
             query = buildQuerySelectRowsAndMeasures(true, includeInnerQueries);
         }
-        else if (selectColumns.size() > 0 && measures.size() == 1 && selectRows.size() > 0){
+        else if (selectColumns.size() > 0 && (measures.size() == 1 || manualMeasures.size() == 1) && selectRows.size() > 0){
             query = buildQuerySelectRowsColsAndMeasures(includeInnerQueries);
         }
-        else
-            return "Error invalid query elements given";
+        else {
+            //error, query cannot be executed
+            if (selectColumns.size() > 0 && (measures.size() != 1 || manualMeasures.size() != 1))
+                return "One measure, and only one, must be selected when submiting queries containing pivoted attributes.";
+            else
+                return "Error invalid query elements given";
+        }
         //add order by elements if any are selected
         if (orderBy.size() > 0){
             query += " ORDER BY ";
@@ -982,6 +1046,11 @@ public class GlobalTableQuery {
         //Add limit of max lines
         if (includeInnerQueries)
             query += " LIMIT "+LIMIT_NUMBER;
+
+        //clear manual query data structures if any has data
+        manualAggregationsStr = "";
+        manualRowsAggr.clear();
+        manualMeasures.clear();
         return query;
     }
 
@@ -1242,6 +1311,10 @@ public class GlobalTableQuery {
         return false;
     }
 
+    public void clearMeasures(){
+        measures.clear();
+    }
+
     public void clearAllElements(){
         selectRows.clear();
         selectColumns.clear();
@@ -1258,6 +1331,21 @@ public class GlobalTableQuery {
 
     public void setSelectRows(Map<GlobalTableData, List<GlobalColumnData>> selectRows) {
         this.selectRows = selectRows;
+    }
+
+    public Map<GlobalTableData, List<GlobalColumnData>> getManualRowsAggr() {
+        return this.manualRowsAggr;
+    }
+
+    public void setManualRowsAndMeasuresAggr(Map<GlobalTableData, List<GlobalColumnData>> manualRowsAggr) {
+        for (Map.Entry<GlobalTableData, List<GlobalColumnData>> rowsAgg : manualRowsAggr.entrySet()){
+            if (rowsAgg.getKey().getTableName().equals(factsTable.getGlobalTable().getTableName())){
+                manualMeasures.addAll(rowsAgg.getValue());
+            }
+            else{
+                this.manualRowsAggr.put(rowsAgg.getKey(), rowsAgg.getValue());
+            }
+        }
     }
 
     public FactsTable getFactsTable() {
@@ -1330,5 +1418,21 @@ public class GlobalTableQuery {
 
     public boolean getCountAll(){
         return hasCountAll;
+    }
+
+    public String getManualAggregationsStr() {
+        return manualAggregationsStr;
+    }
+
+    public void setManualAggregationsStr(String manualAggregationsStr) {
+        this.manualAggregationsStr = manualAggregationsStr;
+    }
+
+    public List<GlobalColumnData> getManualMeasures() {
+        return manualMeasures;
+    }
+
+    public void setManualMeasures(List<GlobalColumnData> manualMeasures) {
+        this.manualMeasures = manualMeasures;
     }
 }
