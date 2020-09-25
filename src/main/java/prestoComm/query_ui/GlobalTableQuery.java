@@ -542,7 +542,7 @@ public class GlobalTableQuery {
                 if (measureCol.getAggrOp()!=null && !measureCol.getAggrOp().isEmpty() && !measureCol.getAggrOp().equalsIgnoreCase("Group By")){//no  aggregation, only add measure name
                     //query += measureName + " AS " + measureAlias + ",";
                     String measureAlias = "\"" + measureCol.getAggrOp() + " of " + measureCol.getName() + "\"";
-                    query += measureCol.getAggrOp() + " AS " + measureAlias + ",";
+                    query += measureCol.getAggrOpName() + " AS " + measureAlias + ",";
                     hasAggregations = true;
                 }
                 else{

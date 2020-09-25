@@ -269,12 +269,24 @@ public class MetaDataManager {
                 + "    "+ QUERY_FILTERS_LIST +" text ,\n"
                 + "    "+ QUERY_AGGR_FILTERS_OBJ +" blob ,\n"
                 + "    "+ "PRIMARY KEY("+ QUERY_ID+", "+ QUERY_FILTER_ID+") ON CONFLICT IGNORE, \n"
+
                 + "    FOREIGN KEY ("+ QUERY_ID +") REFERENCES "+QUERY_SAVE+"("+QUERY_ID+")); ";
 
-        executeStatements(new String[] {sql1, sql2, sql3, sql4, sql5, sql6, sql7, sql8, sql9, sql10, sql11, sql12, sql13, sql14, sql15});
+        String sql16 = "CREATE TABLE IF NOT EXISTS "+ QUERY_MANUAL +" (\n"
+                + "    "+ QUERY_MANUAL_ID +" integer ,\n"
+                + "    "+ QUERY_ID +" integer ,\n"
+                + "    "+ QUERY_AGGR_STR +" text ,\n"
+                + "    "+ QUERY_FILTER_STR +" text ,\n"
+                + "    "+ QUERY_AGGR_FILTER_STR +" text ,\n"
+                + "    "+ "PRIMARY KEY("+ QUERY_ID+", "+ QUERY_MANUAL_ID+") ON CONFLICT IGNORE, \n"
+                + "    FOREIGN KEY ("+ QUERY_ID +") REFERENCES "+QUERY_SAVE+"("+QUERY_ID+")); ";
+
+
+        executeStatements(new String[] {sql1, sql2, sql3, sql4, sql5, sql6, sql7, sql8, sql9, sql10, sql11, sql12, sql13, sql14, sql15, sql16});
     }
 
     public void deleteTables(){
+        String sql16 = "DROP TABLE "+ QUERY_MANUAL +";";
         String sql1 = "DROP TABLE "+ QUERY_FILTERS +";";
         String sql2 = "DROP TABLE "+ QUERY_MEASURES +";";
         String sql3 = "DROP TABLE "+ QUERY_COLS +";";
@@ -290,16 +302,17 @@ public class MetaDataManager {
         String sql13 = "DROP TABLE "+ DB_TYPE_DATA +";";
         String sql14 = "DROP TABLE "+ GLOBAL_COLUMN_DATA +";";
         String sql15 = "DROP TABLE "+ GLOBAL_TABLE_DATA +";";
-        executeStatements(new String[] {sql1, sql2, sql3, sql4, sql5, sql6, sql7, sql8, sql9, sql10, sql11, sql12, sql13, sql14, sql15});
+        executeStatements(new String[] {sql16, sql1, sql2, sql3, sql4, sql5, sql6, sql7, sql8, sql9, sql10, sql11, sql12, sql13, sql14, sql15});
     }
 
     public void deleteTablesToSaveQueries(){
+        String sql6 = "DROP TABLE "+ QUERY_MANUAL +";";
         String sql1 = "DROP TABLE "+ QUERY_FILTERS +";";
         String sql2 = "DROP TABLE "+ QUERY_MEASURES +";";
         String sql3 = "DROP TABLE "+ QUERY_COLS +";";
         String sql4 = "DROP TABLE "+ QUERY_ROW +";";
         String sql5 = "DROP TABLE "+ QUERY_SAVE +";";
-        executeStatements(new String[] {sql1, sql2, sql3, sql4, sql5});
+        executeStatements(new String[] {sql6, sql1, sql2, sql3, sql4, sql5});
     }
 
     private void executeStatements(String[] statements){
@@ -1370,7 +1383,8 @@ public class MetaDataManager {
 
     public boolean insertNewQuerySave(String queryName, String cubeName, Map<GlobalTableData, List<GlobalColumnData>> rows,
                                    Map<GlobalTableData, List<GlobalColumnData>> columns, List<GlobalColumnData> measures,
-                                      FilterNode filters, Set<String> filtersColsStr, FilterNode aggrFilters){
+                                      FilterNode filters, Set<String> filtersColsStr, FilterNode aggrFilters, String aggrManualStr,
+                                      String filtersManualStr, String AggrFiltersManualEdit){
         int cubeID = getOrcreateCube(cubeName);
         String sql = "INSERT INTO "+ QUERY_SAVE + "("+QUERY_CUBE_ID+", "+QUERY_NAME+") VALUES(?,?)";
         int queryID = -1;
@@ -1390,6 +1404,20 @@ public class MetaDataManager {
         }
         if (queryID == -1){
             System.err.println("Query Save: problem inserting in database");
+            return false;
+        }
+
+        //insert manual edition elements (if any)
+        sql = "INSERT INTO "+ QUERY_MANUAL + "("+QUERY_ID+", "+QUERY_AGGR_STR+", "+QUERY_FILTER_STR+", "+QUERY_AGGR_FILTER_STR+") VALUES(?,?,?,?)";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, queryID);
+            pstmt.setString(2, aggrManualStr);
+            pstmt.setString(3, filtersManualStr);
+            pstmt.setString(4, AggrFiltersManualEdit);
+            pstmt.executeUpdate();
+
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
             return false;
         }
         //insert rows
@@ -1458,9 +1486,8 @@ public class MetaDataManager {
         String filtersStr = "";
         for (String s : filtersColsStr){
             filtersStr +=s+";";//list of tablename.colname separated by ; in the filters
-            filtersStr = filtersStr.substring(0, filtersStr.length() - 1); //remove last ;
         }
-
+        filtersStr = filtersStr.substring(0, filtersStr.length() - 1); //remove last ;
 
         sql = "INSERT INTO " + QUERY_FILTERS + "(" + QUERY_ID + ", " + QUERY_FILTERS_OBJ + ", "+QUERY_FILTERS_LIST+
                 ", "+ QUERY_AGGR_FILTERS_OBJ +") VALUES(?,?,?,?)";
@@ -1483,6 +1510,13 @@ public class MetaDataManager {
         int queryID = getQueryID(queryName, cubeID);
 
         String sql = "DELETE FROM "+QUERY_FILTERS +" WHERE "+QUERY_ID +" = "+queryID+";";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+
+        sql = "DELETE FROM "+QUERY_MANUAL +" WHERE "+QUERY_ID +" = "+queryID+";";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.executeUpdate();
         } catch (SQLException e) {
@@ -1622,6 +1656,51 @@ public class MetaDataManager {
             System.out.println(e.getMessage());
         }
         return measures;
+    }
+
+    public String getManualAggr(int queryID){
+        try {
+            Statement stmt = conn.createStatement();
+            String sql = "SELECT "+ QUERY_AGGR_STR +" FROM "+QUERY_MANUAL+" WHERE "+QUERY_ID+" = " +queryID+";";
+            ResultSet rs = stmt.executeQuery(sql);
+            // loop through the result set
+            if (rs.next()) {
+                return rs.getString(QUERY_AGGR_STR);
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return null;
+    }
+
+    public String getManualFilter(int queryID){
+        try {
+            Statement stmt = conn.createStatement();
+            String sql = "SELECT "+ QUERY_FILTER_STR +" FROM "+QUERY_MANUAL+" WHERE "+QUERY_ID+" = " +queryID+";";
+            ResultSet rs = stmt.executeQuery(sql);
+            // loop through the result set
+            if (rs.next()) {
+                return rs.getString(QUERY_FILTER_STR);
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return null;
+    }
+
+    public String getManualFilterAggr(int queryID){
+        try {
+            Statement stmt = conn.createStatement();
+            String sql = "SELECT "+ QUERY_AGGR_FILTER_STR+" FROM "+QUERY_MANUAL +" WHERE "+QUERY_ID+" = " +queryID+";";
+            ResultSet rs = stmt.executeQuery(sql);
+            // loop through the result set
+            if (rs.next()) {
+                return rs.getString(QUERY_AGGR_FILTER_STR);
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return null;
     }
 
     public Object[] getQueryFilters(int queryID){

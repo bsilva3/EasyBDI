@@ -130,6 +130,13 @@ public class Constants {
     public static final String QUERY_FILTERS_LIST = "filters_list";
     public static final String QUERY_AGGR_FILTERS_OBJ = "aggr_filters_obj";
 
+    //query save: manual edits
+    public static final String QUERY_MANUAL = "query_manual";
+    public static final String QUERY_MANUAL_ID = "query_manual_id";
+    public static final String QUERY_AGGR_STR = "aggr_str";
+    public static final String QUERY_FILTER_STR = "filters_str";
+    public static final String QUERY_AGGR_FILTER_STR = "filters_aggr_str";
+
     public static final String GLOBAL_TABLE_DATA_MULTI_TYPE_FIELD = "multidimensional_type";
     public static final String CUBE_TABLE = "cube";
     //columns in this table

@@ -26,6 +26,7 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.*;
+import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.BufferedWriter;
@@ -46,24 +47,21 @@ public class QueryUI extends JPanel{
     private JTree schemaTree;
     private JTree filterTree;
     private JTextArea editFilters;
+    private JTextArea editFiltersAggr;
     private JList aggregationsList;
     private JTextArea manualAggregations;
     private JComboBox aggregationOpComboBox;
     private JList rowsList;
     private JPanel mainPanel;
-    private JComboBox cubeSelectionComboBox;
     private JButton executeQueryButton;
     private JButton backButton;
     private JList columnsList;
-    private JTabbedPane tabbedPane1;
+    private JTabbedPane logPane;
     private JList queryLogList;
     private JButton saveSelectedQueryButton;
     private JButton saveAllQueriesButton;
-    private JButton saveQueryButton;
-    private JButton loadQueryButton;
     private JButton clearAllFieldsButton;
     private JScrollPane tablePane;
-    private JButton exportResultsToCSVButton;
     private JTree aggrFiltersTree;
     private JLabel rowsLabel;
     private JLabel columnLabel;
@@ -76,6 +74,9 @@ public class QueryUI extends JPanel{
     private JList queryGenLogList;
     private JScrollPane aggregationsPane;
     private JPanel aggrAreaPanel;
+    private JScrollPane aggrFilterPane;
+    private JPanel globalSchemaLogPane;
+    private JPanel localSchemaLogPane;
 
     private StarSchema starSchema;
     private GlobalTableQuery globalTableQueries;//used to store all queries for each global table, and their columns
@@ -100,6 +101,8 @@ public class QueryUI extends JPanel{
     private final String[] stringOperations = { "=", "!=", "like"};
 
     private MainMenu mainMenu;
+    private JMenu starSchemaMenu;
+    private String currentStarSchema;
 
     public QueryUI(String projectName, final MainMenu mainMenu){
         this.mainMenu = mainMenu;
@@ -155,6 +158,7 @@ public class QueryUI extends JPanel{
             aggrFiltersLabel.setToolTipText("<html><p>Drag attributes from the aggregations area to create conditions with those attributes.</p> " +
                     "<p>You cannot drag attributes from the star schema to this area, as only conditions with aggregations are allowed here.</p>" +
                     "<p>This is equivalent as to adding a condition on a SQL Having statement.</p></html>");
+            aggrFiltersLabel.setText("Aggregation Filters - Normal Mode");
             filtersLabel.setIcon(new ImageIcon(img.getScaledInstance(20, 20, 0)));
             filtersLabel.addMouseListener(adapterTooltip);
             filtersLabel.setToolTipText("<html><p>Drag attributes from the star schema to create conditions.</p> " +
@@ -181,9 +185,105 @@ public class QueryUI extends JPanel{
             mainMenu.returnToMainMenu();
         }
         else {
-            cubeSelectionComboBox.setModel(new DefaultComboBoxModel(starSchemas.toArray(new String[starSchemas.size()])));
+            currentStarSchema = starSchemas.get(0);//when opening this window, select first star schema by default
+            //Set JMENU BAR
+            JMenuBar menuBar = new JMenuBar();
+            //star schema selection
+            starSchemaMenu = new JMenu("Choose Star Schema");
+            BufferedImage image = null;
+            try {
+                image = ImageIO.read(new File(Constants.IMAGES_DIR+"cube_icon.png"));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            //starSchemaMenu.setHorizontalTextPosition(SwingConstants.CENTER);
+            //starSchemaMenu.setVerticalTextPosition(SwingConstants.BOTTOM);
+            populateStarSchemaMenu(starSchemas);
+            starSchemaMenu.setIcon(new ImageIcon(image.getScaledInstance(25, 25, 0)));
+            menuBar.add(starSchemaMenu);
 
-            this.starSchema = metaDataManager.getStarSchema(cubeSelectionComboBox.getSelectedItem().toString());
+            // advanced option
+            JMenu advancedOptions = new JMenu("Advanced Options");
+            image = null;
+            try {
+                image = ImageIO.read(new File(Constants.IMAGES_DIR+"advanced_options_icon.png"));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            //advancedOptions.setHorizontalTextPosition(SwingConstants.CENTER);
+            //advancedOptions.setVerticalTextPosition(SwingConstants.BOTTOM);
+            advancedOptions.setIcon(new ImageIcon(image.getScaledInstance(25, 25, 0)));
+
+            JCheckBoxMenuItem item1 = new JCheckBoxMenuItem("Show Local Schema Query Log");
+            item1.addActionListener(e -> showHideLocalSchemaQueryPane(item1.getState()));
+            item1.setState(true);
+            advancedOptions.add(item1);
+            menuBar.add(advancedOptions);
+
+            JMenu queryMenu = new JMenu("Query");
+            //save query state
+            JMenuItem saveQueryState = new JMenuItem("Save Query");
+            saveQueryState.addActionListener(e -> saveQueryState());
+            image = null;
+            try {
+                image = ImageIO.read(new File(Constants.IMAGES_DIR+"save_icon.png"));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            //saveQueryState.setHorizontalTextPosition(SwingConstants.CENTER);
+            //saveQueryState.setVerticalTextPosition(SwingConstants.BOTTOM);
+            saveQueryState.setIcon(new ImageIcon(image.getScaledInstance(20, 20, 0)));
+            queryMenu.add(saveQueryState);
+
+            //load query state
+            JMenuItem loadQueryState = new JMenuItem("Load Query");
+            loadQueryState.addActionListener(e -> selectQueryToLoad());
+            image = null;
+            try {
+                image = ImageIO.read(new File(Constants.IMAGES_DIR+"load_icon.png"));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            //loadQueryState.setHorizontalTextPosition(SwingConstants.CENTER);
+            //loadQueryState.setVerticalTextPosition(SwingConstants.BOTTOM);
+            loadQueryState.setIcon(new ImageIcon(image.getScaledInstance(20, 20, 0)));
+            queryMenu.add(loadQueryState);
+
+            menuBar.add(queryMenu);
+
+            JMenu exportMenu = new JMenu("Export Results");
+
+            image = null;
+            try {
+                image = ImageIO.read(new File(Constants.IMAGES_DIR+"export_icon.png"));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            //advancedOptions.setHorizontalTextPosition(SwingConstants.CENTER);
+            //advancedOptions.setVerticalTextPosition(SwingConstants.BOTTOM);
+            exportMenu.setIcon(new ImageIcon(image.getScaledInstance(25, 25, 0)));
+
+            JMenuItem exportToCsv = new JMenuItem("Export To CSV");
+
+            image = null;
+            try {
+                image = ImageIO.read(new File(Constants.IMAGES_DIR+"export_as_csv_icon.png"));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            //advancedOptions.setHorizontalTextPosition(SwingConstants.CENTER);
+            //advancedOptions.setVerticalTextPosition(SwingConstants.BOTTOM);
+            exportToCsv.setIcon(new ImageIcon(image.getScaledInstance(20, 20, 0)));
+            exportMenu.addActionListener(e -> exportResultsToCSV());
+            exportMenu.add(exportToCsv);
+
+            menuBar.add(exportMenu);
+
+            //menuBar.setBackground(new Color(154, 154, 154));
+            mainMenu.setJMenuBar(menuBar);
+
+
+            this.starSchema = metaDataManager.getStarSchema(currentStarSchema);
             schemaTreeModel = setStarSchemaTree();
             schemaTree.setModel(schemaTreeModel);
             CustomTreeNode root = (CustomTreeNode) schemaTreeModel.getRoot();
@@ -225,6 +325,12 @@ public class QueryUI extends JPanel{
             editFilters.setLineWrap(true);
             editFilters.addMouseListener(getMouseListenerEditFilterTextArea());
 
+            editFiltersAggr = new JTextArea(80, 100);
+            editFiltersAggr.setVisible(false);
+            editFiltersAggr.setWrapStyleWord(true);
+            editFiltersAggr.setLineWrap(true);
+            editFiltersAggr.addMouseListener(getMouseListenerEditFilterAggrTextArea());
+
             manualAggregations = new JTextArea(80, 100);
             manualAggregations.setVisible(false);
             manualAggregations.setWrapStyleWord(true);
@@ -233,6 +339,9 @@ public class QueryUI extends JPanel{
 
             queryLogList.setCellRenderer(new StripeRenderer());
             queryGenLogList.setCellRenderer(new StripeRenderer());
+
+
+
             //jtable
             //this.defaultTableModel = new JBroTableModel(new ModelData());
             //queryResultsTableGroupable = new JBroTable();
@@ -252,21 +361,6 @@ public class QueryUI extends JPanel{
                 public void actionPerformed(ActionEvent e) {
                     //open wizard and edit current project
                     executeQueryAndShowResults();
-                    exportResultsToCSVButton.setEnabled(true);
-                }
-            });
-
-
-            cubeSelectionComboBox.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    if (cubeSelectionComboBox.getSelectedItem().toString().equalsIgnoreCase(starSchema.getSchemaName()))//user selected same project
-                        return;
-                    clearAllFieldsAndQueryElements();//new project selected, clear all ui and data structures
-                    starSchema = metaDataManager.getStarSchema(cubeSelectionComboBox.getSelectedItem().toString());
-                    schemaTreeModel = setStarSchemaTree();
-                    schemaTree.setModel(schemaTreeModel);
-                    schemaTree.revalidate();
-                    schemaTree.updateUI();
                 }
             });
 
@@ -311,32 +405,46 @@ public class QueryUI extends JPanel{
                 saveToFile(false);
             }
         });
-        saveQueryButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                saveQueryState();
-            }
-        });
 
-        loadQueryButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                selectQueryToLoad();
-            }
-        });
         clearAllFieldsButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 clearAllFieldsAndQueryElements();
             }
         });
-        exportResultsToCSVButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent actionEvent) {
-                exportResultsToCSV();
-            }
-        });
-        exportResultsToCSVButton.setEnabled(false); //initially, no results on screen, will be enable when clicking on execute query
+    }
+
+    private void populateStarSchemaMenu(List<String> starSchemas){
+        starSchemaMenu.removeAll();
+        for (String starSchema : starSchemas){
+            JCheckBoxMenuItem menuItem = new JCheckBoxMenuItem(starSchema);
+            if (currentStarSchema.equals(starSchema))
+                menuItem.setState(true);
+            menuItem.addActionListener(e -> changeStarSchema(menuItem.getText(), menuItem));
+            starSchemaMenu.add(menuItem);
+        }
+    }
+
+    private void changeStarSchema(String starSchemaName, JCheckBoxMenuItem menuItem){
+        if (starSchemaName.equals(currentStarSchema)) {
+            menuItem.setState(true);
+            return;
+        }
+        currentStarSchema = starSchemaName;
+        clearAllFieldsAndQueryElements();//new project selected, clear all ui and data structures
+        this.starSchema = metaDataManager.getStarSchema(currentStarSchema);
+        schemaTreeModel = setStarSchemaTree();
+        schemaTree.setModel(schemaTreeModel);
+        schemaTree.revalidate();
+        schemaTree.updateUI();
+    }
+
+    private void showHideLocalSchemaQueryPane(boolean show){
+        if (show)
+            logPane.addTab("Local Query Log", localSchemaLogPane);
+        else{
+            logPane.remove(localSchemaLogPane);
+        }
     }
 
     private void clearAllFieldsAndQueryElements(){
@@ -344,6 +452,9 @@ public class QueryUI extends JPanel{
         rowsListModel.clear();
         columnListModel.clear();
         measuresListModel.clear();
+        editFilters.setText("");
+        editFiltersAggr.setText("");
+        manualAggregations.setText("");
         aggrFilterTreeModel = null;
         filterTreeModel = null;
 
@@ -370,13 +481,19 @@ public class QueryUI extends JPanel{
         filterTree.updateUI();
     }
 
+    private void clearAggrFilters(){
+        aggrFiltersTree.setModel(null);
+        aggrFiltersTree.revalidate();
+        aggrFiltersTree.updateUI();
+    }
+
     private void selectQueryToLoad(){
-        List<String> queryNames = metaDataManager.getListOfQueriesByCube(cubeSelectionComboBox.getSelectedItem().toString());
+        List<String> queryNames = metaDataManager.getListOfQueriesByCube(currentStarSchema);
         new QuerySelector(queryNames, this);
     }
 
     public void loadSelectedQuery(String queryName){
-        int cubeID = metaDataManager.getOrcreateCube(cubeSelectionComboBox.getSelectedItem().toString());
+        int cubeID = metaDataManager.getOrcreateCube(currentStarSchema);
         int queryID = metaDataManager.getQueryID(queryName, cubeID);
         if (queryID == -1){
             JOptionPane.showMessageDialog(mainMenu, "Could not load query: does not exist", "Error loading query", JOptionPane.ERROR_MESSAGE);
@@ -419,35 +536,65 @@ public class QueryUI extends JPanel{
         }
 
         //place measures in UI (if any) and in data structures
-        for (GlobalColumnData measure : measures) {
-            addAggrRow(measuresListModel, starSchema.getFactsTable().getGlobalTable(), measure, true);
+        String editAggr = metaDataManager.getManualAggr(queryID);
+        if ( (measures == null && editAggr.length()>0)  || (measures.isEmpty() && editAggr.length()>0)){
+            changeAggrManualMode();
+            manualAggregations.setText(editAggr);
+            manualAggregations.revalidate();
+            manualAggregations.updateUI();
+        }
+        else if (measures != null && measures.size() > 0){
+            changeAggrNormalMode();
+            for (GlobalColumnData measure : measures) {
+                addAggrRow(measuresListModel, starSchema.getFactsTable().getGlobalTable(), measure, true);
+            }
         }
 
         //get regular filters
-        Object[] filters = metaDataManager.getQueryFilters(queryID);
-        if (filters != null && filters.length > 0 && filters[1] != null) {
-            this.filterTreeModel = new DefaultTreeModel((FilterNode) filters[1]);
-            this.filterTree.setModel(filterTreeModel);
-            filterTree.setRootVisible(false);
-            FilterNode root = (FilterNode) filterTreeModel.getRoot();
-            expandAllFilterNodes(filterTree, new TreePath(root), true);
-            String filtersStr = (String) filters[0];
-            Set<String> filtersList = new HashSet<>();
-            String[] filtersSplit = filtersStr.split(";");
-            for (String s : filtersSplit) {
-                filtersList.add(s);
+        String editFiltersStr = metaDataManager.getManualFilter(queryID);
+        if ( editFiltersStr.length()>0){
+            changeFilterManualMode();
+            editFilters.setText(editFiltersStr);
+            editFilters.revalidate();
+            editFilters.updateUI();
+        }
+        else{
+            Object[] filters = metaDataManager.getQueryFilters(queryID);
+            if (filters != null && filters.length > 0 && filters[1] != null) {
+                changeFilterNormalMode();
+                this.filterTreeModel = new DefaultTreeModel((FilterNode) filters[1]);
+                this.filterTree.setModel(filterTreeModel);
+                filterTree.setRootVisible(false);
+                FilterNode root = (FilterNode) filterTreeModel.getRoot();
+                expandAllFilterNodes(filterTree, new TreePath(root), true);
+                String filtersStr = (String) filters[0];
+                Set<String> filtersList = new HashSet<>();
+                String[] filtersSplit = filtersStr.split(";");
+                for (String s : filtersSplit) {
+                    filtersList.add(s);
+                }
+                globalTableQueries.setFilters(filtersList);
             }
-            globalTableQueries.setFilters(filtersList);
         }
 
         //get aggr filters
-        FilterNode filtersNodeRoot = metaDataManager.getQueryAggrFilters(queryID);
-        if (filtersNodeRoot != null) {
-            this.aggrFilterTreeModel = new DefaultTreeModel(filtersNodeRoot);
-            this.aggrFiltersTree.setModel(aggrFilterTreeModel);
-            aggrFiltersTree.setRootVisible(false);
-            FilterNode root = (FilterNode) aggrFilterTreeModel.getRoot();
-            expandAllFilterNodes(aggrFiltersTree, new TreePath(root), true);
+        String editAggrFilters = metaDataManager.getManualFilterAggr(queryID);
+        if ( (measures == null && editAggrFilters.length()>0) ||  (measures.isEmpty() && editAggrFilters.length()>0)){
+            changeAggrFilterManualMode();
+            editFiltersAggr.setText(editAggrFilters);
+            editFiltersAggr.revalidate();
+            editFiltersAggr.updateUI();
+        }
+        else {
+            FilterNode filtersNodeRoot = metaDataManager.getQueryAggrFilters(queryID);
+            if (filtersNodeRoot != null) {
+                changeAggrFilterNormalMode();
+                this.aggrFilterTreeModel = new DefaultTreeModel(filtersNodeRoot);
+                this.aggrFiltersTree.setModel(aggrFilterTreeModel);
+                aggrFiltersTree.setRootVisible(false);
+                FilterNode root = (FilterNode) aggrFilterTreeModel.getRoot();
+                expandAllFilterNodes(aggrFiltersTree, new TreePath(root), true);
+            }
         }
 
     }
@@ -504,8 +651,8 @@ public class QueryUI extends JPanel{
             aggrFilterRoot = (FilterNode) aggrFilterTreeModel.getRoot();
         }
 
-        boolean success = metaDataManager.insertNewQuerySave(nameTxt.getText(), cubeSelectionComboBox.getSelectedItem().toString(), rows, columns,
-                measures, filterRoot, globalTableQueries.getFilters(), aggrFilterRoot );
+        boolean success = metaDataManager.insertNewQuerySave(nameTxt.getText(), currentStarSchema, rows, columns,
+                measures, filterRoot, globalTableQueries.getFilters(), aggrFilterRoot, manualAggregations.getText(), editFilters.getText(), editFiltersAggr.getText() );
         if (success){
             JOptionPane.showMessageDialog(mainMenu, "Query "+nameTxt.getText()+" save successfully!", "Query saved", JOptionPane.PLAIN_MESSAGE);
         }
@@ -515,7 +662,7 @@ public class QueryUI extends JPanel{
     }
 
     public void deleteQuery(String queryName){
-        metaDataManager.deleteQuery(queryName, cubeSelectionComboBox.getSelectedItem().toString());
+        metaDataManager.deleteQuery(queryName, currentStarSchema);
     }
 
     private void saveToFile(boolean multiline){
@@ -1815,6 +1962,22 @@ public class QueryUI extends JPanel{
         };
     }
 
+
+    private MouseListener getMouseListenerEditFilterAggrTextArea() {
+        return new MouseAdapter() {
+
+            @Override
+            public void mousePressed(MouseEvent arg0) {
+                JPopupMenu menu = new JPopupMenu();
+                JMenuItem editItem = new JMenuItem("Change to Normal Edit");
+                editItem.addActionListener(changeToNormalEditFilterAggr());
+                menu.add(editItem);
+                editFiltersAggr.setComponentPopupMenu(menu);
+                super.mousePressed(arg0);
+            }
+        };
+    }
+
     private MouseListener getMouseListenerEditAggrTextArea() {
         return new MouseAdapter() {
 
@@ -1835,7 +1998,10 @@ public class QueryUI extends JPanel{
         FilterNode selectedNode = null;
         JPopupMenu menu = new JPopupMenu();
         JMenuItem editItem = new JMenuItem("Manual Edit");
-        editItem.addActionListener(changeToManualEditFilter());
+        if (isAggrFilter)
+            editItem.addActionListener(changeToManualEditFilterAggr());
+        else
+            editItem.addActionListener(changeToManualEditFilter());
         if(pathForLocation != null) {
             selectedNode = (FilterNode) pathForLocation.getLastPathComponent();
             if (selectedNode.getNodeType() == FilterNodeType.CONDITION) {
@@ -2013,94 +2179,173 @@ public class QueryUI extends JPanel{
         return new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent arg0) {
-                int dialogResult = JOptionPane.showConfirmDialog (mainMenu, "If you switch to manual mode, all current items in this area will be deleted.\n" +
-                        "You can type all aggregations needed, including more complex operations not possibloe to create with normal mode.\n" +
-                        "However, you cannot drop items from the star schema to this area. To do this you must change back to normal mode on the pop up menu \n" +
-                        "Would you like to continue?","Warning",JOptionPane.YES_NO_OPTION);
+                //if (manualAggregations.isVisible() && !aggregationsList.isVisible())
+                    //return;
+                    int dialogResult = JOptionPane.showConfirmDialog(mainMenu, "If you switch to manual mode, all current items in this area will be deleted.\n" +
+                            "You can type all aggregations needed, including more complex operations not possibloe to create with normal mode.\n" +
+                            "However, you cannot drop items from the star schema to this area. To do this you must change back to normal mode on the pop up menu \n" +
+                            "Would you like to continue?", "Warning", JOptionPane.YES_NO_OPTION);
                 if(dialogResult == JOptionPane.YES_OPTION){
-                    //change to edit mode
-                    String filtersStr = getFilterQuery(false);
-                    aggregationsList.setVisible(false);
-                    manualAggregations.setVisible(true);
-                    measuresListModel.clear();
-                    //delete all attributes with aggregations on rows select and measures
-                    globalTableQueries.clearMeasures();
-                    globalTableQueries.deleteAllRowsWithAggregations();
-                    aggregationsPane.getViewport().remove(aggregationsList);
-                    aggregationsPane.getViewport().add(manualAggregations);
-                    editFilters.setText(filtersStr);
-                    measuresLabel.setText("Aggregations - Manual Edit Mode");
-
-                    aggrAreaPanel.remove(aggregationOpComboBox);
-                    measuresManualEditLabel.setVisible(true);
-                    aggrAreaPanel.add(measuresManualEditLabel);
+                    changeAggrManualMode();
                 }
             }
         };
+    }
+    private void changeAggrManualMode(){
+        //change to edit mode
+        String filtersStr = getFilterQuery(false);
+        aggregationsList.setVisible(false);
+        manualAggregations.setVisible(true);
+        measuresListModel.clear();
+        //delete all attributes with aggregations on rows select and measures
+        globalTableQueries.clearMeasures();
+        globalTableQueries.deleteAllRowsWithAggregations();
+        aggregationsPane.getViewport().remove(aggregationsList);
+        aggregationsPane.getViewport().add(manualAggregations);
+        editFilters.setText(filtersStr);
+        measuresLabel.setText("Aggregations - Manual Edit Mode");
+
+        aggrAreaPanel.remove(aggregationOpComboBox);
+        measuresManualEditLabel.setVisible(true);
+        aggrAreaPanel.add(measuresManualEditLabel);
     }
 
     private ActionListener changeToNormalEditAggr(){
         return new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent arg0) {
+                //if (!manualAggregations.isVisible() && aggregationsList.isVisible())
+                    //return;
                 int dialogResult = JOptionPane.showConfirmDialog (mainMenu, "Changing back to normal mode will delete all content on this area.\n Would you like to continue?","Warning",JOptionPane.YES_NO_OPTION);
-                if(dialogResult == JOptionPane.YES_OPTION){
+                boolean goOn = dialogResult == JOptionPane.YES_OPTION;
+                if(goOn){
                     //change to normal mode
-                    manualAggregations.setText("");
-                    manualAggregations.setVisible(false);
-                    aggregationsList.setVisible(true);
-                    aggregationsPane.getViewport().remove(manualAggregations);
-                    aggregationsPane.getViewport().add(aggregationsList);
-                    measuresLabel.setText("Aggregations - Normal Edit Mode");
-                    aggrAreaPanel.remove(measuresManualEditLabel);
-                    aggrAreaPanel.add(aggregationOpComboBox);
+                    changeAggrNormalMode();
                 }
             }
         };
+    }
+
+    private void changeAggrNormalMode(){
+        //change to normal mode
+        manualAggregations.setText("");
+        manualAggregations.setVisible(false);
+        aggregationsList.setVisible(true);
+        aggregationsPane.getViewport().remove(manualAggregations);
+        aggregationsPane.getViewport().add(aggregationsList);
+        measuresLabel.setText("Aggregations - Normal Edit Mode");
+        aggrAreaPanel.remove(measuresManualEditLabel);
+        aggrAreaPanel.add(aggregationOpComboBox);
     }
 
     private ActionListener changeToManualEditFilter(){
             return new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent arg0) {
-                    int dialogResult = JOptionPane.showConfirmDialog (mainMenu, "If you switch to manual mode, all current filters will be converted to SQL and you can manually edit them.\n" +
-                            "However, you cannot drop items from the star schema to these filters. To do this you must change back to normal mode on the pop up menu \n" +
-                            "Would you like to continue?","Warning",JOptionPane.YES_NO_OPTION);
+                    //if (!filterTree.isVisible() && editFilters.isVisible())
+                        //return;
+                    int dialogResult = JOptionPane.showConfirmDialog(mainMenu, "If you switch to manual mode, all current filters will be converted to SQL and you can manually edit them.\n" +
+                            "However, you cannot drop items from the star schema to these filters.\n To do this you must change back to normal mode on the pop up menu \n" +
+                            "Would you like to continue?", "Warning", JOptionPane.YES_NO_OPTION);
                     if(dialogResult == JOptionPane.YES_OPTION){
-                        //change to edit mode
-                        String filtersStr = getFilterQuery(false);
-                        filterTree.setVisible(false);
-                        editFilters.setVisible(true);
-                        filterPane.getViewport().remove(filterTree);
-                        filterPane.getViewport().add(editFilters);
-                        editFilters.setText(filtersStr);
-                        filtersLabel.setText("Filters - Manual Edit Mode");
+                        changeFilterManualMode();
                     }
-
                 }
             };
+    }
+
+    private void changeFilterManualMode(){
+        String filtersStr = getFilterQuery(false);
+        filterTree.setVisible(false);
+        editFilters.setVisible(true);
+        filterPane.getViewport().remove(filterTree);
+        filterPane.getViewport().add(editFilters);
+        editFilters.setText(filtersStr);
+        filtersLabel.setText("Filters - Manual Edit Mode");
     }
 
     private ActionListener changeToNormalEditFilter(){
         return new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent arg0) {
+               //if (filterTree.isVisible() && !editFilters.isVisible())
+                    //return;
                 int dialogResult = JOptionPane.showConfirmDialog (mainMenu, "Changing back to normal mode will reset all filters created.\n Would you like to continue?","Warning",JOptionPane.YES_NO_OPTION);
                 if(dialogResult == JOptionPane.YES_OPTION){
                     //change to normal mode
-                    editFilters.setVisible(false);
-                    editFilters.setText("");
-                    filterTree.setVisible(true);
-                    clearFilters();
-                    globalTableQueries.setFilterQuery("");
-                    filterPane.getViewport().remove(editFilters);
-                    filterPane.getViewport().add(filterTree);
-                    filtersLabel.setText("Filters - Normal Edit Mode");
+                    changeFilterNormalMode();
                 }
 
             }
         };
     }
+
+    private void changeFilterNormalMode(){
+        editFilters.setVisible(false);
+        editFilters.setText("");
+        filterTree.setVisible(true);
+        clearFilters();
+        globalTableQueries.setFilterQuery("");
+        filterPane.getViewport().remove(editFilters);
+        filterPane.getViewport().add(filterTree);
+        filtersLabel.setText("Filters - Normal Edit Mode");
+    }
+
+    private ActionListener changeToManualEditFilterAggr(){
+        return new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent arg0) {
+                //if (!aggrFiltersTree.isVisible() && editFiltersAggr.isVisible())
+                    //return;
+                    int dialogResult = JOptionPane.showConfirmDialog(mainMenu, "If you switch to manual mode, all current filters will be converted to SQL and you can manually edit them.\n" +
+                            "However, you cannot drop items from the aggregations area to these filters.\n To do this you must change back to normal mode on the pop up menu \n" +
+                            "Would you like to continue?", "Warning", JOptionPane.YES_NO_OPTION);
+                if(dialogResult == JOptionPane.YES_OPTION){
+                    //change to edit mode
+                    changeAggrFilterManualMode();
+                }
+
+            }
+        };
+    }
+
+    private void changeAggrFilterManualMode(){
+        String filtersStr = getFilterQuery(false);
+        aggrFiltersTree.setVisible(false);
+        editFiltersAggr.setVisible(true);
+        aggrFilterPane.getViewport().remove(aggrFiltersTree);
+        aggrFilterPane.getViewport().add(editFiltersAggr);
+        editFiltersAggr.setText(filtersStr);
+        aggrFiltersLabel.setText("Aggregation Filters - Manual Edit Mode");
+    }
+
+    private ActionListener changeToNormalEditFilterAggr(){
+        return new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent arg0) {
+                //if (aggrFiltersTree.isVisible() && !editFiltersAggr.isVisible())
+                    //return;
+                    int dialogResult = JOptionPane.showConfirmDialog(mainMenu, "Changing back to normal mode will reset all filters created.\n Would you like to continue?", "Warning", JOptionPane.YES_NO_OPTION);
+                if(dialogResult == JOptionPane.YES_OPTION){
+                    changeAggrFilterNormalMode();
+                }
+
+            }
+        };
+    }
+
+    private void changeAggrFilterNormalMode(){
+        //change to normal mode
+        editFiltersAggr.setVisible(false);
+        editFiltersAggr.setText("");
+        aggrFiltersTree.setVisible(true);
+        clearAggrFilters();
+        globalTableQueries.setFilterQuery("");
+        aggrFilterPane.getViewport().remove(editFilters);
+        aggrFilterPane.getViewport().add(aggrFiltersTree);
+        aggrFiltersLabel.setText("Aggregation Filters - Normal Mode");
+    }
+
 
     public void addQueryGenLog(){
         globalTableQueries.setFilterQuery(getFilterQuery(false));

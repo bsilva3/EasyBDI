@@ -2,24 +2,17 @@
 <form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="prestoComm.query_ui.QueryUI">
   <grid id="27dc6" binding="mainPanel" layout-manager="GridBagLayout">
     <constraints>
-      <xy x="20" y="20" width="839" height="643"/>
+      <xy x="20" y="20" width="839" height="893"/>
     </constraints>
     <properties/>
     <border type="none"/>
     <children>
-      <component id="baae9" class="javax.swing.JComboBox" binding="cubeSelectionComboBox">
+      <tabbedpane id="e97b9" binding="logPane">
         <constraints>
-          <grid row="0" column="2" row-span="1" col-span="3" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
-          <gridbag weightx="1.0" weighty="0.1"/>
-        </constraints>
-        <properties/>
-      </component>
-      <tabbedpane id="e97b9" binding="tabbedPane1" default-binding="true">
-        <constraints>
-          <grid row="11" column="0" row-span="2" col-span="8" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false">
+          <grid row="10" column="0" row-span="2" col-span="8" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false">
             <preferred-size width="200" height="200"/>
           </grid>
-          <gridbag top="10" left="0" bottom="0" right="0" weightx="1.0" weighty="2.0"/>
+          <gridbag top="10" left="0" bottom="0" right="0" weightx="1.0" weighty="1.0"/>
         </constraints>
         <properties/>
         <border type="none"/>
@@ -83,7 +76,7 @@
               </component>
             </children>
           </grid>
-          <grid id="1cab" layout-manager="GridBagLayout">
+          <grid id="1cab" binding="globalSchemaLogPane" layout-manager="GridBagLayout">
             <constraints>
               <tabbedpane title="Global Schema Query"/>
             </constraints>
@@ -106,46 +99,28 @@
               </scrollpane>
             </children>
           </grid>
+          <grid id="748c1" binding="localSchemaLogPane" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+            <margin top="0" left="0" bottom="0" right="0"/>
+            <constraints>
+              <tabbedpane title="Local Schema Query"/>
+            </constraints>
+            <properties/>
+            <border type="none"/>
+            <children/>
+          </grid>
         </children>
       </tabbedpane>
       <grid id="7ad3d" layout-manager="GridBagLayout">
         <constraints>
-          <grid row="13" column="1" row-span="1" col-span="7" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+          <grid row="12" column="1" row-span="1" col-span="7" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
           <gridbag weightx="0.0" weighty="0.0"/>
         </constraints>
         <properties/>
         <border type="none"/>
         <children>
-          <component id="a2d70" class="javax.swing.JButton" binding="loadQueryButton" default-binding="true">
-            <constraints>
-              <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
-              <gridbag weightx="0.5" weighty="0.1"/>
-            </constraints>
-            <properties>
-              <text value="Load Query"/>
-            </properties>
-          </component>
-          <component id="bb871" class="javax.swing.JButton" binding="saveQueryButton" default-binding="true">
-            <constraints>
-              <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
-              <gridbag weightx="0.5" weighty="0.1"/>
-            </constraints>
-            <properties>
-              <text value="Save Query"/>
-            </properties>
-          </component>
-          <component id="f1e6d" class="javax.swing.JButton" binding="exportResultsToCSVButton" default-binding="true">
-            <constraints>
-              <grid row="0" column="3" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
-              <gridbag weightx="0.5" weighty="0.1"/>
-            </constraints>
-            <properties>
-              <text value="Export Results to CSV"/>
-            </properties>
-          </component>
           <component id="ca426" class="javax.swing.JButton" binding="executeQueryButton" default-binding="true">
             <constraints>
-              <grid row="0" column="4" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+              <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
               <gridbag weightx="0.5" weighty="0.1"/>
             </constraints>
             <properties>
@@ -165,8 +140,8 @@
       </grid>
       <grid id="2defc" layout-manager="GridBagLayout">
         <constraints>
-          <grid row="1" column="1" row-span="10" col-span="4" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-          <gridbag weightx="2.0" weighty="2.0"/>
+          <grid row="0" column="1" row-span="10" col-span="4" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="2.0" weighty="1.0"/>
         </constraints>
         <properties/>
         <border type="etched" title="Selections" title-justification="2"/>
@@ -174,7 +149,7 @@
           <scrollpane id="6cd1b">
             <constraints>
               <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="7" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-              <gridbag weightx="3.5" weighty="1.5"/>
+              <gridbag weightx="3.5" weighty="1.3"/>
             </constraints>
             <properties/>
             <border type="none"/>
@@ -223,7 +198,7 @@
           <scrollpane id="3d495">
             <constraints>
               <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="7" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-              <gridbag weightx="3.0" weighty="1.5"/>
+              <gridbag weightx="3.0" weighty="1.3"/>
             </constraints>
             <properties/>
             <border type="none"/>
@@ -256,8 +231,8 @@
       </grid>
       <grid id="52294" layout-manager="GridBagLayout">
         <constraints>
-          <grid row="1" column="5" row-span="10" col-span="3" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-          <gridbag weightx="1.1" weighty="2.0"/>
+          <grid row="0" column="5" row-span="10" col-span="3" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="1.1" weighty="1.0"/>
         </constraints>
         <properties/>
         <border type="etched" title="Aggregations" title-justification="2">
@@ -298,7 +273,7 @@
               <text value="Aggregation Filters"/>
             </properties>
           </component>
-          <scrollpane id="516b3">
+          <scrollpane id="516b3" binding="aggrFilterPane">
             <constraints>
               <grid row="1" column="3" row-span="3" col-span="1" vsize-policy="7" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
               <gridbag weightx="1.0" weighty="1.0"/>
@@ -339,8 +314,8 @@
       </grid>
       <grid id="c42c3" layout-manager="GridBagLayout">
         <constraints>
-          <grid row="1" column="0" row-span="10" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-          <gridbag weightx="1.1" weighty="2.0"/>
+          <grid row="0" column="0" row-span="10" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="1.1" weighty="1.0"/>
         </constraints>
         <properties/>
         <border type="line" title="Star Schema" title-justification="2">
@@ -365,18 +340,9 @@
           </scrollpane>
         </children>
       </grid>
-      <component id="e1cb6" class="javax.swing.JLabel">
-        <constraints>
-          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
-          <gridbag weightx="1.0" weighty="0.1"/>
-        </constraints>
-        <properties>
-          <text value="Star Schema Selection:"/>
-        </properties>
-      </component>
       <component id="6ec7b" class="javax.swing.JButton" binding="backButton" default-binding="true">
         <constraints>
-          <grid row="13" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="12" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
           <gridbag weightx="1.0" weighty="0.1"/>
         </constraints>
         <properties>

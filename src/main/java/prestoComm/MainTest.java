@@ -13,7 +13,7 @@ public class MainTest {
 
     public static void main(String[] args){
 
-        MetaDataManager m = new MetaDataManager("salesdb2");
+        MetaDataManager m = new MetaDataManager("minho");
         m.deleteTablesToSaveQueries();
         m.createTables();
         //manager.dropTables();
