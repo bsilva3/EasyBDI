@@ -515,7 +515,7 @@ public class PrestoMediator {
 
     public int tryIsPrestoInitialized(){
         int nTries = 0;
-        while (nTries < 3) {
+        while (nTries < 5) {
             try {
                 conn.getMetaData();
                 String state = makeQuery("show catalogs");
@@ -526,12 +526,12 @@ public class PrestoMediator {
                 nTries++;
             }
             try {
-                Thread.sleep(5000); //pause 3 seconds, give time to start
+                Thread.sleep(6000); //pause 6 seconds, give time to start
             } catch(InterruptedException ex) {
                 Thread.currentThread().interrupt();
             }
         }
-        if (nTries >= 3)
+        if (nTries >= 5)
             return FAILED;
         else
             return SUCCESS;

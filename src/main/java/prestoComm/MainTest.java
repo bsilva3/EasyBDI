@@ -13,9 +13,9 @@ public class MainTest {
 
     public static void main(String[] args){
 
-        MetaDataManager m = new MetaDataManager("minho");
-        m.deleteTablesToSaveQueries();
-        m.createTables();
+        MetaDataManager m = new MetaDataManager("minho dataset");
+        //m.deleteTablesToSaveQueries();
+        //m.createTables();
         //manager.dropTables();
 
         /*manager.createDatabaseAndConnectToPresto();
@@ -66,7 +66,13 @@ public class MainTest {
 
         //m.makeQueryAndPrint("SELECT * FROM "+QUERY_SAVE+";");
 
-        m.makeQueryAndPrint("SELECT * FROM "+ QUERY_FILTERS);
+        m.makeQueryAndPrint("SELECT * FROM "+ TABLE_DATA);
+        /*m.makeQueryAndPrint("UPDATE "+DB_DATA+"\n" +
+                "   SET name = 'Social Media Database' \n" +
+                " WHERE id = '1' ;");
+        m.makeQueryAndPrint("UPDATE "+DB_DATA+"\n" +
+                "   SET name = 'Retail Database' \n" +
+                " WHERE id = '2' ;");*/
 
 
     }

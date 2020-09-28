@@ -71,12 +71,14 @@ public class QueryUI extends JPanel{
     private JLabel aggrFiltersLabel;
     private JLabel arrowLabel;
     private JScrollPane filterPane;
-    private JList queryGenLogList;
+    private JList globalQueryLogList;
     private JScrollPane aggregationsPane;
     private JPanel aggrAreaPanel;
     private JScrollPane aggrFilterPane;
     private JPanel globalSchemaLogPane;
     private JPanel localSchemaLogPane;
+    private JList localQueryLogList;
+    private boolean showLocalQueryLog;
 
     private StarSchema starSchema;
     private GlobalTableQuery globalTableQueries;//used to store all queries for each global table, and their columns
@@ -88,7 +90,8 @@ public class QueryUI extends JPanel{
     private DefaultListModel columnListModel;
     private DefaultListModel rowsListModel;
     private DefaultListModel queryStatusLogModel;
-    private DefaultListModel queryGenLogModel;
+    private DefaultListModel globalSchemaLogModel;
+    private DefaultListModel lobalSchemaLogModel;
     private JBroTableModel defaultTableModel;
 
     private MetaDataManager metaDataManager;
@@ -97,7 +100,7 @@ public class QueryUI extends JPanel{
     private boolean countAllAdded;
     private final String[] aggregationsMeasures = { GROUP_BY_OP, "COUNT", "SUM", "AVG"};
     private final String[] aggregationsRows = {"COUNT", "SUM", "AVERAGE", "MAX", "MIN"};
-    private final String[] numberOperations = { "=", "!=", ">", "=>", "<", "<="};
+    private final String[] numberOperations = { "=", "!=", ">", ">=", "<", "<="};
     private final String[] stringOperations = { "=", "!=", "like"};
 
     private MainMenu mainMenu;
@@ -109,6 +112,7 @@ public class QueryUI extends JPanel{
         this.metaDataManager = new MetaDataManager(projectName);
         this.prestoMediator = new PrestoMediator();
         countAllAdded = false;
+        showLocalQueryLog = false;
 
         mainMenu.setTitle("Analytical Query Environment");
         //mainPanel.setSize(mainMenu.getSize());
@@ -216,7 +220,7 @@ public class QueryUI extends JPanel{
 
             JCheckBoxMenuItem item1 = new JCheckBoxMenuItem("Show Local Schema Query Log");
             item1.addActionListener(e -> showHideLocalSchemaQueryPane(item1.getState()));
-            item1.setState(true);
+            item1.setState(false);
             advancedOptions.add(item1);
             menuBar.add(advancedOptions);
 
@@ -299,7 +303,8 @@ public class QueryUI extends JPanel{
             columnListModel = new DefaultListModel();
             rowsListModel = new DefaultListModel();
             queryStatusLogModel = new DefaultListModel();
-            queryGenLogModel = new DefaultListModel();
+            globalSchemaLogModel = new DefaultListModel();
+            lobalSchemaLogModel = new DefaultListModel();
             filterTree.setModel(filterTreeModel);
             filterTree.setCellRenderer(new FilterNodeCellRenderer());
             filterTree.addMouseListener(getMouseListenerForFilterTree());
@@ -311,7 +316,8 @@ public class QueryUI extends JPanel{
             rowsList.setModel(rowsListModel);
             columnsList.setModel(columnListModel);
             queryLogList.setModel(queryStatusLogModel);
-            queryGenLogList.setModel(queryGenLogModel);
+            globalQueryLogList.setModel(globalSchemaLogModel);
+            localQueryLogList.setModel(lobalSchemaLogModel);
 
             filterTree.setTransferHandler(new TreeTransferHandler());
             aggregationsList.setTransferHandler(new TreeTransferHandler());
@@ -338,7 +344,7 @@ public class QueryUI extends JPanel{
             manualAggregations.addMouseListener(getMouseListenerEditAggrTextArea());
 
             queryLogList.setCellRenderer(new StripeRenderer());
-            queryGenLogList.setCellRenderer(new StripeRenderer());
+            globalQueryLogList.setCellRenderer(new StripeRenderer());
 
 
 
@@ -352,6 +358,8 @@ public class QueryUI extends JPanel{
             backButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     //open wizard and edit current project
+                    //remove manubar
+                    mainMenu.setJMenuBar(null);
                     metaDataManager.close();
                     mainMenu.returnToMainMenu();
                 }
@@ -440,7 +448,8 @@ public class QueryUI extends JPanel{
     }
 
     private void showHideLocalSchemaQueryPane(boolean show){
-        if (show)
+        this.showLocalQueryLog = show;
+        if (showLocalQueryLog)
             logPane.addTab("Local Query Log", localSchemaLogPane);
         else{
             logPane.remove(localSchemaLogPane);
@@ -2347,13 +2356,24 @@ public class QueryUI extends JPanel{
     }
 
 
-    public void addQueryGenLog(){
+    public void addGlobalQueryLog(){
         globalTableQueries.setFilterQuery(getFilterQuery(false));
         globalTableQueries.setFilterAggrQuery(getFilterQuery(true));
         String query = globalTableQueries.buildQuery(false);
         DateTime currentTime = new DateTime();
         DateTimeFormatter formatter = DateTimeFormat.forPattern("HH:mm:ss");
-        queryGenLogModel.addElement(formatter.print(currentTime)+ " - "+query);
+        globalSchemaLogModel.addElement(formatter.print(currentTime)+ " - "+query);
+    }
+
+    public void addLocalQueryLog(){
+        if (showLocalQueryLog) {
+            globalTableQueries.setFilterQuery(getFilterQuery(false));
+            globalTableQueries.setFilterAggrQuery(getFilterQuery(true));
+            String query = globalTableQueries.buildQuery(true);
+            DateTime currentTime = new DateTime();
+            DateTimeFormatter formatter = DateTimeFormat.forPattern("HH:mm:ss");
+            lobalSchemaLogModel.addElement(formatter.print(currentTime) + " - " + query);
+        }
     }
 
     class TreeTransferHandler extends TransferHandler {
@@ -2427,8 +2447,10 @@ public class QueryUI extends JPanel{
             try {
                 CustomTreeNode data = (CustomTreeNode) t.getTransferData(flavors[0]);
                 boolean added = handleNodeTransfer(data, info);
-                //if (added)
-                    //addQueryGenLog();
+                if (added) {
+                    addGlobalQueryLog();
+                    addLocalQueryLog();
+                }
                 return added;
             } catch (Exception e) {
                 if (e.getLocalizedMessage().contains("custom node")) {
@@ -2436,8 +2458,10 @@ public class QueryUI extends JPanel{
                     try {
                         ListElementWrapper listElem = (ListElementWrapper) t.getTransferData(flavors[1]);
                         boolean added = handleListTransfer(listElem, info);
-                        //if (added)
-                            //addQueryGenLog();
+                        if (added) {
+                            addGlobalQueryLog();
+                            addLocalQueryLog();
+                        }
                         return added;
                     } catch (Exception ex) {
                         ex.printStackTrace();

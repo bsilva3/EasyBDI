@@ -20,7 +20,7 @@
           <component id="5302d" class="javax.swing.JButton" binding="previousButton" default-binding="true">
             <constraints>
               <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
-              <gridbag weightx="1.0" weighty="1.0"/>
+              <gridbag top="0" left="0" bottom="20" right="0" weightx="1.0" weighty="1.0"/>
             </constraints>
             <properties>
               <text value="Previous"/>
@@ -29,7 +29,7 @@
           <component id="2a91d" class="javax.swing.JButton" binding="cancelButton" default-binding="true">
             <constraints>
               <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
-              <gridbag weightx="1.0" weighty="1.0"/>
+              <gridbag top="0" left="0" bottom="20" right="0" weightx="1.0" weighty="1.0"/>
             </constraints>
             <properties>
               <text value="Cancel"/>
@@ -38,7 +38,7 @@
           <component id="3e336" class="javax.swing.JButton" binding="nextBtn">
             <constraints>
               <grid row="1" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
-              <gridbag top="0" left="0" bottom="0" right="10" weightx="1.0" weighty="1.0"/>
+              <gridbag top="0" left="0" bottom="20" right="10" weightx="1.0" weighty="1.0"/>
             </constraints>
             <properties>
               <text value="Next"/>

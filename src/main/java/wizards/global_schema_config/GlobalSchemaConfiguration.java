@@ -47,6 +47,8 @@ public class GlobalSchemaConfiguration extends JPanel {
         this.metaDataManager = metaDataManager;
         referencedCols = new HashMap<>();
 
+        this.setLayout(new BorderLayout());
+
         helpLabel.setText("<html>Verify the proposed Global Schema and make the necessary adjustments."
                 +"<br/> You can drag and drop columns or tables from the Local to the Global schema to add new correspondences or to create new items (global table or global columns). " +
                 "<br/> You can edit key constraints by right clicking on a Global Column and select the appropriate option. You can also remove or edit elements in this menu."+

@@ -91,7 +91,7 @@
                 <properties/>
                 <border type="none"/>
                 <children>
-                  <component id="b0502" class="javax.swing.JList" binding="queryGenLogList">
+                  <component id="b0502" class="javax.swing.JList" binding="globalQueryLogList">
                     <constraints/>
                     <properties/>
                   </component>
@@ -106,7 +106,16 @@
             </constraints>
             <properties/>
             <border type="none"/>
-            <children/>
+            <children>
+              <component id="d8ded" class="javax.swing.JList" binding="localQueryLogList">
+                <constraints>
+                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="2" anchor="0" fill="3" indent="0" use-parent-layout="false">
+                    <preferred-size width="150" height="50"/>
+                  </grid>
+                </constraints>
+                <properties/>
+              </component>
+            </children>
           </grid>
         </children>
       </tabbedpane>
@@ -121,7 +130,7 @@
           <component id="ca426" class="javax.swing.JButton" binding="executeQueryButton" default-binding="true">
             <constraints>
               <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
-              <gridbag weightx="0.5" weighty="0.1"/>
+              <gridbag weightx="0.4" weighty="0.1"/>
             </constraints>
             <properties>
               <text value="Execute Query"/>
@@ -130,7 +139,7 @@
           <component id="40a06" class="javax.swing.JButton" binding="clearAllFieldsButton" default-binding="true">
             <constraints>
               <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
-              <gridbag weightx="0.5" weighty="0.1"/>
+              <gridbag weightx="0.4" weighty="0.1"/>
             </constraints>
             <properties>
               <text value="Clear All Fields"/>
@@ -232,7 +241,7 @@
       <grid id="52294" layout-manager="GridBagLayout">
         <constraints>
           <grid row="0" column="5" row-span="10" col-span="3" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-          <gridbag weightx="1.1" weighty="1.0"/>
+          <gridbag weightx="0.5" weighty="1.0"/>
         </constraints>
         <properties/>
         <border type="etched" title="Aggregations" title-justification="2">
@@ -267,7 +276,7 @@
           <component id="7114c" class="javax.swing.JLabel" binding="aggrFiltersLabel">
             <constraints>
               <grid row="0" column="3" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="10" fill="0" indent="0" use-parent-layout="false"/>
-              <gridbag weightx="1.0" weighty="0.1"/>
+              <gridbag weightx="0.7" weighty="0.1"/>
             </constraints>
             <properties>
               <text value="Aggregation Filters"/>
@@ -276,7 +285,7 @@
           <scrollpane id="516b3" binding="aggrFilterPane">
             <constraints>
               <grid row="1" column="3" row-span="3" col-span="1" vsize-policy="7" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-              <gridbag weightx="1.0" weighty="1.0"/>
+              <gridbag weightx="0.7" weighty="1.0"/>
             </constraints>
             <properties/>
             <border type="none"/>
@@ -315,7 +324,7 @@
       <grid id="c42c3" layout-manager="GridBagLayout">
         <constraints>
           <grid row="0" column="0" row-span="10" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-          <gridbag weightx="1.1" weighty="1.0"/>
+          <gridbag weightx="1.4" weighty="1.0"/>
         </constraints>
         <properties/>
         <border type="line" title="Star Schema" title-justification="2">

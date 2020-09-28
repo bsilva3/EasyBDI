@@ -41,6 +41,7 @@ public class DatabaseSelection extends JPanel{
             //new project
             helpLabel.setText("<html>Select which elements in each database to use for the local schema construction by checking the boxes next to them.<html>");
         }
+        this.setLayout(new BorderLayout());
         stepLabel.setText("Step 2/4");
         stepLabel.setFont(new Font("", Font.PLAIN, 18));
         this.dbs = dbs;

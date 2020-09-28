@@ -628,30 +628,32 @@ public class GlobalTableQuery {
         }
 
         //perform Where on facts foreign key fields = dimensions referenced primary keys
-        query+= " WHERE (";
+        if (tableSelectRowsWithPrimKeys.size() > 0) {
+            query += " WHERE (";
 
-        Map<GlobalColumnData, Boolean> factColumns = factsTable.getColumns();
-        //foreign key of facts = prim key of the dimensions
-        for (Map.Entry<GlobalColumnData, Boolean> factColumn : factColumns.entrySet()) {
-            boolean isMeasure = factColumn.getValue();
-            if (!isMeasure) { //it must be a foreign key, check if it references a dim table
-                for (GlobalTableData tableDim : tableSelectRowsWithPrimKeys.keySet()) {
+            Map<GlobalColumnData, Boolean> factColumns = factsTable.getColumns();
+            //foreign key of facts = prim key of the dimensions
+            for (Map.Entry<GlobalColumnData, Boolean> factColumn : factColumns.entrySet()) {
+                boolean isMeasure = factColumn.getValue();
+                if (!isMeasure) { //it must be a foreign key, check if it references a dim table
+                    for (GlobalTableData tableDim : tableSelectRowsWithPrimKeys.keySet()) {
 
-                    GlobalColumnData factsCol = factColumn.getKey();
-                    if (factsCol.hasForeignKey()) {
-                        GlobalColumnData referencedCol = isFactsColReferencingDimTable(factsCol.getForeignKey(), tableDim);
-                        if (referencedCol != null) {
-                            query += tableDim.getTableName() + "." + referencedCol.getName() + " = " + factsTable.getGlobalTable().getTableName() + "." + factsCol.getName();
-                            query += " AND ";
-                            break;
+                        GlobalColumnData factsCol = factColumn.getKey();
+                        if (factsCol.hasForeignKey()) {
+                            GlobalColumnData referencedCol = isFactsColReferencingDimTable(factsCol.getForeignKey(), tableDim);
+                            if (referencedCol != null) {
+                                query += tableDim.getTableName() + "." + referencedCol.getName() + " = " + factsTable.getGlobalTable().getTableName() + "." + factsCol.getName();
+                                query += " AND ";
+                                break;
+                            }
                         }
                     }
                 }
             }
-        }
 
-        query = query.substring(0, query.length() - "AND ".length());//last column is whithout a comma
-        query+=")"; //close where clause
+            query = query.substring(0, query.length() - "AND ".length());//last column is whithout a comma
+            query += ")"; //close where clause
+        }
 
         //aditional filters set by user here
         if (filterQuery.length() > 0){
@@ -692,7 +694,9 @@ public class GlobalTableQuery {
             query+="Count(*),";
         int nSelectCols = 0;
         //get distinct values of columns. If multiple columns, get all distinct combinations
-        List<List<String>> valuesByGlobalCol = getAllDifferentValuesOfColumn();
+        List<List<String>> valuesByGlobalCol = new ArrayList<>();
+        if (includeInnerQueries)
+            valuesByGlobalCol = getAllDifferentValuesOfColumn();
 
         boolean hasAggregations = false;
         Set<String> selectColsNoAggr = new HashSet<>(); //elements that need to be added to group by because there are other elements containing aggregate functions
@@ -756,58 +760,66 @@ public class GlobalTableQuery {
         //clauses to create columns
         //for each measure, iterate
         List<Integer> groupByPivotCols = new ArrayList<>();
-        GlobalColumnData measure = measures.get(0); //only one measure is used here.
-        String pivotStatement = "";
-        if (measure.getAggrOp().equalsIgnoreCase("COUNT")) {
-            pivotStatement= " SUM(CASE WHEN %s AND "+measure.getName()+" IS NOT NULL THEN 1 ELSE 0 END) AS %s, ";
-            hasAggregations = true;
-        }
-        else if (measure.getAggrOp().equalsIgnoreCase("SUM")) {
-            pivotStatement = " SUM(CASE WHEN %s THEN " + measure.getName() + " ELSE 0 END) AS %s, ";
-            hasAggregations = true;
-        }
-        else if (measure.getAggrOp().equalsIgnoreCase("AVG")) {
-            pivotStatement = " AVG(CASE WHEN %s THEN " + measure.getName() + " ELSE NULL END) AS %s, ";
-            hasAggregations = true;
-        }
-        else if (measure.getAggrOp().equalsIgnoreCase("SIMPLE") || measure.getAggrOp().isEmpty() ||measure.getAggrOp().equalsIgnoreCase("Group By") ) {
-            pivotStatement= " (CASE WHEN %s THEN " + measure.getName() + " ELSE 0 END) AS %s, ";
-            groupByPivotCols.add(nSelectCols);
-        }
-        for (List<String> pairs : valuesByGlobalCol){//for each list of value of each column
-            String valueColEnumeration = ""; //colName = value AND ColName = value etc...
-            String valueAlias = ""; //as aliasName
-            List<String> valuesRaw = new ArrayList<>();
-            for (int i = 0; i < pairs.size(); i++) {//v is already escaped with ''
-                String v = pairs.get(i);
-                String valueRaw = ""; //value with no singe quote
-                if (v.charAt(0)=='\'' && v.charAt(v.length()-1) == '\''){
-                    valueRaw = v.substring(1, v.length()-1);//remove the ' at the beginning and end of string
-                }
-                else
-                    valueRaw = v;
-                valueRaw = valueRaw.replaceAll("''", "'");//all ' were replaced by '' to be escaped when used as column anmes for presto. Convert back to single '
-                //valueRaw = v.replaceAll("'", "");
-                valuesRaw.add(valueRaw);
-                //if (valueRaw.isEmpty())
+        if (includeInnerQueries) {
+            GlobalColumnData measure = measures.get(0); //only one measure is used here.
+            String pivotStatement = "";
+            if (measure.getAggrOp().equalsIgnoreCase("COUNT")) {
+                pivotStatement = " SUM(CASE WHEN %s AND " + measure.getName() + " IS NOT NULL THEN 1 ELSE 0 END) AS %s, ";
+                hasAggregations = true;
+            } else if (measure.getAggrOp().equalsIgnoreCase("SUM")) {
+                pivotStatement = " SUM(CASE WHEN %s THEN " + measure.getName() + " ELSE 0 END) AS %s, ";
+                hasAggregations = true;
+            } else if (measure.getAggrOp().equalsIgnoreCase("AVG")) {
+                pivotStatement = " AVG(CASE WHEN %s THEN " + measure.getName() + " ELSE NULL END) AS %s, ";
+                hasAggregations = true;
+            } else if (measure.getAggrOp().equalsIgnoreCase("SIMPLE") || measure.getAggrOp().isEmpty() || measure.getAggrOp().equalsIgnoreCase("Group By")) {
+                pivotStatement = " (CASE WHEN %s THEN " + measure.getName() + " ELSE 0 END) AS %s, ";
+                groupByPivotCols.add(nSelectCols);
+            }
+            for (List<String> pairs : valuesByGlobalCol) {//for each list of value of each column
+                String valueColEnumeration = ""; //colName = value AND ColName = value etc...
+                String valueAlias = ""; //as aliasName
+                List<String> valuesRaw = new ArrayList<>();
+                for (int i = 0; i < pairs.size(); i++) {//v is already escaped with ''
+                    String v = pairs.get(i);
+                    String valueRaw = ""; //value with no singe quote
+                    if (v.charAt(0) == '\'' && v.charAt(v.length() - 1) == '\'') {
+                        valueRaw = v.substring(1, v.length() - 1);//remove the ' at the beginning and end of string
+                    } else
+                        valueRaw = v;
+                    valueRaw = valueRaw.replaceAll("''", "'");//all ' were replaced by '' to be escaped when used as column anmes for presto. Convert back to single '
+                    //valueRaw = v.replaceAll("'", "");
+                    valuesRaw.add(valueRaw);
+                    //if (valueRaw.isEmpty())
                     //valueRaw ="''";
-                valueColEnumeration += colNames.get(i) + " = "+v+" AND ";//building a colName = value AND ColName = value etc...
-                valueAlias += valueRaw + MULTI_HEADER_SEPARATOR;
+                    valueColEnumeration += colNames.get(i) + " = " + v + " AND ";//building a colName = value AND ColName = value etc...
+                    valueAlias += valueRaw + MULTI_HEADER_SEPARATOR;
+                }
+                pivotValues.add(valuesRaw);
+                //remove last AND from enumerations and last _ from alias
+                valueColEnumeration = valueColEnumeration.substring(0, valueColEnumeration.length() - " AND ".length());//remove last AND from enumeration
+                valueAlias = valueAlias.substring(0, valueAlias.length() - MULTI_HEADER_SEPARATOR.length());//remove last - from alias
+                if (valueAlias.trim().isEmpty()) {//empty alias name, add a new name
+                    valueAlias = "empty";
+                }
+                valueAlias = "\"" + valueAlias + "\"";//space between chars in alias is not allowed, add double quotes
+                nSelectCols++;
+                query += String.format(pivotStatement, valueColEnumeration, valueAlias);
             }
-            pivotValues.add(valuesRaw);
-            //remove last AND from enumerations and last _ from alias
-            valueColEnumeration = valueColEnumeration.substring(0, valueColEnumeration.length() - " AND ".length());//remove last AND from enumeration
-            valueAlias = valueAlias.substring(0, valueAlias.length() - MULTI_HEADER_SEPARATOR.length());//remove last - from alias
-            if (valueAlias.trim().isEmpty()){//empty alias name, add a new name
-                valueAlias="empty";
-            }
-            valueAlias = "\""+valueAlias+"\"";//space between chars in alias is not allowed, add double quotes
-            nSelectCols++;
-            query+=String.format(pivotStatement, valueColEnumeration, valueAlias);
+
+
+            query = query.substring(0, query.length() - ", ".length());//last elemment without comma
         }
+        else{
+            GlobalColumnData measure = measures.get(0);
+            if (measure.getAggrOp() == null && measure.getAggrOp().isEmpty())
+                query+= measure.getName();
+            else
+                query+= measure.getAggrOpName() + "AS \""+measure.getAggrOp() +" of "+measure.getName()+"\"";
+            for (String colName : colNames)
+                query+="PIVOT("+colName+")";
 
-
-        query = query.substring(0, query.length() - ", ".length());//last elemment without comma
+        }
         query+= " FROM ";
 
         tableSelectRowsWithPrimKeys = addFilterColumnIfNeeded(tableSelectRowsWithPrimKeys);
@@ -1070,7 +1082,7 @@ public class GlobalTableQuery {
         if ((selectColumns.size() == 0 || manualRowsAggr.size()>0) && (measures.size() == 0 && manualMeasures.size() == 0) && selectRows.size() > 0){
             query = buildQuerySelectRowsOnly(includeInnerQueries);
         }
-        else if (selectColumns.size() == 0 && (measures.size() > 0 || manualMeasures.size() > 0) && selectRows.size() > 0){
+        else if (selectColumns.size() == 0 && (measures.size() > 0 || manualMeasures.size() > 0) && selectRows.size() >= 0){
             query = buildQuerySelectRowsAndMeasures(true, includeInnerQueries);
         }
         else if (selectColumns.size() > 0 && (measures.size() == 1 || manualMeasures.size() == 1) && selectRows.size() > 0){

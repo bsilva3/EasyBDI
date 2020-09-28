@@ -71,7 +71,8 @@ public class DatabaseConnectionWizardV2 extends JPanel {
         //setContentPane(mainPanel);
         //setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         //pack();
-        add(mainPanel); //g-wizard
+        this.setLayout(new BorderLayout());
+        add(mainPanel);
         setVisible(true);
 
         addDatabaseButton.addActionListener(new ActionListener() {
