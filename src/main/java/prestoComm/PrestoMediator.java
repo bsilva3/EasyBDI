@@ -677,6 +677,9 @@ public class PrestoMediator {
                 JOptionPane.showMessageDialog(null, "Query canceled, time out of 3 minutes reached.\nPresto is now required to restart in order to clear any inconsistant state.", "Failed to connect to Presto", JOptionPane.ERROR_MESSAGE);
                 restartPresto();
             }
+            else if (e.getCause().getMessage().contains("must be an aggregate expression or appear in GROUP BY clause")){
+                JOptionPane.showMessageDialog(null, "One or more attributes added on the aggregations area do not have an aggregate function.\nPlease add one to proceed.", "Failed to connect to Presto", JOptionPane.ERROR_MESSAGE);
+            }
             else{
                 JOptionPane.showMessageDialog(null, "Presto returned the following error:\n"+e.getCause().getMessage(), "Error Presto", JOptionPane.ERROR_MESSAGE);
             }

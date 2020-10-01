@@ -130,7 +130,7 @@
           <component id="ca426" class="javax.swing.JButton" binding="executeQueryButton" default-binding="true">
             <constraints>
               <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
-              <gridbag weightx="0.4" weighty="0.1"/>
+              <gridbag weightx="0.3" weighty="0.1"/>
             </constraints>
             <properties>
               <text value="Execute Query"/>
@@ -139,7 +139,7 @@
           <component id="40a06" class="javax.swing.JButton" binding="clearAllFieldsButton" default-binding="true">
             <constraints>
               <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
-              <gridbag weightx="0.4" weighty="0.1"/>
+              <gridbag weightx="0.3" weighty="0.1"/>
             </constraints>
             <properties>
               <text value="Clear All Fields"/>
@@ -149,7 +149,7 @@
       </grid>
       <grid id="2defc" layout-manager="GridBagLayout">
         <constraints>
-          <grid row="0" column="1" row-span="10" col-span="4" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+          <grid row="0" column="1" row-span="10" col-span="6" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
           <gridbag weightx="2.0" weighty="1.0"/>
         </constraints>
         <properties/>
@@ -240,8 +240,8 @@
       </grid>
       <grid id="52294" layout-manager="GridBagLayout">
         <constraints>
-          <grid row="0" column="5" row-span="10" col-span="3" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-          <gridbag weightx="0.5" weighty="1.0"/>
+          <grid row="0" column="7" row-span="10" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="0.1" weighty="1.0"/>
         </constraints>
         <properties/>
         <border type="etched" title="Aggregations" title-justification="2">
@@ -324,7 +324,7 @@
       <grid id="c42c3" layout-manager="GridBagLayout">
         <constraints>
           <grid row="0" column="0" row-span="10" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-          <gridbag weightx="1.4" weighty="1.0"/>
+          <gridbag weightx="1.9" weighty="1.0"/>
         </constraints>
         <properties/>
         <border type="line" title="Star Schema" title-justification="2">

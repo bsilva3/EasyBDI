@@ -219,13 +219,23 @@ public class QueryUI extends JPanel{
             advancedOptions.setIcon(new ImageIcon(image.getScaledInstance(25, 25, 0)));
 
             JCheckBoxMenuItem item1 = new JCheckBoxMenuItem("Show Local Schema Query Log");
-            item1.addActionListener(e -> showHideLocalSchemaQueryPane(item1.getState()));
             item1.setState(false);
+            item1.addActionListener(e -> showHideLocalSchemaQueryPane(item1.getState()));
+            showHideLocalSchemaQueryPane(item1.getState());
             advancedOptions.add(item1);
             menuBar.add(advancedOptions);
 
             JMenu queryMenu = new JMenu("Query");
-            //save query state
+            queryMenu.addActionListener(e -> saveQueryState());
+            image = null;
+            try {
+                image = ImageIO.read(new File(Constants.IMAGES_DIR+"query_icon.png"));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            queryMenu.setIcon(new ImageIcon(image.getScaledInstance(20, 20, 0)));
+
+                //save query state
             JMenuItem saveQueryState = new JMenuItem("Save Query");
             saveQueryState.addActionListener(e -> saveQueryState());
             image = null;
@@ -265,7 +275,7 @@ public class QueryUI extends JPanel{
             }
             //advancedOptions.setHorizontalTextPosition(SwingConstants.CENTER);
             //advancedOptions.setVerticalTextPosition(SwingConstants.BOTTOM);
-            exportMenu.setIcon(new ImageIcon(image.getScaledInstance(25, 25, 0)));
+            exportMenu.setIcon(new ImageIcon(image.getScaledInstance(20, 20, 0)));
 
             JMenuItem exportToCsv = new JMenuItem("Export To CSV");
 
@@ -441,16 +451,21 @@ public class QueryUI extends JPanel{
         currentStarSchema = starSchemaName;
         clearAllFieldsAndQueryElements();//new project selected, clear all ui and data structures
         this.starSchema = metaDataManager.getStarSchema(currentStarSchema);
+        globalTableQueries.setFactsTable(starSchema.getFactsTable());
         schemaTreeModel = setStarSchemaTree();
         schemaTree.setModel(schemaTreeModel);
         schemaTree.revalidate();
         schemaTree.updateUI();
+        for (int i = 0; i < starSchemaMenu.getItemCount(); i++){
+            if (!starSchemaMenu.getItem(i).equals(menuItem))
+                starSchemaMenu.getItem(i).setSelected(false);
+        }
     }
 
     private void showHideLocalSchemaQueryPane(boolean show){
         this.showLocalQueryLog = show;
         if (showLocalQueryLog)
-            logPane.addTab("Local Query Log", localSchemaLogPane);
+            logPane.addTab("Local Schema Query", localSchemaLogPane);
         else{
             logPane.remove(localSchemaLogPane);
         }
@@ -1477,6 +1492,8 @@ public class QueryUI extends JPanel{
                     globalTableQueries.setManualRowsAndMeasuresAggr(tExtractor.getSchemaObjectsFromSQLText(manualAggregations.getText(), starSchema));
                 }
 
+                globalTableQueries.setFilterQuery(getFilterQuery(false));
+                globalTableQueries.setFilterAggrQuery(getFilterQuery(true));
                 if (!filterTableExistsInRows()){
                     LoadingScreenAnimator.closeGeneralLoadingAnimation();
                     backButton.setEnabled(true);
@@ -1484,8 +1501,6 @@ public class QueryUI extends JPanel{
                     globalTableQueries.clearFilters();
                     return null;
                 }
-                globalTableQueries.setFilterQuery(getFilterQuery(false));
-                globalTableQueries.setFilterAggrQuery(getFilterQuery(true));
 
                 String localQuery = globalTableQueries.buildQuery(true);//create query with inner query to get local table data
                 System.out.println(localQuery);
@@ -2448,8 +2463,8 @@ public class QueryUI extends JPanel{
                 CustomTreeNode data = (CustomTreeNode) t.getTransferData(flavors[0]);
                 boolean added = handleNodeTransfer(data, info);
                 if (added) {
-                    addGlobalQueryLog();
-                    addLocalQueryLog();
+                    //addGlobalQueryLog();
+                    //addLocalQueryLog();
                 }
                 return added;
             } catch (Exception e) {
@@ -2459,8 +2474,8 @@ public class QueryUI extends JPanel{
                         ListElementWrapper listElem = (ListElementWrapper) t.getTransferData(flavors[1]);
                         boolean added = handleListTransfer(listElem, info);
                         if (added) {
-                            addGlobalQueryLog();
-                            addLocalQueryLog();
+                            //addGlobalQueryLog();
+                            //addLocalQueryLog();
                         }
                         return added;
                     } catch (Exception ex) {

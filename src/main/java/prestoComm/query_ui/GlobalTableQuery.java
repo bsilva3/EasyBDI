@@ -226,17 +226,24 @@ public class GlobalTableQuery {
 
     public Map<GlobalTableData, List<GlobalColumnData>> addRowsToListOfRows(Map<GlobalTableData, List<GlobalColumnData>> rows, Map<GlobalTableData, List<GlobalColumnData>> rowsToAdd){
         for (Map.Entry<GlobalTableData, List<GlobalColumnData>> table : rowsToAdd.entrySet()){
-            GlobalTableData t = table.getKey();
+            GlobalTableData t = new GlobalTableData(table.getKey());
+            if (t.getTableName().equals(factsTable.getGlobalTable().getTableName()))
+                continue;
+            List<GlobalColumnData> cs = rows.get(t);
+            if (cs == null)
+                continue;
+            List<GlobalColumnData> cols = new ArrayList<>(cs);
             if (rows.containsKey(t)){
                 for (GlobalColumnData col : table.getValue()){
                     if (!rows.get(t).contains(col)){
-                        rows.get(t).add(col);
+                        cols.add(col);
                     }
                 }
+                rows.put(table.getKey(), cols);
             }
             else{
                 //add table and rows
-                rows.put(t, table.getValue());
+                rows.put(t, new ArrayList<>(table.getValue()));
             }
         }
         return rows;
@@ -314,13 +321,15 @@ public class GlobalTableQuery {
     }
 
     private Map<GlobalTableData, List<GlobalColumnData>> addFilterColumnIfNeeded(Map<GlobalTableData, List<GlobalColumnData>> selectAttrs){
+        Map<GlobalTableData, List<GlobalColumnData>> attrs = new HashMap<>();
+        attrs.putAll(selectAttrs);
         if (filterQuery.length() > 0 && filters.size() > 0){
             for (String filterCol : filters){
                 String [] filterSplit = filterCol.split("\\.");
                 String tableName = filterSplit[0];
                 String colName = filterSplit[1];
                 boolean isSelected = false;
-                for (Map.Entry<GlobalTableData, List<GlobalColumnData>> selectedTable : selectAttrs.entrySet()){
+                for (Map.Entry<GlobalTableData, List<GlobalColumnData>> selectedTable : attrs.entrySet()){
                     GlobalTableData gt = selectedTable.getKey();
                     if (gt.getTableName().equals(tableName)) {
                         List<GlobalColumnData> cols = selectedTable.getValue();
@@ -370,7 +379,7 @@ public class GlobalTableQuery {
                 }
             }
         }
-        return selectAttrs;
+        return attrs;
     }
 
     public String getLocalTableQuery(GlobalTableData t){
@@ -426,9 +435,8 @@ public class GlobalTableQuery {
         query+= " FROM ";
 
         //check if all tables and columns of filters are selected
-        Map<GlobalTableData, List<GlobalColumnData>> selectRowsCopy = new HashMap<>(selectRows);
-        selectRowsCopy = addFilterColumnIfNeeded(selectRows);
-        selectRowsCopy = addRowsToListOfRows(selectRowsCopy, manualRowsAggr);
+        Map<GlobalTableData, List<GlobalColumnData>> selectRowsCopy = addFilterColumnIfNeeded(selectRows);
+        selectRowsCopy = addRowsToListOfRows(selectRowsCopy, manualRowsAggr);//add any manual aggregation rows added
 
         for (Map.Entry<GlobalTableData, List<GlobalColumnData>> tableSelectRows : selectRowsCopy.entrySet()){
             //for each global table
@@ -561,6 +569,7 @@ public class GlobalTableQuery {
 
         //check if all tables and columns of filters are selected
         tableSelectRowsWithPrimKeys = addFilterColumnIfNeeded(tableSelectRowsWithPrimKeys);
+        tableSelectRowsWithPrimKeys = addRowsToListOfRows(tableSelectRowsWithPrimKeys, manualRowsAggr);
 
         for (Map.Entry<GlobalTableData, List<GlobalColumnData>> tableSelectRows : tableSelectRowsWithPrimKeys.entrySet()){
             //for each global column create inner queries in the 'From' clause
@@ -753,14 +762,15 @@ public class GlobalTableQuery {
                 colNames.add(t.getTableName()+"."+c.getName());
             }
         }
-        if (colNames.size() != valuesByGlobalCol.get(0).size()){//list of columns of values must be same length as list of values of columns
-            return "Error";
-        }
 
         //clauses to create columns
         //for each measure, iterate
         List<Integer> groupByPivotCols = new ArrayList<>();
         if (includeInnerQueries) {
+            if (valuesByGlobalCol.size() > 0 && colNames.size() != valuesByGlobalCol.get(0).size()){//list of columns of values must be same length as list of values of columns
+                return "Error";
+            }
+
             GlobalColumnData measure = measures.get(0); //only one measure is used here.
             String pivotStatement = "";
             if (measure.getAggrOp().equalsIgnoreCase("COUNT")) {
@@ -806,20 +816,17 @@ public class GlobalTableQuery {
                 nSelectCols++;
                 query += String.format(pivotStatement, valueColEnumeration, valueAlias);
             }
-
-
-            query = query.substring(0, query.length() - ", ".length());//last elemment without comma
         }
         else{
             GlobalColumnData measure = measures.get(0);
-            if (measure.getAggrOp() == null && measure.getAggrOp().isEmpty())
+            if ((measure.getAggrOp() == null && measure.getAggrOp().isEmpty()) || measure.getAggrOp().equals("Group By"))
                 query+= measure.getName();
             else
                 query+= measure.getAggrOpName() + "AS \""+measure.getAggrOp() +" of "+measure.getName()+"\"";
             for (String colName : colNames)
-                query+="PIVOT("+colName+")";
-
+                query+=",PIVOT("+colName+"),";
         }
+        query = query.substring(0, query.length() - ", ".length());//last elemment without comma
         query+= " FROM ";
 
         tableSelectRowsWithPrimKeys = addFilterColumnIfNeeded(tableSelectRowsWithPrimKeys);
@@ -1501,4 +1508,6 @@ public class GlobalTableQuery {
     public void setManualMeasures(List<GlobalColumnData> manualMeasures) {
         this.manualMeasures = manualMeasures;
     }
+
+
 }

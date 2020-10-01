@@ -17,6 +17,13 @@ public class GlobalTableData implements Serializable {
         localTables = new ArrayList<>();
     }
 
+    public GlobalTableData(GlobalTableData table) {
+        this.tableName = table.getTableName();
+        this.localTables = table.getLocalTables();
+        this.globalColumnData = table.getGlobalColumnDataList();
+        this.id = table.getId();
+    }
+
     public String getTableName() {
         return tableName;
     }
