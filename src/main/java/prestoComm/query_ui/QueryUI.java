@@ -903,16 +903,33 @@ public class QueryUI extends JPanel{
             return null;
         FactsTable facts = starSchema.getFactsTable();
         CustomTreeNode root = new CustomTreeNode("root", NodeType.GLOBAL_TABLES);
-        CustomTreeNode factsNode = new CustomTreeNode("Measures of "+facts.getGlobalTable().getTableName(),facts.getGlobalTable(), NodeType.FACTS_TABLE);
+        CustomTreeNode factsNode = new CustomTreeNode("Facts Table: "+facts.getGlobalTable().getTableName(),facts.getGlobalTable(), NodeType.FACTS_TABLE);
+        CustomTreeNode measuresNode = new CustomTreeNode("Measures", facts.getGlobalTable(), NodeType.MEASURES);
+        CustomTreeNode nonFKNode = new CustomTreeNode("Non-FK attributes",facts.getGlobalTable(), NodeType.FACTS_ATTR);
+
         //set columns that are measures ONLY
         Map<GlobalColumnData, Boolean> cols = facts.getColumns();
+
         for (Map.Entry<GlobalColumnData, Boolean> col : cols.entrySet()){
             if (col.getValue() == true){
                 //is measure, add
                 GlobalColumnData measure = col.getKey();
-                factsNode.add(new CustomTreeNode(measure.getName(), measure, NodeType.MEASURE));
+                CustomTreeNode measureNode = new CustomTreeNode(measure.getName(), measure, NodeType.MEASURE);
+                measureNode.add(new CustomTreeNode(col.getKey().getDataType(), "", NodeType.COLUMN_INFO));
+                measuresNode.add(measureNode);
+            }
+            else{
+                if (!col.getKey().isForeignKey()){
+                    //not a fk or measure
+                    CustomTreeNode node = new CustomTreeNode(col.getKey().getName(), col.getKey(), NodeType.GLOBAL_COLUMN);
+                    node.add(new CustomTreeNode(col.getKey().getDataType(), "", NodeType.COLUMN_INFO));
+                    nonFKNode.add(node);
+                }
             }
         }
+        factsNode.add(measuresNode);
+        //if (nonFKNode.getChildCount() > 0)
+          //  factsNode.add(nonFKNode);
         //dimension tables
         CustomTreeNode dimensionsNode = new CustomTreeNode("Dimensions", NodeType.GLOBAL_TABLES);
         for (GlobalTableData gt : starSchema.getDimsTables() ) {
@@ -1402,7 +1419,7 @@ public class QueryUI extends JPanel{
 
     private void expandAllStarSchema(TreePath path, boolean expand) {
         CustomTreeNode node = (CustomTreeNode) path.getLastPathComponent();
-        if (node.getNodeType() == NodeType.GLOBAL_COLUMN )
+        if (node.getNodeType() == NodeType.GLOBAL_COLUMN || node.getNodeType() == NodeType.MEASURE)
             return;
         if (node.getChildCount() >= 0) {
             Enumeration enumeration = node.children();
@@ -1443,14 +1460,18 @@ public class QueryUI extends JPanel{
     public String getFilterQuery(boolean isAggrFilter){
         DefaultTreeModel treeModel = null;
         JTextArea textArea = null;
-        if (isAggrFilter)
+        if (isAggrFilter) {
             treeModel = aggrFilterTreeModel;
+            textArea = editFiltersAggr;
+        }
         else {
             treeModel = filterTreeModel;
             textArea = editFilters;
         }
         if (textArea != null && textArea.isVisible()) { //manual edit mode
             String filterText = textArea.getText().replaceAll(";", "");
+            filterText = filterText.replaceAll("(?i)having", "");//case insensitive
+            filterText = filterText.replaceAll("(?i)where", "");
             if (!isAggrFilter){
                 TableColumnNameExtractor ext = new TableColumnNameExtractor();
                 globalTableQueries.setFilters(ext.getColumnsFromStringSet(textArea.getText()), true);
@@ -2448,9 +2469,7 @@ public class QueryUI extends JPanel{
 
 
     public void addGlobalQueryLog(){
-        globalTableQueries.setFilterQuery(getFilterQuery(false));
-        globalTableQueries.setFilterAggrQuery(getFilterQuery(true));
-        String query = globalTableQueries.buildQuery(false);
+        String query = buildQuery(false);
         DateTime currentTime = new DateTime();
         DateTimeFormatter formatter = DateTimeFormat.forPattern("HH:mm:ss");
         globalSchemaLogModel.addElement(formatter.print(currentTime)+ " - "+query);
@@ -2458,9 +2477,7 @@ public class QueryUI extends JPanel{
 
     public void addLocalQueryLog(){
         if (showLocalQueryLog) {
-            globalTableQueries.setFilterQuery(getFilterQuery(false));
-            globalTableQueries.setFilterAggrQuery(getFilterQuery(true));
-            String query = globalTableQueries.buildQuery(true);
+            String query = buildQuery(true);
             DateTime currentTime = new DateTime();
             DateTimeFormatter formatter = DateTimeFormat.forPattern("HH:mm:ss");
             localSchemaLogModel.addElement(formatter.print(currentTime) + " - " + query);

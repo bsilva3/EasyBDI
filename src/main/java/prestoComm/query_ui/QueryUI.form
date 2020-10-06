@@ -277,13 +277,20 @@
               <text value=""/>
             </properties>
           </component>
-          <component id="8eee0" class="javax.swing.JComboBox" binding="aggregationOpComboBox">
+          <grid id="1e3cc" binding="aggrAreaPanel" layout-manager="BorderLayout" hgap="0" vgap="0">
             <constraints>
-              <grid row="1" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
-              <gridbag weightx="0.5" weighty="0.0"/>
+              <grid row="1" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+              <gridbag weightx="0.2" weighty="0.0"/>
             </constraints>
             <properties/>
-          </component>
+            <border type="none"/>
+            <children>
+              <component id="8eee0" class="javax.swing.JComboBox" binding="aggregationOpComboBox">
+                <constraints border-constraint="Center"/>
+                <properties/>
+              </component>
+            </children>
+          </grid>
         </children>
       </grid>
       <grid id="c42c3" layout-manager="GridBagLayout">

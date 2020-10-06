@@ -99,17 +99,26 @@ public class CustomTreeNode extends DefaultMutableTreeNode implements Serializab
                 fileName = "column_icon.png";
                 break;
             }
-            case PRIMARY_KEY: //primary key
+            case PRIMARY_KEY:
                 fileName = "primary_key_icon.png";
                 break;
-            case FOREIGN_KEY: //primary key
+            case FOREIGN_KEY:
                 fileName = "foreign_key.png";
                 break;
-            case MATCHES: //matches in local schema
+            case MATCHES:
                 fileName = "match_icon.png";
                 break;
-            case MEASURE: //matches in local schema
+            case MEASURE:
                 fileName = "measures_icon.png";
+                break;
+            case FACTS_TABLE:
+                fileName = "fact_table_icon.png";
+                break;
+            case MEASURES:
+                fileName = "measures_list.png";
+                break;
+            case FACTS_ATTR:
+                fileName = "column_icon.png";
                 break;
             default:
                 fileName = "info_icon.png";
