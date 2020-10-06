@@ -64,9 +64,9 @@ public class MainTest {
                 "    type ='table' AND \n" +
                 "    name NOT LIKE 'sqlite_%';");*/
 
-        //m.makeQueryAndPrint("SELECT * FROM "+QUERY_SAVE+";");
+        m.makeQueryAndPrint("SELECT * FROM "+CUBE_TABLE+";");
 
-        m.makeQueryAndPrint("SELECT * FROM "+ TABLE_DATA);
+        //m.makeQueryAndPrint("SELECT * FROM "+ TABLE_DATA);
         /*m.makeQueryAndPrint("UPDATE "+DB_DATA+"\n" +
                 "   SET name = 'Social Media Database' \n" +
                 " WHERE id = '1' ;");

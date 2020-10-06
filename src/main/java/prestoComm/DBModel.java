@@ -30,6 +30,10 @@ public enum DBModel {
         public String[] getTableExclusions() {
             return new String[] {METADATA_VIEW_SCHEMA_NAME, METADATA_VIEW_FOREIGN_KEY_NAME, METADATA_VIEW_PRIMARY_KEY_NAME};
         }
+        @Override
+        public boolean isSingleServerOneDatabase(){
+            return false;
+        }
     },
     SQLServer {
         @Override
@@ -55,6 +59,10 @@ public enum DBModel {
         @Override
         public String[] getTableExclusions() {
             return new String[] {METADATA_VIEW_SCHEMA_NAME, METADATA_VIEW_FOREIGN_KEY_NAME, METADATA_VIEW_PRIMARY_KEY_NAME};
+        }
+        @Override
+        public boolean isSingleServerOneDatabase(){
+            return false;
         }
     },
     MYSQL {
@@ -85,6 +93,10 @@ public enum DBModel {
         @Override
         public String[] getTableExclusions() {
             return new String[] {METADATA_VIEW_SCHEMA_NAME, METADATA_VIEW_FOREIGN_KEY_NAME, METADATA_VIEW_PRIMARY_KEY_NAME};
+        }
+        @Override
+        public boolean isSingleServerOneDatabase(){
+            return true;
         }
     },
     Redis {
@@ -117,6 +129,10 @@ public enum DBModel {
         public String[] getTableExclusions() {
             return new String[] {};
         }
+        @Override
+        public boolean isSingleServerOneDatabase(){
+            return true;
+        }
     },
     Cassandra {
         @Override
@@ -142,6 +158,10 @@ public enum DBModel {
         @Override
         public String[] getTableExclusions() {
             return new String[] {};
+        }
+        @Override
+        public boolean isSingleServerOneDatabase(){
+            return true;
         }
     },
     MongoDB {
@@ -172,6 +192,10 @@ public enum DBModel {
         @Override
         public String[] getTableExclusions() {
             return new String[] {"views", "tables", "table_privileges", "schemata", "columns", "roles", "enabled_roles", "vies", "applicable_roles", "startup_log"};
+        }
+        @Override
+        public boolean isSingleServerOneDatabase(){
+            return true;
         }
     },
 
@@ -204,26 +228,16 @@ public enum DBModel {
         public String[] getTableExclusions() {
             return new String[] {};
         }
+        @Override
+        public boolean isSingleServerOneDatabase(){
+            return true;
+        }
     };
 
     public boolean isRelational(){
         if (this.getBDDataModel().equalsIgnoreCase("relational")){
             return true;
         }
-        return false;
-    }
-
-    public boolean isSingleServerOneDatabase(){
-        if (this.equals(DBModel.MYSQL)){
-            return true;
-        }
-        else if ( this.equals(DBModel.HIVE)){
-            return true;
-        }
-        else if ( this.equals(DBModel.MongoDB)){
-            return true;
-        }
-        //complete
         return false;
     }
 
@@ -238,6 +252,8 @@ public enum DBModel {
     public abstract String[] getSchemaExclusions();
 
     public abstract String[] getTableExclusions();
+
+    public abstract boolean isSingleServerOneDatabase();
 
     //public abstract String[] getTableExclusions();
 

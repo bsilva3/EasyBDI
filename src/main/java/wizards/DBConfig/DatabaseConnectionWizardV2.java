@@ -35,7 +35,6 @@ public class DatabaseConnectionWizardV2 extends JPanel {
     private JList connectionTestList;
     private JLabel helpLabel;
     private JLabel stepLabel;
-    private JLabel noteLabel;
     private JButton importDataSourceFromButton;
     private JLabel nameFieldLabel;
     private List<DBData> dbList;
@@ -48,15 +47,13 @@ public class DatabaseConnectionWizardV2 extends JPanel {
 
     public DatabaseConnectionWizardV2(PrestoMediator prestoMediator, MetaDataManager metaDataManager){
         this.metaDataManager = metaDataManager;
-        helpLabel.setText("<html>Please, enter database url, database model and the name of the database you want to connect."
-                +"<br/> Do not specify a database in the url (x.x.x./dbname). Always specify the database in the 'database name' field."
-                +"<br/> You must test if it is possible to connect to the database you inserted. To do this, select a database in the list and click 'test connection' button."
-                +"<br/> You can't continue the configuration process while there are databases with failed connections or no connection attempts.</html>");
+        helpLabel.setText("<html>Please, enter database url, database model and a name to be assigned to the database you want to connect."
+                +"<br/> Note that the 'database name' field does not appear for data sources where a specific database must be selected within the server."
+                +"<br/> In this case, you must add the database you intend to connect in the url: x.x.x.x/database"
+                +"<br/> You must test if it is possible to connect to the datasource using the inserted details. To do this, select a datasource in the list and click 'Test Selected DS Connection' button."
+                +"<br/> You cannot continue the configuration process while there are datasources with failed connections or no connection attempts.</html>");
         stepLabel.setText("Step 1/4");
         stepLabel.setFont(new Font("", Font.PLAIN, 18));
-        noteLabel.setText("<html>Note: databases such as MySQL and MongoDB only need a server to be specified, therefore a database name is not necessary and will not be used." +
-                "<br/>However it is still required to insert a database name in order to identify each database/server, therefore you must type a database name.</html>");
-        noteLabel.setFont(new Font("", Font.PLAIN, 11));
         credentialsTxt.setFont(new Font("", Font.PLAIN, 11));
 
         databaseModelSelect.setModel(new DefaultComboBoxModel<DBModel>(DBModel.values()));

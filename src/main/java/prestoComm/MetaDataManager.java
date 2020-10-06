@@ -1487,7 +1487,8 @@ public class MetaDataManager {
         for (String s : filtersColsStr){
             filtersStr +=s+";";//list of tablename.colname separated by ; in the filters
         }
-        filtersStr = filtersStr.substring(0, filtersStr.length() - 1); //remove last ;
+        if (filtersStr.length() > 0)
+            filtersStr = filtersStr.substring(0, filtersStr.length() - 1); //remove last ;
 
         sql = "INSERT INTO " + QUERY_FILTERS + "(" + QUERY_ID + ", " + QUERY_FILTERS_OBJ + ", "+QUERY_FILTERS_LIST+
                 ", "+ QUERY_AGGR_FILTERS_OBJ +") VALUES(?,?,?,?)";

@@ -21,6 +21,7 @@ public class GlobalTableQuery {
     private String filterAggrQuery;
     private String manualAggregationsStr;
     private Set<String> filters;
+    private boolean isManualFilters;
     private boolean hasCountAll;
     private FactsTable factsTable;
     private List<GlobalTableData> dimensions;
@@ -48,6 +49,7 @@ public class GlobalTableQuery {
         filterAggrQuery = "";
         hasCountAll = false;
         manualAggregationsStr = "";
+        isManualFilters = false;
     }
 
     public void addOrderByRow(String groupByRow){
@@ -1116,6 +1118,10 @@ public class GlobalTableQuery {
 
         //clear manual query data structures if any has data
         manualAggregationsStr = "";
+        if (isManualFilters)
+            filters.clear(); //if manual filters, this list will be populated again, otherwise, this list is populated as items are dropped and should not be cleared
+        filterQuery = "";
+        filterAggrQuery = "";
         manualRowsAggr.clear();
         manualMeasures.clear();
         return query;
@@ -1382,7 +1388,12 @@ public class GlobalTableQuery {
         measures.clear();
     }
 
-    public void clearFilters(){
+    public void clearNormalFilters(){
+        filters.clear();
+        filterQuery = "";
+    }
+
+    public void clearAllFilters(){
         filters.clear();
         filterQuery = "";
         filterAggrQuery = "";
@@ -1473,7 +1484,8 @@ public class GlobalTableQuery {
         return filters;
     }
 
-    public void setFilters(Set<String> filters) {
+    public void setFilters(Set<String> filters, boolean manualFilters) {
+        this.isManualFilters = manualFilters;
         this.filters = filters;
     }
 
