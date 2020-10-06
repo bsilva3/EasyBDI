@@ -223,6 +223,8 @@ public class GlobalTableQuery {
     }
 
     public void addFilter(String column){
+        if (column == null && column.isEmpty())
+            return;
         filters.add(column);
     }
 

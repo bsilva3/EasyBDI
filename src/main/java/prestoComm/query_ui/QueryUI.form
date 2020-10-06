@@ -122,7 +122,7 @@
       <grid id="2defc" layout-manager="GridBagLayout">
         <constraints>
           <grid row="0" column="2" row-span="10" col-span="5" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-          <gridbag weightx="2.5" weighty="1.0"/>
+          <gridbag weightx="3.0" weighty="1.0"/>
         </constraints>
         <properties/>
         <border type="etched" title="Selections" title-justification="2"/>
@@ -223,7 +223,7 @@
           <component id="a25d5" class="javax.swing.JLabel" binding="measuresLabel">
             <constraints>
               <grid row="0" column="0" row-span="1" col-span="2" vsize-policy="0" hsize-policy="0" anchor="10" fill="0" indent="0" use-parent-layout="false"/>
-              <gridbag weightx="1.0" weighty="0.1"/>
+              <gridbag weightx="0.5" weighty="0.1"/>
             </constraints>
             <properties>
               <text value="Aggregations"/>
@@ -232,7 +232,7 @@
           <scrollpane id="3355f" binding="aggregationsPane">
             <constraints>
               <grid row="2" column="0" row-span="2" col-span="2" vsize-policy="7" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-              <gridbag weightx="1.0" weighty="0.8"/>
+              <gridbag weightx="0.2" weighty="0.8"/>
             </constraints>
             <properties/>
             <border type="none"/>
@@ -248,7 +248,7 @@
           <component id="7114c" class="javax.swing.JLabel" binding="aggrFiltersLabel">
             <constraints>
               <grid row="0" column="3" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="10" fill="0" indent="0" use-parent-layout="false"/>
-              <gridbag weightx="0.7" weighty="0.1"/>
+              <gridbag weightx="0.2" weighty="0.1"/>
             </constraints>
             <properties>
               <text value="Aggregation Filters"/>
@@ -257,7 +257,7 @@
           <scrollpane id="516b3" binding="aggrFilterPane">
             <constraints>
               <grid row="1" column="3" row-span="3" col-span="1" vsize-policy="7" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-              <gridbag weightx="0.7" weighty="1.0"/>
+              <gridbag weightx="0.2" weighty="1.0"/>
             </constraints>
             <properties/>
             <border type="none"/>
@@ -271,32 +271,25 @@
           <component id="71b33" class="javax.swing.JLabel" binding="arrowLabel">
             <constraints>
               <grid row="2" column="2" row-span="2" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-              <gridbag weightx="0.2" weighty="0.2"/>
+              <gridbag weightx="0.08" weighty="0.2"/>
             </constraints>
             <properties>
               <text value=""/>
             </properties>
           </component>
-          <grid id="95082" binding="aggrAreaPanel" layout-manager="BorderLayout" hgap="0" vgap="0">
+          <component id="8eee0" class="javax.swing.JComboBox" binding="aggregationOpComboBox">
             <constraints>
-              <grid row="1" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-              <gridbag top="2" left="0" bottom="2" right="0" weightx="1.0" weighty="0.1"/>
+              <grid row="1" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+              <gridbag weightx="0.5" weighty="0.0"/>
             </constraints>
             <properties/>
-            <border type="none"/>
-            <children>
-              <component id="8eee0" class="javax.swing.JComboBox" binding="aggregationOpComboBox">
-                <constraints border-constraint="Center"/>
-                <properties/>
-              </component>
-            </children>
-          </grid>
+          </component>
         </children>
       </grid>
       <grid id="c42c3" layout-manager="GridBagLayout">
         <constraints>
           <grid row="0" column="0" row-span="10" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-          <gridbag weightx="2.0" weighty="1.0"/>
+          <gridbag weightx="2.7" weighty="1.0"/>
         </constraints>
         <properties/>
         <border type="line" title="Star Schema" title-justification="2">

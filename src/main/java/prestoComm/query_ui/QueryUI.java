@@ -1469,25 +1469,33 @@ public class QueryUI extends JPanel{
         for (int i = 0 ; i < nChilds; i++){
             FilterNode filterNode = (FilterNode) root.getChildAt(i);
             query += filterNode.getUserObject().toString() +" ";
-            query += processInnerExpressions(filterNode);
+            if (!isAggrFilter && filterNode.getNodeType() == FilterNodeType.CONDITION){
+                GlobalColumnData c = (GlobalColumnData) filterNode.getObj();
+                globalTableQueries.addFilter(c.getFullName());
+            }
+            query += processInnerExpressions(filterNode, isAggrFilter);
         }
         System.out.println("Filter query: "+query);
         return query;
     }
 
-    private String processInnerExpressions(FilterNode filterNode){
+    private String processInnerExpressions(FilterNode filterNode, boolean isAggrFilters){
         String query = "";
         if (filterNode.getChildCount() > 0){
             query +="(";
             for (int j = 0 ; j < filterNode.getChildCount(); j++){
                 FilterNode innerFilterNode = (FilterNode) filterNode.getChildAt(j);
+                if (!isAggrFilters && innerFilterNode.getNodeType() == FilterNodeType.CONDITION){
+                    GlobalColumnData c = (GlobalColumnData) innerFilterNode.getObj();
+                    globalTableQueries.addFilter(c.getFullName());
+                }
                 /*String c = innerFilterNode.getUserObject().toString();
                 if (innerFilterNode.getNodeType() == FilterNodeType.CONDITION && !Utils.stringIsNumericOrBoolean(c)){
                     c = "'"+c+"'";
                 }
                 query += c +" ";*/
                 query += innerFilterNode.getUserObject().toString()+" ";
-                query += processInnerExpressions(innerFilterNode);
+                query += processInnerExpressions(innerFilterNode, isAggrFilters);
             }
             query +=")";
         }
@@ -1620,14 +1628,16 @@ public class QueryUI extends JPanel{
             globalTableQueries.setFilterQuery(filterQuery);
 
         String filterQueryAggr = getFilterQuery(true);
+
+        System.out.println(globalTableQueries.getFilters());
         if (!filterQueryAggr.equals("ERROR"))
             globalTableQueries.setFilterAggrQuery(filterQueryAggr);
         if (!filterTableExistsInRows()){
             LoadingScreenAnimator.closeGeneralLoadingAnimation();
             backButton.setEnabled(true);
-            JOptionPane.showMessageDialog(mainMenu, "There is one or more columns in filters \n not selected in the rows area.", "Invalid Query", JOptionPane.ERROR_MESSAGE);
+            //JOptionPane.showMessageDialog(mainMenu, "There is one or more columns in filters \n not selected in the rows area.", "Invalid Query", JOptionPane.ERROR_MESSAGE);
             globalTableQueries.clearAllFilters();
-            return null;
+            return "Error: There is one or more columns in filters \n not selected in the rows area.";
         }
         return globalTableQueries.buildQuery(includeInnerQueries);//create query with inner query to get local table data
     }
@@ -2644,7 +2654,7 @@ public class QueryUI extends JPanel{
                 //no filters added yet
                 FilterNode root = new FilterNode("", null, null);
                 root.add(new FilterNode(s[1], column, FilterNodeType.CONDITION));
-                globalTableQueries.addFilter(column.getFullName());//for validation purposes
+                //globalTableQueries.addFilter(column.getFullName());//for validation purposes
                 filterTreeModel = new DefaultTreeModel(root);
                 filterTree.setModel(filterTreeModel);
                 filterTree.setRootVisible(false);
@@ -2669,7 +2679,7 @@ public class QueryUI extends JPanel{
                     return false;
                 //filterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION), parent, parent.getChildCount());
                 filterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), parent, parent.getChildCount());
-                globalTableQueries.addFilter(column.getFullName());//for validation purposes
+                //globalTableQueries.addFilter(column.getFullName());//for validation purposes
                 path = new TreePath(parent.getPath());
             }
             else if (parent.getNodeType() == null && parent.getChildCount() > 0){
@@ -2680,7 +2690,7 @@ public class QueryUI extends JPanel{
                     return false;
                 filterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION), parent, parent.getChildCount());
                 filterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), parent, parent.getChildCount());
-                globalTableQueries.addFilter(column.getFullName());//for validation purposes
+                //globalTableQueries.addFilter(column.getFullName());//for validation purposes
                 path = new TreePath(parent.getPath());
             }
             else if (parent.getNodeType() == FilterNodeType.CONDITION ){
@@ -2700,14 +2710,14 @@ public class QueryUI extends JPanel{
                     FilterNode booleanNode = new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION);
                     filterTreeModel.insertNodeInto(booleanNode, parentOfParent, indexOfParent+1);// create this condition between the condition and the inner expression
                     filterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), booleanNode, booleanNode.getChildCount());//Must be child of the bolean operator
-                    globalTableQueries.addFilter(column.getFullName());//for validation purposes
+                    //globalTableQueries.addFilter(column.getFullName());//for validation purposes
                     path = new TreePath(booleanNode.getPath());
                 }
                 else {
                     //inserting on an already existent boolean node with inner expr. IF it has an inner expr, add the operator and cond, else only the cond as childs
                     filterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION), boleanNodeParent, boleanNodeParent.getChildCount());
                     filterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), boleanNodeParent, boleanNodeParent.getChildCount());
-                    globalTableQueries.addFilter(column.getFullName());//for validation purposes
+                    //globalTableQueries.addFilter(column.getFullName());//for validation purposes
                     path = new TreePath(boleanNodeParent.getPath());
                 }
             }
@@ -2721,7 +2731,7 @@ public class QueryUI extends JPanel{
                 //get the boolean operator next to it and check if it has childs
                 filterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION), parent, parent.getChildCount());
                 filterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), parent, parent.getChildCount());
-                globalTableQueries.addFilter(column.getFullName());//for validation purposes
+                //globalTableQueries.addFilter(column.getFullName());//for validation purposes
                 path = new TreePath(parent.getPath());
             }
             System.out.println(globalTableQueries.getFilters());
