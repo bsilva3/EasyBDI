@@ -64,7 +64,7 @@ public class MainTest {
                 "    type ='table' AND \n" +
                 "    name NOT LIKE 'sqlite_%';");*/
 
-        m.makeQueryAndPrint("SELECT * FROM "+CUBE_TABLE+";");
+        m.makeQueryAndPrint("ALTER TABLE QUERY_FILTERS ADD COLUMN QUERY_COL_FILTERS_OBJ blob;");
 
         //m.makeQueryAndPrint("SELECT * FROM "+ TABLE_DATA);
         /*m.makeQueryAndPrint("UPDATE "+DB_DATA+"\n" +

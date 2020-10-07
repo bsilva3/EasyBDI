@@ -268,8 +268,9 @@ public class MetaDataManager {
                 + "    "+ QUERY_FILTERS_OBJ +" blob ,\n"
                 + "    "+ QUERY_FILTERS_LIST +" text ,\n"
                 + "    "+ QUERY_AGGR_FILTERS_OBJ +" blob ,\n"
+                + "    "+ QUERY_COL_FILTERS_OBJ +" blob ,\n"
+                + "    "+ QUERY_COL_FILTERS_LIST +" text ,\n"
                 + "    "+ "PRIMARY KEY("+ QUERY_ID+", "+ QUERY_FILTER_ID+") ON CONFLICT IGNORE, \n"
-
                 + "    FOREIGN KEY ("+ QUERY_ID +") REFERENCES "+QUERY_SAVE+"("+QUERY_ID+")); ";
 
         String sql16 = "CREATE TABLE IF NOT EXISTS "+ QUERY_MANUAL +" (\n"

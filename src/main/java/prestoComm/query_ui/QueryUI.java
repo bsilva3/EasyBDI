@@ -45,8 +45,9 @@ import static prestoComm.query_ui.GlobalTableQuery.MAX_SELECT_COLS;
 public class QueryUI extends JPanel{
     private JBroTable queryResultsTableGroupable;
     private JTree schemaTree;
-    private JTree filterTree;
+    private JTree rowFilterTree;
     private JTextArea editFilters;
+    private JTextArea editColFilters;
     private JTextArea editFiltersAggr;
     private JList aggregationsList;
     private JTextArea manualAggregations;
@@ -78,13 +79,15 @@ public class QueryUI extends JPanel{
     private JPanel globalSchemaLogPane;
     private JPanel localSchemaLogPane;
     private JList localQueryLogList;
+    private JTree colFiltersTree;
     private boolean showLocalQueryLog;
 
     private StarSchema starSchema;
     private GlobalTableQuery globalTableQueries;//used to store all queries for each global table, and their columns
 
     private DefaultTreeModel schemaTreeModel;
-    private DefaultTreeModel filterTreeModel;
+    private DefaultTreeModel rowFilterTreeModel;
+    private DefaultTreeModel colFilterTreeModel;
     private DefaultTreeModel aggrFilterTreeModel;
     private DefaultListModel measuresListModel;
     private DefaultListModel columnListModel;
@@ -302,7 +305,8 @@ public class QueryUI extends JPanel{
             schemaTree.setDragEnabled(true);
             schemaTree.setRootVisible(false);
 
-            filterTreeModel = null;
+            rowFilterTreeModel = null;
+            colFilterTreeModel = null;
             aggrFilterTreeModel = null;
             measuresListModel = new DefaultListModel();
             columnListModel = new DefaultListModel();
@@ -310,9 +314,12 @@ public class QueryUI extends JPanel{
             queryStatusLogModel = new DefaultListModel();
             globalSchemaLogModel = new DefaultListModel();
             localSchemaLogModel = new DefaultListModel();
-            filterTree.setModel(filterTreeModel);
-            filterTree.setCellRenderer(new FilterNodeCellRenderer());
-            filterTree.addMouseListener(getMouseListenerForFilterTree());
+            rowFilterTree.setModel(rowFilterTreeModel);
+            rowFilterTree.setCellRenderer(new FilterNodeCellRenderer());
+            colFiltersTree.setModel(colFilterTreeModel);
+            colFiltersTree.setCellRenderer(new FilterNodeCellRenderer());
+            rowFilterTree.addMouseListener(getMouseListenerForFilterTree());
+            colFiltersTree.addMouseListener(getMouseListenerForColsFilterTree());
             aggrFiltersTree.setModel(aggrFilterTreeModel);
             aggrFiltersTree.setCellRenderer(new FilterNodeCellRenderer());
             aggrFiltersTree.addMouseListener(getMouseListenerForAggFilterTree());
@@ -326,7 +333,8 @@ public class QueryUI extends JPanel{
             globalQueryLogList.setModel(globalSchemaLogModel);
             localQueryLogList.setModel(localSchemaLogModel);
 
-            filterTree.setTransferHandler(new TreeTransferHandler());
+            rowFilterTree.setTransferHandler(new TreeTransferHandler());
+            colFiltersTree.setTransferHandler(new TreeTransferHandler());
             aggregationsList.setTransferHandler(new TreeTransferHandler());
             rowsList.setTransferHandler(new TreeTransferHandler());
             columnsList.setTransferHandler(new TreeTransferHandler());
@@ -337,6 +345,12 @@ public class QueryUI extends JPanel{
             editFilters.setWrapStyleWord(true);
             editFilters.setLineWrap(true);
             editFilters.addMouseListener(getMouseListenerEditFilterTextArea());
+
+            editColFilters = new JTextArea(80, 100);
+            editColFilters.setVisible(false);
+            editColFilters.setWrapStyleWord(true);
+            editColFilters.setLineWrap(true);
+            editColFilters.addMouseListener(getMouseListenerEditFilterTextArea());
 
             editFiltersAggr = new JTextArea(80, 100);
             editFiltersAggr.setVisible(false);
@@ -443,7 +457,7 @@ public class QueryUI extends JPanel{
 
             this.setLayout(new BorderLayout());
             this.globalTableQueries = new GlobalTableQuery(prestoMediator, starSchema.getFactsTable(), starSchema.getDimsTables());
-            this.setSize(mainMenu.getSize());
+            //this.setSize(mainMenu.getSize());
             mainPanel.setSize(mainMenu.getSize());
             this.revalidate();
             add(mainPanel);
@@ -516,7 +530,8 @@ public class QueryUI extends JPanel{
         editFiltersAggr.setText("");
         manualAggregations.setText("");
         aggrFilterTreeModel = null;
-        filterTreeModel = null;
+        rowFilterTreeModel = null;
+        colFilterTreeModel = null;
 
         rowsList.revalidate();
         rowsList.updateUI();
@@ -527,18 +542,24 @@ public class QueryUI extends JPanel{
         aggrFiltersTree.setModel(null);
         aggrFiltersTree.revalidate();
         aggrFiltersTree.updateUI();
-        filterTree.setModel(null);
-        filterTree.revalidate();
-        filterTree.updateUI();
+        rowFilterTree.setModel(null);
+        rowFilterTree.revalidate();
+        rowFilterTree.updateUI();
 
         //clear all query elements in structures
         globalTableQueries.clearAllElements();
     }
 
-    private void clearFilters(){
-        filterTree.setModel(null);
-        filterTree.revalidate();
-        filterTree.updateUI();
+    private void clearRowFilters(){
+        rowFilterTree.setModel(null);
+        rowFilterTree.revalidate();
+        rowFilterTree.updateUI();
+    }
+
+    private void clearColFilters(){
+        colFiltersTree.setModel(null);
+        colFiltersTree.revalidate();
+        colFiltersTree.updateUI();
     }
 
     private void clearAggrFilters(){
@@ -630,18 +651,18 @@ public class QueryUI extends JPanel{
             Object[] filters = metaDataManager.getQueryFilters(queryID);
             if (filters != null && filters.length > 0 && filters[1] != null) {
                 changeFilterNormalMode();
-                this.filterTreeModel = new DefaultTreeModel((FilterNode) filters[1]);
-                this.filterTree.setModel(filterTreeModel);
-                filterTree.setRootVisible(false);
-                FilterNode root = (FilterNode) filterTreeModel.getRoot();
-                expandAllFilterNodes(filterTree, new TreePath(root), true);
+                this.rowFilterTreeModel = new DefaultTreeModel((FilterNode) filters[1]);
+                this.rowFilterTree.setModel(rowFilterTreeModel);
+                rowFilterTree.setRootVisible(false);
+                FilterNode root = (FilterNode) rowFilterTreeModel.getRoot();
+                expandAllFilterNodes(rowFilterTree, new TreePath(root), true);
                 String filtersStr = (String) filters[0];
                 Set<String> filtersList = new HashSet<>();
                 String[] filtersSplit = filtersStr.split(";");
                 for (String s : filtersSplit) {
                     filtersList.add(s);
                 }
-                globalTableQueries.setFilters(filtersList, false);
+                globalTableQueries.setFilters(filtersList);
             }
         }
 
@@ -710,8 +731,8 @@ public class QueryUI extends JPanel{
         }*/
 
         FilterNode filterRoot = null;
-        if (filterTreeModel != null){
-            filterRoot = (FilterNode) filterTreeModel.getRoot();
+        if (rowFilterTreeModel != null){
+            filterRoot = (FilterNode) rowFilterTreeModel.getRoot();
         }
 
         FilterNode aggrFilterRoot = null;
@@ -1356,7 +1377,10 @@ public class QueryUI extends JPanel{
                     treeModel.removeNodeFromParent(node);
                     GlobalColumnData c = (GlobalColumnData) node.getObj();
                     if (!isAggrFilter)
-                        globalTableQueries.removeFilter(c.getFullName());
+                        if (tree.equals(rowFilterTree))
+                            globalTableQueries.removeFilter(c.getFullName());
+                        else if (tree.equals(colFiltersTree))
+                            globalTableQueries.removeColFilter(c.getFullName());
                     tree.repaint();
                     tree.updateUI();
                 }
@@ -1465,7 +1489,7 @@ public class QueryUI extends JPanel{
             textArea = editFiltersAggr;
         }
         else {
-            treeModel = filterTreeModel;
+            treeModel = rowFilterTreeModel;
             textArea = editFilters;
         }
         if (textArea != null && textArea.isVisible()) { //manual edit mode
@@ -1474,7 +1498,7 @@ public class QueryUI extends JPanel{
             filterText = filterText.replaceAll("(?i)where", "");
             if (!isAggrFilter){
                 TableColumnNameExtractor ext = new TableColumnNameExtractor();
-                globalTableQueries.setFilters(ext.getColumnsFromStringSet(textArea.getText()), true);
+                globalTableQueries.setFilters(ext.getColumnsFromStringSet(textArea.getText()));
             }
             return filterText;
         }
@@ -1500,6 +1524,40 @@ public class QueryUI extends JPanel{
         return query;
     }
 
+    public String getColFilterQuery(){
+        DefaultTreeModel treeModel = colFilterTreeModel;
+        JTextArea textArea = editColFilters;
+
+
+        if (textArea != null && textArea.isVisible()) { //manual edit mode
+            String filterText = textArea.getText().replaceAll(";", "");
+            filterText = filterText.replaceAll("(?i)where", "");
+            TableColumnNameExtractor ext = new TableColumnNameExtractor();
+            globalTableQueries.setColFilters(ext.getColumnsFromStringSet(textArea.getText()));
+            return filterText;
+        }
+        //normal mode
+        if (treeModel == null) //easy fix
+            return "";
+        FilterNode root = (FilterNode) treeModel.getRoot();
+        int nChilds = root.getChildCount();
+        if (nChilds <= 0){
+            return "";
+        }
+        String query = "";
+        for (int i = 0 ; i < nChilds; i++){
+            FilterNode filterNode = (FilterNode) root.getChildAt(i);
+            query += filterNode.getUserObject().toString() +" ";
+            if (filterNode.getNodeType() == FilterNodeType.CONDITION){
+                GlobalColumnData c = (GlobalColumnData) filterNode.getObj();
+                globalTableQueries.addColFilter(c.getFullName());
+            }
+            query += processInnerExpressions(filterNode, false);
+        }
+        System.out.println("Col Filter query: "+query);
+        return query;
+    }
+
     private String processInnerExpressions(FilterNode filterNode, boolean isAggrFilters){
         String query = "";
         if (filterNode.getChildCount() > 0){
@@ -1510,11 +1568,7 @@ public class QueryUI extends JPanel{
                     GlobalColumnData c = (GlobalColumnData) innerFilterNode.getObj();
                     globalTableQueries.addFilter(c.getFullName());
                 }
-                /*String c = innerFilterNode.getUserObject().toString();
-                if (innerFilterNode.getNodeType() == FilterNodeType.CONDITION && !Utils.stringIsNumericOrBoolean(c)){
-                    c = "'"+c+"'";
-                }
-                query += c +" ";*/
+
                 query += innerFilterNode.getUserObject().toString()+" ";
                 query += processInnerExpressions(innerFilterNode, isAggrFilters);
             }
@@ -1650,7 +1704,10 @@ public class QueryUI extends JPanel{
 
         String filterQueryAggr = getFilterQuery(true);
 
-        System.out.println(globalTableQueries.getFilters());
+        String colFilterQuery = getColFilterQuery();
+        if (!filterQuery.equals("ERROR"))
+            globalTableQueries.setColFilterQuery(colFilterQuery);
+
         if (!filterQueryAggr.equals("ERROR"))
             globalTableQueries.setFilterAggrQuery(filterQueryAggr);
         if (!filterTableExistsInRows()){
@@ -2060,8 +2117,20 @@ public class QueryUI extends JPanel{
 
             @Override
             public void mousePressed(MouseEvent arg0) {
-                TreePath pathForLocation = filterTree.getPathForLocation(arg0.getPoint().x, arg0.getPoint().y);
-                handleFilterClickMenus(filterTree, filterTreeModel, pathForLocation, false);
+                TreePath pathForLocation = rowFilterTree.getPathForLocation(arg0.getPoint().x, arg0.getPoint().y);
+                handleFilterClickMenus(rowFilterTree, rowFilterTreeModel, pathForLocation, false);
+                super.mousePressed(arg0);
+            }
+        };
+    }
+
+    private MouseListener getMouseListenerForColsFilterTree() {
+        return new MouseAdapter() {
+
+            @Override
+            public void mousePressed(MouseEvent arg0) {
+                TreePath pathForLocation = colFiltersTree.getPathForLocation(arg0.getPoint().x, arg0.getPoint().y);
+                handleFilterClickMenus(colFiltersTree, colFilterTreeModel, pathForLocation, false);
                 super.mousePressed(arg0);
             }
         };
@@ -2362,7 +2431,7 @@ public class QueryUI extends JPanel{
             return new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent arg0) {
-                    //if (!filterTree.isVisible() && editFilters.isVisible())
+                    //if (!rowFilterTree.isVisible() && editFilters.isVisible())
                         //return;
                     int dialogResult = JOptionPane.showConfirmDialog(mainMenu, "If you switch to manual mode, all current filters will be converted to SQL and you can manually edit them.\n" +
                             "However, you cannot drop items from the star schema to these filters.\n To do this you must change back to normal mode on the pop up menu \n" +
@@ -2376,9 +2445,9 @@ public class QueryUI extends JPanel{
 
     private void changeFilterManualMode(){
         String filtersStr = getFilterQuery(false);
-        filterTree.setVisible(false);
+        rowFilterTree.setVisible(false);
         editFilters.setVisible(true);
-        filterPane.getViewport().remove(filterTree);
+        filterPane.getViewport().remove(rowFilterTree);
         filterPane.getViewport().add(editFilters);
         editFilters.setText(filtersStr);
         filtersLabel.setText("Filters - Manual Edit Mode");
@@ -2389,7 +2458,7 @@ public class QueryUI extends JPanel{
         return new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent arg0) {
-               //if (filterTree.isVisible() && !editFilters.isVisible())
+               //if (rowFilterTree.isVisible() && !editFilters.isVisible())
                     //return;
                 int dialogResult = JOptionPane.showConfirmDialog (mainMenu, "Changing back to normal mode will reset all filters created.\n Would you like to continue?","Warning",JOptionPane.YES_NO_OPTION);
                 if(dialogResult == JOptionPane.YES_OPTION){
@@ -2404,11 +2473,11 @@ public class QueryUI extends JPanel{
     private void changeFilterNormalMode(){
         editFilters.setVisible(false);
         editFilters.setText("");
-        filterTree.setVisible(true);
-        clearFilters();
+        rowFilterTree.setVisible(true);
+        clearRowFilters();
         globalTableQueries.clearNormalFilters();
         filterPane.getViewport().remove(editFilters);
-        filterPane.getViewport().add(filterTree);
+        filterPane.getViewport().add(rowFilterTree);
         filtersLabel.setText("Filters - Normal Edit Mode");
     }
 
@@ -2437,7 +2506,7 @@ public class QueryUI extends JPanel{
         aggrFilterPane.getViewport().remove(aggrFiltersTree);
         aggrFilterPane.getViewport().add(editFiltersAggr);
         editFiltersAggr.setText(filtersStr);
-        aggrFiltersLabel.setText("Aggregation Filters - Manual Edit Mode");
+        aggrFiltersLabel.setText("Aggregation Filters - Manual Mode");
     }
 
     private ActionListener changeToNormalEditFilterAggr(){
@@ -2651,8 +2720,11 @@ public class QueryUI extends JPanel{
                 JTree tree = (JTree) info.getComponent();
                 JTree.DropLocation dl = (JTree.DropLocation)info.getDropLocation();
                 TreePath dest = dl.getPath();
-                if (tree.equals(filterTree)){
+                if (tree.equals(rowFilterTree)){
                     added = insertFilterNode(dest, column);
+                }
+                else if (tree.equals(colFiltersTree)){
+                    added = insertColFilterNode( dest, column);
                 }
                 return added;
             }
@@ -2662,7 +2734,7 @@ public class QueryUI extends JPanel{
         private boolean insertFilterNode(TreePath dest, GlobalColumnData column){
             String s[] = null;
             //user drops in the filter tree
-            if (filterTreeModel == null){//filters dropped for the first time (bug if root added on jtree creation, thats why there's two ifs..)
+            if (rowFilterTreeModel == null){//filters dropped for the first time (bug if root added on jtree creation, thats why there's two ifs..)
                 while (s == null){
                     s = createFilterStringOperation(column, true, false);
                 }
@@ -2671,15 +2743,14 @@ public class QueryUI extends JPanel{
                 //no filters added yet
                 FilterNode root = new FilterNode("", null, null);
                 root.add(new FilterNode(s[1], column, FilterNodeType.CONDITION));
-                //globalTableQueries.addFilter(column.getFullName());//for validation purposes
-                filterTreeModel = new DefaultTreeModel(root);
-                filterTree.setModel(filterTreeModel);
-                filterTree.setRootVisible(false);
-                filterTree.revalidate();
-                filterTree.updateUI();
+                rowFilterTreeModel = new DefaultTreeModel(root);
+                rowFilterTree.setModel(rowFilterTreeModel);
+                rowFilterTree.setRootVisible(false);
+                rowFilterTree.revalidate();
+                rowFilterTree.updateUI();
                 return true;
             }
-            FilterNode root = (FilterNode) filterTreeModel.getRoot();
+            FilterNode root = (FilterNode) rowFilterTreeModel.getRoot();
             //decide where to drop
             FilterNode parent;
             if (dest == null)
@@ -2695,8 +2766,7 @@ public class QueryUI extends JPanel{
                 if (s.length == 0)
                     return false;
                 //filterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION), parent, parent.getChildCount());
-                filterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), parent, parent.getChildCount());
-                //globalTableQueries.addFilter(column.getFullName());//for validation purposes
+                rowFilterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), parent, parent.getChildCount());
                 path = new TreePath(parent.getPath());
             }
             else if (parent.getNodeType() == null && parent.getChildCount() > 0){
@@ -2705,8 +2775,8 @@ public class QueryUI extends JPanel{
                 }
                 if (s.length == 0)
                     return false;
-                filterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION), parent, parent.getChildCount());
-                filterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), parent, parent.getChildCount());
+                rowFilterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION), parent, parent.getChildCount());
+                rowFilterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), parent, parent.getChildCount());
                 //globalTableQueries.addFilter(column.getFullName());//for validation purposes
                 path = new TreePath(parent.getPath());
             }
@@ -2725,16 +2795,14 @@ public class QueryUI extends JPanel{
                     FilterNode parentOfParent = (FilterNode) parent.getParent();
                     int indexOfParent = parentOfParent.getIndex(parent);
                     FilterNode booleanNode = new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION);
-                    filterTreeModel.insertNodeInto(booleanNode, parentOfParent, indexOfParent+1);// create this condition between the condition and the inner expression
-                    filterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), booleanNode, booleanNode.getChildCount());//Must be child of the bolean operator
-                    //globalTableQueries.addFilter(column.getFullName());//for validation purposes
+                    rowFilterTreeModel.insertNodeInto(booleanNode, parentOfParent, indexOfParent+1);// create this condition between the condition and the inner expression
+                    rowFilterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), booleanNode, booleanNode.getChildCount());//Must be child of the bolean operator
                     path = new TreePath(booleanNode.getPath());
                 }
                 else {
                     //inserting on an already existent boolean node with inner expr. IF it has an inner expr, add the operator and cond, else only the cond as childs
-                    filterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION), boleanNodeParent, boleanNodeParent.getChildCount());
-                    filterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), boleanNodeParent, boleanNodeParent.getChildCount());
-                    //globalTableQueries.addFilter(column.getFullName());//for validation purposes
+                    rowFilterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION), boleanNodeParent, boleanNodeParent.getChildCount());
+                    rowFilterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), boleanNodeParent, boleanNodeParent.getChildCount());
                     path = new TreePath(boleanNodeParent.getPath());
                 }
             }
@@ -2746,15 +2814,106 @@ public class QueryUI extends JPanel{
                 if (s.length == 0)
                     return false;
                 //get the boolean operator next to it and check if it has childs
-                filterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION), parent, parent.getChildCount());
-                filterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), parent, parent.getChildCount());
+                rowFilterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION), parent, parent.getChildCount());
+                rowFilterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), parent, parent.getChildCount());
+                path = new TreePath(parent.getPath());
+            }
+            rowFilterTree.expandPath(path);
+            rowFilterTree.revalidate();
+            rowFilterTree.updateUI();
+            return true;
+        }
+
+        private boolean insertColFilterNode(TreePath dest, GlobalColumnData column){
+            String s[] = null;
+            //user drops in the filter tree
+            if (colFilterTreeModel == null){//filters dropped for the first time (bug if root added on jtree creation, thats why there's two ifs..)
+                while (s == null){
+                    s = createFilterStringOperation(column, true, false);
+                }
+                if (s.length == 0)
+                    return false;
+                //no filters added yet
+                FilterNode root = new FilterNode("", null, null);
+                root.add(new FilterNode(s[1], column, FilterNodeType.CONDITION));
+                colFilterTreeModel = new DefaultTreeModel(root);
+                colFiltersTree.setModel(colFilterTreeModel);
+                colFiltersTree.setRootVisible(false);
+                colFiltersTree.revalidate();
+                colFiltersTree.updateUI();
+                return true;
+            }
+            FilterNode root = (FilterNode) colFilterTreeModel.getRoot();
+            //decide where to drop
+            FilterNode parent;
+            if (dest == null)
+                parent = root;
+            else
+                parent = (FilterNode)dest.getLastPathComponent();
+
+            TreePath path = null;
+            if (parent.getNodeType() == null && parent.getChildCount() == 0){
+                while (s == null){
+                    s = createFilterStringOperation(column, true, false);//0 - boolean operation if any, 1 - condition
+                }
+                if (s.length == 0)
+                    return false;
+                //filterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION), parent, parent.getChildCount());
+                colFilterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), parent, parent.getChildCount());
+                path = new TreePath(parent.getPath());
+            }
+            else if (parent.getNodeType() == null && parent.getChildCount() > 0){
+                while (s == null){
+                    s = createFilterStringOperation(column, false, false);//0 - boolean operation if any, 1 - condition
+                }
+                if (s.length == 0)
+                    return false;
+                colFilterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION), parent, parent.getChildCount());
+                colFilterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), parent, parent.getChildCount());
                 //globalTableQueries.addFilter(column.getFullName());//for validation purposes
                 path = new TreePath(parent.getPath());
             }
-            System.out.println(globalTableQueries.getFilters());
-            filterTree.expandPath(path);
-            filterTree.revalidate();
-            filterTree.updateUI();
+            else if (parent.getNodeType() == FilterNodeType.CONDITION ){
+                //user wants to create an inner expression OR to add content to inner expression and dragg it to a condition
+                while (s == null){
+                    s = createFilterStringOperation(column, false, false);//0 - boolean operation if any, 1 - condition
+                }
+                if (s.length == 0)
+                    return false;
+                //get the boolean operator next to it and check if it has childs
+                FilterNode boleanNodeParent = (FilterNode) parent.getNextNode();
+
+                if (boleanNodeParent == null || boleanNodeParent.getChildCount() == 0){ //no boolean operator, create it and add child
+                    //if creating a new expression nested in a codition, add a boolean operator between the condition and a boolean operator. Make the inner expression child of the boolean operator
+                    FilterNode parentOfParent = (FilterNode) parent.getParent();
+                    int indexOfParent = parentOfParent.getIndex(parent);
+                    FilterNode booleanNode = new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION);
+                    colFilterTreeModel.insertNodeInto(booleanNode, parentOfParent, indexOfParent+1);// create this condition between the condition and the inner expression
+                    colFilterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), booleanNode, booleanNode.getChildCount());//Must be child of the bolean operator
+                    path = new TreePath(booleanNode.getPath());
+                }
+                else {
+                    //inserting on an already existent boolean node with inner expr. IF it has an inner expr, add the operator and cond, else only the cond as childs
+                    colFilterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION), boleanNodeParent, boleanNodeParent.getChildCount());
+                    colFilterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), boleanNodeParent, boleanNodeParent.getChildCount());
+                    path = new TreePath(boleanNodeParent.getPath());
+                }
+            }
+            else if (parent.getNodeType() == FilterNodeType.BOOLEAN_OPERATION && parent.getChildCount()>0){
+                //user wants to add content to inner expression and dragg it to the outer boolean operator
+                while (s == null){
+                    s = createFilterStringOperation(column, false, false);//0 - boolean operation if any, 1 - condition
+                }
+                if (s.length == 0)
+                    return false;
+                //get the boolean operator next to it and check if it has childs
+                colFilterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION), parent, parent.getChildCount());
+                colFilterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), parent, parent.getChildCount());
+                path = new TreePath(parent.getPath());
+            }
+            colFiltersTree.expandPath(path);
+            colFiltersTree.revalidate();
+            colFiltersTree.updateUI();
             return true;
         }
 

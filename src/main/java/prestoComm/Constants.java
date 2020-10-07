@@ -128,6 +128,8 @@ public class Constants {
     public static final String QUERY_FILTER_ID = "query_filter_id";
     public static final String QUERY_FILTERS_OBJ = "filters_obj";
     public static final String QUERY_FILTERS_LIST = "filters_list";
+    public static final String QUERY_COL_FILTERS_LIST = "col_filters_list";
+    public static final String QUERY_COL_FILTERS_OBJ = "col_filters_obj";
     public static final String QUERY_AGGR_FILTERS_OBJ = "aggr_filters_obj";
 
     //query save: manual edits
