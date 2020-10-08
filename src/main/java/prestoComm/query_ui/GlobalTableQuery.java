@@ -1075,7 +1075,8 @@ public class GlobalTableQuery {
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
-
+        colFilterQuery = "";
+        colFilters.clear();
         return values;
     }
 
@@ -1384,6 +1385,11 @@ public class GlobalTableQuery {
     public void clearNormalFilters(){
         filters.clear();
         filterQuery = "";
+    }
+
+    public void clearCollFilters(){
+        colFilters.clear();
+        colFilterQuery = "";
     }
 
     public void clearAllFilters(){

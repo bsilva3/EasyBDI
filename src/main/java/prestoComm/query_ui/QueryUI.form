@@ -303,7 +303,7 @@
               <text value="Columns"/>
             </properties>
           </component>
-          <component id="2c8c2" class="javax.swing.JLabel">
+          <component id="2c8c2" class="javax.swing.JLabel" binding="colFiltersLabel">
             <constraints>
               <grid row="2" column="2" row-span="1" col-span="2" vsize-policy="0" hsize-policy="0" anchor="10" fill="0" indent="0" use-parent-layout="false"/>
               <gridbag top="0" left="10" bottom="0" right="0" weightx="0.7" weighty="0.1"/>
@@ -312,7 +312,7 @@
               <text value="Column Filters"/>
             </properties>
           </component>
-          <scrollpane id="fddd1">
+          <scrollpane id="fddd1" binding="filterColPane">
             <constraints>
               <grid row="3" column="3" row-span="1" col-span="1" vsize-policy="7" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
               <gridbag weightx="0.7" weighty="1.2"/>

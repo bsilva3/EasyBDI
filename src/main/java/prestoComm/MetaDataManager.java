@@ -266,10 +266,8 @@ public class MetaDataManager {
                 + "    "+ QUERY_FILTER_ID +" integer ,\n"
                 + "    "+ QUERY_ID +" integer ,\n"
                 + "    "+ QUERY_FILTERS_OBJ +" blob ,\n"
-                + "    "+ QUERY_FILTERS_LIST +" text ,\n"
                 + "    "+ QUERY_AGGR_FILTERS_OBJ +" blob ,\n"
                 + "    "+ QUERY_COL_FILTERS_OBJ +" blob ,\n"
-                + "    "+ QUERY_COL_FILTERS_LIST +" text ,\n"
                 + "    "+ "PRIMARY KEY("+ QUERY_ID+", "+ QUERY_FILTER_ID+") ON CONFLICT IGNORE, \n"
                 + "    FOREIGN KEY ("+ QUERY_ID +") REFERENCES "+QUERY_SAVE+"("+QUERY_ID+")); ";
 
@@ -278,6 +276,7 @@ public class MetaDataManager {
                 + "    "+ QUERY_ID +" integer ,\n"
                 + "    "+ QUERY_AGGR_STR +" text ,\n"
                 + "    "+ QUERY_FILTER_STR +" text ,\n"
+                + "    "+ QUERY_COL_FILTER_STR +" text ,\n"
                 + "    "+ QUERY_AGGR_FILTER_STR +" text ,\n"
                 + "    "+ "PRIMARY KEY("+ QUERY_ID+", "+ QUERY_MANUAL_ID+") ON CONFLICT IGNORE, \n"
                 + "    FOREIGN KEY ("+ QUERY_ID +") REFERENCES "+QUERY_SAVE+"("+QUERY_ID+")); ";
@@ -1384,8 +1383,8 @@ public class MetaDataManager {
 
     public boolean insertNewQuerySave(String queryName, String cubeName, Map<GlobalTableData, List<GlobalColumnData>> rows,
                                    Map<GlobalTableData, List<GlobalColumnData>> columns, List<GlobalColumnData> measures,
-                                      FilterNode filters, Set<String> filtersColsStr, FilterNode aggrFilters, String aggrManualStr,
-                                      String filtersManualStr, String AggrFiltersManualEdit){
+                                      FilterNode filters, FilterNode colFilterRoot, FilterNode aggrFilters, String aggrManualStr,
+                                      String filtersManualStr, String colFiltersManualStr, String AggrFiltersManualEdit){
         int cubeID = getOrcreateCube(cubeName);
         String sql = "INSERT INTO "+ QUERY_SAVE + "("+QUERY_CUBE_ID+", "+QUERY_NAME+") VALUES(?,?)";
         int queryID = -1;
@@ -1409,12 +1408,13 @@ public class MetaDataManager {
         }
 
         //insert manual edition elements (if any)
-        sql = "INSERT INTO "+ QUERY_MANUAL + "("+QUERY_ID+", "+QUERY_AGGR_STR+", "+QUERY_FILTER_STR+", "+QUERY_AGGR_FILTER_STR+") VALUES(?,?,?,?)";
+        sql = "INSERT INTO "+ QUERY_MANUAL + "("+QUERY_ID+", "+QUERY_AGGR_STR+", "+QUERY_FILTER_STR+", "+QUERY_COL_FILTER_STR+", "+QUERY_AGGR_FILTER_STR+") VALUES(?,?,?,?,?)";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, queryID);
             pstmt.setString(2, aggrManualStr);
             pstmt.setString(3, filtersManualStr);
-            pstmt.setString(4, AggrFiltersManualEdit);
+            pstmt.setString(4, colFiltersManualStr);
+            pstmt.setString(5, AggrFiltersManualEdit);
             pstmt.executeUpdate();
 
         } catch (SQLException e) {
@@ -1478,25 +1478,22 @@ public class MetaDataManager {
 
         //insert filters (if any)
         byte[] filtersByte = new byte[0];
+        byte[] colFiltersByte = new byte[0];
         byte[] aggrFiltersByte = new byte[0];
         if (filters != null)
             filtersByte = makebyteFromTreeModel(filters);
+        if (filters != null)
+            colFiltersByte = makebyteFromTreeModel(colFilterRoot);
         if (aggrFilters != null)
             aggrFiltersByte = makebyteFromTreeModel(aggrFilters);
 
-        String filtersStr = "";
-        for (String s : filtersColsStr){
-            filtersStr +=s+";";//list of tablename.colname separated by ; in the filters
-        }
-        if (filtersStr.length() > 0)
-            filtersStr = filtersStr.substring(0, filtersStr.length() - 1); //remove last ;
 
-        sql = "INSERT INTO " + QUERY_FILTERS + "(" + QUERY_ID + ", " + QUERY_FILTERS_OBJ + ", "+QUERY_FILTERS_LIST+
+        sql = "INSERT INTO " + QUERY_FILTERS + "(" + QUERY_ID + ", " + QUERY_FILTERS_OBJ + ", " + QUERY_COL_FILTERS_OBJ+", "+
                 ", "+ QUERY_AGGR_FILTERS_OBJ +") VALUES(?,?,?,?)";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, queryID);
             pstmt.setBytes(2, filtersByte);
-            pstmt.setString(3, filtersStr);
+            pstmt.setBytes(3, colFiltersByte);
             pstmt.setBytes(4, aggrFiltersByte);
             pstmt.executeUpdate();
         } catch (SQLException e) {
@@ -1705,16 +1702,16 @@ public class MetaDataManager {
         return null;
     }
 
-    public Object[] getQueryFilters(int queryID){
+    public FilterNode[] getQueryFilters(int queryID){
         try {
             Statement stmt = conn.createStatement();
-            String sql = "SELECT "+ QUERY_FILTERS_OBJ +", "+QUERY_FILTERS_LIST+" FROM " + QUERY_FILTERS + " WHERE "+QUERY_ID+" = " +queryID+";";
+            String sql = "SELECT "+ QUERY_FILTERS_OBJ +", " +QUERY_COL_FILTERS_OBJ+" FROM " + QUERY_FILTERS + " WHERE "+QUERY_ID+" = " +queryID+";";
             ResultSet rs = stmt.executeQuery(sql);
             // loop through the result set
             if (rs.next()) {
-                Object[] filters = new Object[2];
-                filters[0] = rs.getString(QUERY_FILTERS_LIST);
-                filters[1] = readTreeModel(rs.getBytes(QUERY_FILTERS_OBJ));
+                FilterNode[] filters = new FilterNode[2];
+                filters[0] = readTreeModel(rs.getBytes(QUERY_FILTERS_OBJ));
+                filters[1] = readTreeModel(rs.getBytes(QUERY_COL_FILTERS_OBJ));
                 return filters;
             }
         } catch (SQLException e) {

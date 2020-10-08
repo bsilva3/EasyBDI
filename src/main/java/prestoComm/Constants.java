@@ -127,8 +127,6 @@ public class Constants {
     public static final String QUERY_FILTERS = "query_filters";
     public static final String QUERY_FILTER_ID = "query_filter_id";
     public static final String QUERY_FILTERS_OBJ = "filters_obj";
-    public static final String QUERY_FILTERS_LIST = "filters_list";
-    public static final String QUERY_COL_FILTERS_LIST = "col_filters_list";
     public static final String QUERY_COL_FILTERS_OBJ = "col_filters_obj";
     public static final String QUERY_AGGR_FILTERS_OBJ = "aggr_filters_obj";
 
@@ -137,6 +135,7 @@ public class Constants {
     public static final String QUERY_MANUAL_ID = "query_manual_id";
     public static final String QUERY_AGGR_STR = "aggr_str";
     public static final String QUERY_FILTER_STR = "filters_str";
+    public static final String QUERY_COL_FILTER_STR = "col_filters_str";
     public static final String QUERY_AGGR_FILTER_STR = "filters_aggr_str";
 
     public static final String GLOBAL_TABLE_DATA_MULTI_TYPE_FIELD = "multidimensional_type";

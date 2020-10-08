@@ -80,6 +80,8 @@ public class QueryUI extends JPanel{
     private JPanel localSchemaLogPane;
     private JList localQueryLogList;
     private JTree colFiltersTree;
+    private JScrollPane filterColPane;
+    private JLabel colFiltersLabel;
     private boolean showLocalQueryLog;
 
     private StarSchema starSchema;
@@ -176,6 +178,16 @@ public class QueryUI extends JPanel{
                     "<p>This is equivalent as to adding a condition on a SQL Where statement.</p>" +
                     "<p>It is possible to write the filters instead of a dragging and dropping then by selecting the 'change to manual edit' option on the pop up menu.</p></html>");
             filtersLabel.setText(filtersLabel.getText() + " - Normal Edit Mode");
+
+            colFiltersLabel.setIcon(new ImageIcon(img.getScaledInstance(20, 20, 0)));
+            colFiltersLabel.addMouseListener(adapterTooltip);
+            colFiltersLabel.setToolTipText("<html><p>Drag attributes from the star schema to create conditions.</p> " +
+                    "<p>Attributes used here are assumed to be part of the same tables as the attributes selected in the 'rows' and aggregations' areas.</p>" +
+                    "<p>Any attributes that belongs to a table not listed on those 2 areas will result in an invalid SQL.</p> " +
+                    "<p>It is however possible to use attributes even if that attribute is not selected in any of those areas if the table from the attribute is listed on at least one of the areas.</p>" +
+                    "<p>This is equivalent as to adding a condition on a SQL Where statement.</p>" +
+                    "<p>It is possible to write the filters instead of a dragging and dropping then by selecting the 'change to manual edit' option on the pop up menu.</p></html>");
+            colFiltersLabel.setText(colFiltersLabel.getText() + " - Normal Edit Mode");
 
             img = ImageIO.read(new File(Constants.IMAGES_DIR+"arrow_right.png"));
             arrowLabel.setIcon(new ImageIcon(img.getScaledInstance(20, 20, 0)));
@@ -350,7 +362,7 @@ public class QueryUI extends JPanel{
             editColFilters.setVisible(false);
             editColFilters.setWrapStyleWord(true);
             editColFilters.setLineWrap(true);
-            editColFilters.addMouseListener(getMouseListenerEditFilterTextArea());
+            editColFilters.addMouseListener(getMouseListenerEditColFilterTextArea());
 
             editFiltersAggr = new JTextArea(80, 100);
             editFiltersAggr.setVisible(false);
@@ -545,6 +557,9 @@ public class QueryUI extends JPanel{
         rowFilterTree.setModel(null);
         rowFilterTree.revalidate();
         rowFilterTree.updateUI();
+        colFiltersTree.setModel(null);
+        colFiltersTree.revalidate();
+        colFiltersTree.updateUI();
 
         //clear all query elements in structures
         globalTableQueries.clearAllElements();
@@ -648,21 +663,22 @@ public class QueryUI extends JPanel{
             editFilters.updateUI();
         }
         else{
-            Object[] filters = metaDataManager.getQueryFilters(queryID);
-            if (filters != null && filters.length > 0 && filters[1] != null) {
+            FilterNode[] filter = metaDataManager.getQueryFilters(queryID);
+            if (filter[0] != null) {
                 changeFilterNormalMode();
-                this.rowFilterTreeModel = new DefaultTreeModel((FilterNode) filters[1]);
+                this.rowFilterTreeModel = new DefaultTreeModel((FilterNode) filter[0]);
                 this.rowFilterTree.setModel(rowFilterTreeModel);
                 rowFilterTree.setRootVisible(false);
                 FilterNode root = (FilterNode) rowFilterTreeModel.getRoot();
                 expandAllFilterNodes(rowFilterTree, new TreePath(root), true);
-                String filtersStr = (String) filters[0];
-                Set<String> filtersList = new HashSet<>();
-                String[] filtersSplit = filtersStr.split(";");
-                for (String s : filtersSplit) {
-                    filtersList.add(s);
-                }
-                globalTableQueries.setFilters(filtersList);
+            }
+            if (filter[1] != null) {
+                changeFilterNormalMode();
+                this.colFilterTreeModel = new DefaultTreeModel((FilterNode) filter[1]);
+                this.colFiltersTree.setModel(colFilterTreeModel);
+                colFiltersTree.setRootVisible(false);
+                FilterNode root = (FilterNode) colFilterTreeModel.getRoot();
+                expandAllFilterNodes(colFiltersTree, new TreePath(root), true);
             }
         }
 
@@ -712,27 +728,15 @@ public class QueryUI extends JPanel{
         //get all select cols:
         Map<GlobalTableData, List<GlobalColumnData>> columns = globalTableQueries.getSelectColumns();
         List<GlobalColumnData> measures = globalTableQueries.getMeasures();
-        List<String> orderBy = globalTableQueries.getOrderBy(); //each order by is in the form 'tableName.column (ASC/DESC)'
-        /*for (Map.Entry<GlobalTableData, List<GlobalColumnData>> r : rows.entrySet()){
-            String tName = r.getKey().getTableName();
-            for (GlobalColumnData c : r.getValue()){
-                String cName = c.getName();
-                for (String s : orderBy){
-                    String [] splitted = s.split(" ");
-                    String name = splitted[0];
-                    String type = splitted[1];
-                    if (name.equals(tName+"."+cName)){
-                        c.setOrderBy(type);
-                        orderBy.remove(s);
-                        break;
-                    }
-                }
-            }
-        }*/
 
         FilterNode filterRoot = null;
         if (rowFilterTreeModel != null){
             filterRoot = (FilterNode) rowFilterTreeModel.getRoot();
+        }
+
+        FilterNode colFilterRoot = null;
+        if (colFilterTreeModel != null){
+            colFilterRoot = (FilterNode) colFilterTreeModel.getRoot();
         }
 
         FilterNode aggrFilterRoot = null;
@@ -741,7 +745,7 @@ public class QueryUI extends JPanel{
         }
 
         boolean success = metaDataManager.insertNewQuerySave(nameTxt.getText(), currentStarSchema, rows, columns,
-                measures, filterRoot, globalTableQueries.getFilters(), aggrFilterRoot, manualAggregations.getText(), editFilters.getText(), editFiltersAggr.getText() );
+                measures, filterRoot, colFilterRoot, aggrFilterRoot, manualAggregations.getText(), editFilters.getText(), editColFilters.getText(), editFiltersAggr.getText());
         if (success){
             JOptionPane.showMessageDialog(mainMenu, "Query "+nameTxt.getText()+" save successfully!", "Query saved", JOptionPane.PLAIN_MESSAGE);
         }
@@ -924,9 +928,9 @@ public class QueryUI extends JPanel{
             return null;
         FactsTable facts = starSchema.getFactsTable();
         CustomTreeNode root = new CustomTreeNode("root", NodeType.GLOBAL_TABLES);
-        CustomTreeNode factsNode = new CustomTreeNode("Facts Table: "+facts.getGlobalTable().getTableName(),facts.getGlobalTable(), NodeType.FACTS_TABLE);
-        CustomTreeNode measuresNode = new CustomTreeNode("Measures", facts.getGlobalTable(), NodeType.MEASURES);
-        CustomTreeNode nonFKNode = new CustomTreeNode("Non-FK attributes",facts.getGlobalTable(), NodeType.FACTS_ATTR);
+        CustomTreeNode factsNode = new CustomTreeNode("Measures of: "+facts.getGlobalTable().getTableName(),facts.getGlobalTable(), NodeType.FACTS_TABLE);
+        //CustomTreeNode measuresNode = new CustomTreeNode("Measures", facts.getGlobalTable(), NodeType.MEASURES);
+        //CustomTreeNode nonFKNode = new CustomTreeNode("Non-FK attributes",facts.getGlobalTable(), NodeType.FACTS_ATTR);
 
         //set columns that are measures ONLY
         Map<GlobalColumnData, Boolean> cols = facts.getColumns();
@@ -937,18 +941,18 @@ public class QueryUI extends JPanel{
                 GlobalColumnData measure = col.getKey();
                 CustomTreeNode measureNode = new CustomTreeNode(measure.getName(), measure, NodeType.MEASURE);
                 measureNode.add(new CustomTreeNode(col.getKey().getDataType(), "", NodeType.COLUMN_INFO));
-                measuresNode.add(measureNode);
+                factsNode.add(measureNode);
             }
-            else{
+            /*else{
                 if (!col.getKey().isForeignKey()){
                     //not a fk or measure
                     CustomTreeNode node = new CustomTreeNode(col.getKey().getName(), col.getKey(), NodeType.GLOBAL_COLUMN);
                     node.add(new CustomTreeNode(col.getKey().getDataType(), "", NodeType.COLUMN_INFO));
                     nonFKNode.add(node);
                 }
-            }
+            }*/
         }
-        factsNode.add(measuresNode);
+        //factsNode.add(measuresNode);
         //if (nonFKNode.getChildCount() > 0)
           //  factsNode.add(nonFKNode);
         //dimension tables
@@ -1527,7 +1531,6 @@ public class QueryUI extends JPanel{
     public String getColFilterQuery(){
         DefaultTreeModel treeModel = colFilterTreeModel;
         JTextArea textArea = editColFilters;
-
 
         if (textArea != null && textArea.isVisible()) { //manual edit mode
             String filterText = textArea.getText().replaceAll(";", "");
@@ -2151,6 +2154,21 @@ public class QueryUI extends JPanel{
         };
     }
 
+    private MouseListener getMouseListenerEditColFilterTextArea() {
+        return new MouseAdapter() {
+
+            @Override
+            public void mousePressed(MouseEvent arg0) {
+                JPopupMenu menu = new JPopupMenu();
+                JMenuItem editItem = new JMenuItem("Change to Normal Edit");
+                editItem.addActionListener(changeToNormalEditColFilter());
+                menu.add(editItem);
+                editColFilters.setComponentPopupMenu(menu);
+                super.mousePressed(arg0);
+            }
+        };
+    }
+
 
     private MouseListener getMouseListenerEditFilterAggrTextArea() {
         return new MouseAdapter() {
@@ -2189,8 +2207,12 @@ public class QueryUI extends JPanel{
         JMenuItem editItem = new JMenuItem("Manual Edit");
         if (isAggrFilter)
             editItem.addActionListener(changeToManualEditFilterAggr());
-        else
-            editItem.addActionListener(changeToManualEditFilter());
+        else {
+            if (tree.equals(rowFilterTree))
+                editItem.addActionListener(changeToManualEditFilter());
+            if (tree.equals(colFiltersTree))
+                editItem.addActionListener(changeToManualEditColFilter());
+        }
         if(pathForLocation != null) {
             selectedNode = (FilterNode) pathForLocation.getLastPathComponent();
             if (selectedNode.getNodeType() == FilterNodeType.CONDITION) {
@@ -2479,6 +2501,60 @@ public class QueryUI extends JPanel{
         filterPane.getViewport().remove(editFilters);
         filterPane.getViewport().add(rowFilterTree);
         filtersLabel.setText("Filters - Normal Edit Mode");
+    }
+
+    private ActionListener changeToManualEditColFilter(){
+        return new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent arg0) {
+                //if (!rowFilterTree.isVisible() && editFilters.isVisible())
+                //return;
+                int dialogResult = JOptionPane.showConfirmDialog(mainMenu, "If you switch to manual mode, all current filters will be converted to SQL and you can manually edit them.\n" +
+                        "However, you cannot drop items from the star schema to these filters.\n To do this you must change back to normal mode on the pop up menu \n" +
+                        "Would you like to continue?", "Warning", JOptionPane.YES_NO_OPTION);
+                if(dialogResult == JOptionPane.YES_OPTION){
+                    changeColFilterManualMode();
+                }
+            }
+        };
+    }
+
+    private void changeColFilterManualMode(){
+        String filtersStr = getColFilterQuery();
+        colFiltersTree.setVisible(false);
+        editColFilters.setVisible(true);
+        filterColPane.getViewport().remove(colFiltersTree);
+        filterColPane.getViewport().add(editColFilters);
+        editColFilters.setText(filtersStr);
+        colFiltersLabel.setText("Column Filters - Manual Edit Mode");
+        globalTableQueries.clearCollFilters();
+    }
+
+    private ActionListener changeToNormalEditColFilter(){
+        return new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent arg0) {
+                //if (rowFilterTree.isVisible() && !editFilters.isVisible())
+                //return;
+                int dialogResult = JOptionPane.showConfirmDialog (mainMenu, "Changing back to normal mode will reset all filters created.\n Would you like to continue?","Warning",JOptionPane.YES_NO_OPTION);
+                if(dialogResult == JOptionPane.YES_OPTION){
+                    //change to normal mode
+                    changeColFilterNormalMode();
+                }
+
+            }
+        };
+    }
+
+    private void changeColFilterNormalMode(){
+        editColFilters.setVisible(false);
+        editColFilters.setText("");
+        colFiltersTree.setVisible(true);
+        clearColFilters();
+        globalTableQueries.clearCollFilters();
+        filterColPane.getViewport().remove(editColFilters);
+        filterColPane.getViewport().add(colFiltersTree);
+        colFiltersLabel.setText("Column Filters - Normal Edit Mode");
     }
 
     private ActionListener changeToManualEditFilterAggr(){
