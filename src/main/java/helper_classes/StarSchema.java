@@ -1,4 +1,7 @@
-package helper_classes.elements;
+package helper_classes;
+
+import helper_classes.FactsTable;
+import helper_classes.GlobalTableData;
 
 import java.util.List;
 

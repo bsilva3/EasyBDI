@@ -1,4 +1,4 @@
-package helper_classes.elements;
+package helper_classes;
 
 import java.io.Serializable;
 import java.util.*;
@@ -13,6 +13,10 @@ public class GlobalColumnData implements Serializable {
     private String orderBy; //just for the query save
     private String fullName; //table.column
     private String aggrOp; //aggrOP
+
+    //public static final long serialVersionUID = 3468197598887017481L;
+    public static final long serialVersionUID = 4654436492332727651L;
+    //public static final long serialVersionUID = -4654436492332727651L;
 
     public GlobalColumnData(String name, String dataType, boolean isPrimaryKey, Set<ColumnData> localCols) {
         this.name = name;

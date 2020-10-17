@@ -1,7 +1,6 @@
 package main_app.database_integration;
 
-import helper_classes.elements.*;
-import helper_classes.elements.DBModel;
+import helper_classes.*;
 import main_app.metadata_storage.MetaDataManager;
 import org.apache.commons.text.similarity.LevenshteinDistance;
 

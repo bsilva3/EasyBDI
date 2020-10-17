@@ -1,4 +1,4 @@
-package helper_classes.elements;
+package helper_classes;
 
 import static helper_classes.utils_other.Constants.*;
 
@@ -229,6 +229,37 @@ public enum DBModel {
         @Override
         public boolean isSingleServerOneDatabase(){
             return true;
+        }
+    },
+
+    File(){
+        @Override
+        public String getBDDataModel() {
+            return "files";
+        }
+        @Override
+        public String getConnectorName() {
+            return "flex";
+        }
+        @Override
+        public int getDefaultPort() {
+            return 0;
+        }
+        @Override
+        public String getMetaDataQuery() {
+            return "";
+        }
+        @Override
+        public String[] getSchemaExclusions() {
+            return new String[] {};
+        }
+        @Override
+        public String[] getTableExclusions() {
+            return new String[] {};
+        }
+        @Override
+        public boolean isSingleServerOneDatabase(){
+            return false;
         }
     };
 

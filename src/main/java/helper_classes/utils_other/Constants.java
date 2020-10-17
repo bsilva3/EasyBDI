@@ -177,6 +177,9 @@ public class Constants {
     public static final int FAILED = -1;
 
 
+    //sql query list:
+    public static final String[] SQL_COMMANDS = new String[] {"select", "insert", "remove", "drop", "insert", "update", "alter", "delete"};
+
 
 
     //SCHEMA exclusions that are database characteristic and have no interest in a business analytics context

@@ -1,7 +1,7 @@
 package main_app.wizards.global_schema_config;
 
 import helper_classes.utils_other.Constants;
-import helper_classes.elements.DBModel;
+import helper_classes.DBModel;
 
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;

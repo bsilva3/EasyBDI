@@ -1,6 +1,6 @@
 package main_app.metadata_storage;
 
-import helper_classes.elements.*;
+import helper_classes.*;
 import main_app.query_ui.FilterNode;
 
 import java.io.*;

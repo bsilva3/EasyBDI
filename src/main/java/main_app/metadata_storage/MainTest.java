@@ -57,8 +57,10 @@ public class MainTest {
                 "    type ='table' AND \n" +
                 "    name NOT LIKE 'sqlite_%';");*/
 
-        m.makeQueryAndPrint("ALTER TABLE "+QUERY_FILTERS+" ADD COLUMN "+QUERY_COL_FILTERS_OBJ+" blob;");
-        m.makeQueryAndPrint("ALTER TABLE "+QUERY_MANUAL+" ADD COLUMN "+QUERY_COL_FILTER_STR+" text;");
+        //m.makeQueryAndPrint("ALTER TABLE "+QUERY_FILTERS+" ADD COLUMN "+QUERY_COL_FILTERS_OBJ+" blob;");
+        //m.makeQueryAndPrint("ALTER TABLE "+QUERY_MANUAL+" ADD COLUMN "+QUERY_COL_FILTER_STR+" text;");
+        m.makeQueryAndPrint("SELECT "+ QUERY_MEASURE_OBJ+" FROM " + QUERY_MEASURES + " WHERE "+QUERY_ID+" = 5;");
+        //m.makeQueryAndPrint("SELECT * FROM "+QUERY_MEASURES+";");
 
         //m.makeQueryAndPrint("SELECT * FROM "+ TABLE_DATA);
         /*m.makeQueryAndPrint("UPDATE "+DB_DATA+"\n" +

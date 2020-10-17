@@ -1,4 +1,4 @@
-package helper_classes.elements;
+package helper_classes;
 
 public enum MappingType {
     Simple(0), Vertical(1), Horizontal(2), Undefined(3);

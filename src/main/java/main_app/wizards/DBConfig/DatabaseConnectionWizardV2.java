@@ -1,10 +1,10 @@
 package main_app.wizards.DBConfig;
 
-import helper_classes.elements.DBData;
+import helper_classes.DBData;
 import helper_classes.ui_utils.LoadingScreenAnimator;
-import helper_classes.elements.SimpleDBData;
-import helper_classes.elements.TableData;
-import helper_classes.elements.DBModel;
+import helper_classes.SimpleDBData;
+import helper_classes.TableData;
+import helper_classes.DBModel;
 import main_app.metadata_storage.MetaDataManager;
 import main_app.presto_com.PrestoMediator;
 
@@ -16,6 +16,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static helper_classes.utils_other.Constants.*;
+import static helper_classes.utils_other.Utils.getExtension;
+import static helper_classes.utils_other.Utils.getFileNameNoExtension;
 
 public class DatabaseConnectionWizardV2 extends JPanel {
     //extends AbstractWizardPage
@@ -36,6 +38,10 @@ public class DatabaseConnectionWizardV2 extends JPanel {
     private JLabel stepLabel;
     private JButton importDataSourceFromButton;
     private JLabel nameFieldLabel;
+    private JLabel fileLabel;
+    private JLabel urlLabel;
+    private JLabel userLabel;
+    private JLabel passLabel;
     private List<DBData> dbList;
     private List<Boolean> dbConnectionTested;
     private DefaultListModel<String> listModel;
@@ -113,6 +119,30 @@ public class DatabaseConnectionWizardV2 extends JPanel {
 
     private void handleDbFieldsInfo(){
         DBModel dbModel = DBModel.valueOf(databaseModelSelect.getSelectedItem().toString());
+        if (dbModel.getBDDataModel().equalsIgnoreCase("files")){
+            nameText.setVisible(true);
+            nameFieldLabel.setVisible(true);
+            urlLabel.setText("File Location:");
+            fileLabel.setVisible(true);
+            //do not show login prompts
+            credentialsTxt.setVisible(false);
+            userText.setVisible(false);
+            passText.setVisible(false);
+            userLabel.setVisible(false);
+            passLabel.setVisible(false);
+            return;
+
+        }
+        else{
+            urlLabel.setText("URL:");
+            fileLabel.setVisible(false);
+            //show login prompts
+            credentialsTxt.setVisible(true);
+            userText.setVisible(true);
+            passText.setVisible(true);
+            userLabel.setVisible(true);
+            passLabel.setVisible(true);
+        }
         if (dbModel.isSingleServerOneDatabase()){
             nameText.setVisible(true);
             nameFieldLabel.setVisible(true);
@@ -206,10 +236,6 @@ public class DatabaseConnectionWizardV2 extends JPanel {
     }
 
     public List<DBData> getDbList(){
-        /*dbList.add(new DBData("localhost:5432", DBModel.PostgreSQL, "employees_horizontal", "postgres", "brunosilva"));//for test
-        dbList.add(new DBData("localhost:5432", DBModel.PostgreSQL, "employees_vertical", "postgres", "brunosilva"));//for test
-        dbList.add(new DBData("http://localhost:27017", DBModel.MongoDB,"inventory"));
-        //dbList.add(new DBData("http://localhost:3306", DBModel.MYSQL,"employeesMYSQL", "bruno", "brunosilva"));*/
         if (dbConnectionTested.contains(false) || dbConnectionTested.contains(null)){
             JOptionPane.showMessageDialog(null,
                     "There are databases that could not be connected or databases in which a connection test was not made.\n"
@@ -251,6 +277,15 @@ public class DatabaseConnectionWizardV2 extends JPanel {
     }
 
     public DBData getTablesInDBFromPresto(DBData db){
+        if (db.getDbModel() == DBModel.File){
+            TableData table = new TableData(db.getUrl(), getExtension(db.getUrl()), db);//if the 'db' is a file, the schema is its extension and the table name is its file name
+            table = prestoMediator.getColumnsInTable(table);
+            List<TableData> tables = new ArrayList<>(1);
+            tables.add(table);
+            db.setTableList(tables);
+            return db;
+        }
+
         List<TableData> tables = prestoMediator.getTablesInDatabase(db);
         for (int i = 0; i < tables.size(); i++){
             TableData table = prestoMediator.getColumnsInTable(tables.get(i));

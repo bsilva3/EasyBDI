@@ -1,5 +1,7 @@
 package helper_classes.utils_other;
 
+import java.io.File;
+
 public class Utils {
 
     private Utils(){}
@@ -21,5 +23,17 @@ public class Utils {
             return false;
         }
         return true;
+    }
+
+    public static String getFileNameNoExtension(String filePath) {
+        String[] split = filePath.split(File.pathSeparator);
+        String filename = split[split.length-1];
+        return filename.split("\\.")[0];
+    }
+
+    public static String getExtension(String filePath) {
+        String[] split = filePath.split(File.pathSeparator);
+        String filename = split[split.length-1];
+        return filename.split("\\.")[1];
     }
 }

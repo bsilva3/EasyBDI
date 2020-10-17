@@ -1,8 +1,8 @@
 package main_app.wizards.DBConfig;
 
-import helper_classes.elements.DBData;
-import helper_classes.elements.TableData;
-import helper_classes.elements.DBModel;
+import helper_classes.DBData;
+import helper_classes.TableData;
+import helper_classes.DBModel;
 import main_app.metadata_storage.MetaDataManager;
 import main_app.wizards.global_schema_config.NodeType;
 

@@ -1,4 +1,4 @@
-package helper_classes.elements;
+package helper_classes;
 
 import main_app.metadata_storage.MetaDataManager;
 

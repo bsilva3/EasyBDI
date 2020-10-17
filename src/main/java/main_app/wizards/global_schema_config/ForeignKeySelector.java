@@ -1,7 +1,7 @@
 package main_app.wizards.global_schema_config;
 
-import helper_classes.elements.GlobalColumnData;
-import helper_classes.elements.GlobalTableData;
+import helper_classes.GlobalColumnData;
+import helper_classes.GlobalTableData;
 
 import javax.swing.*;
 import java.awt.*;

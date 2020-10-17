@@ -1,8 +1,8 @@
 package helper_classes.utils_other;
 
-import helper_classes.elements.GlobalColumnData;
-import helper_classes.elements.GlobalTableData;
-import helper_classes.elements.StarSchema;
+import helper_classes.GlobalColumnData;
+import helper_classes.GlobalTableData;
+import helper_classes.StarSchema;
 
 import java.util.*;
 import java.util.regex.Matcher;

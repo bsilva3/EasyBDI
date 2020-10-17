@@ -1,10 +1,10 @@
 package main_app.query_ui;
 
+import helper_classes.*;
 import helper_classes.ui_utils.StripeRenderer;
 import helper_classes.utils_other.Constants;
 import helper_classes.utils_other.TableColumnNameExtractor;
 import helper_classes.utils_other.Utils;
-import helper_classes.elements.*;
 import helper_classes.ui_utils.ListElementType;
 import helper_classes.ui_utils.ListElementWrapper;
 import helper_classes.ui_utils.LoadingScreenAnimator;
@@ -47,6 +47,7 @@ import java.sql.SQLException;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.regex.Pattern;
 
 import static main_app.query_ui.GlobalTableQuery.MAX_SELECT_COLS;
 
@@ -1525,9 +1526,28 @@ public class QueryUI extends JPanel{
             textArea = editFilters;
         }
         if (textArea != null && textArea.isVisible()) { //manual edit mode
-            String filterText = textArea.getText().replaceAll(";", "");
-            filterText = filterText.replaceAll("(?i)having", "");//case insensitive
+            String filterText = textArea.getText();
+            if (filterText.endsWith(";")){
+                filterText.substring(0, filterText.length()-2); //must not end with ';'
+            }
+            if (Pattern.compile("[0-9]\\s*=\\s*[0-9]").matcher(filterText).find()){
+                return "<html><p>ERROR-Detected an invalid expression on one of the manual fields. Please remove the invalid expression.</p>" +
+                "<p>Expressions considered invalid are '1 = 1' and similar</p></html>";
+            }
+            String[] filterSplit = filterText.split("[\\s+()]");//split by spaces and ()
+            for (String word : filterSplit){
+                if ( !(word.startsWith("'") && word.endsWith("'")) && Arrays.stream(Constants.SQL_COMMANDS).anyMatch(word.toLowerCase()::equals)){ //if not enclosed by single quotes
+                    return "<html><p>ERROR-One or more SQL commands were detected. They are forbidden on these fields, please remove them.</p>" +
+                            "<p>Any SQL commands such as these are not allowed:Where, Alter, Delete, Drop, Insert, Update, Having...</p></html>";
+                }
+            }
+            /*filterText = filterText.replaceAll("(?i)having", "");//case insensitive
             filterText = filterText.replaceAll("(?i)where", "");
+            filterText = filterText.replaceAll("(?i)drop", "");
+            filterText = filterText.replaceAll("(?i)remove", "");
+            filterText = filterText.replaceAll("(?i)alter", "");
+            filterText = filterText.replaceAll("(?i)select", "");
+            filterText = filterText.replaceAll("(?i)insert", "");*/
             if (!isAggrFilter){
                 TableColumnNameExtractor ext = new TableColumnNameExtractor();
                 globalTableQueries.setFilters(ext.getColumnsFromStringSet(textArea.getText()));
@@ -1730,17 +1750,30 @@ public class QueryUI extends JPanel{
         }
 
         String filterQuery = getFilterQuery(false);
-        if (!filterQuery.equals("ERROR"))
+        if (!filterQuery.contains("ERROR"))
             globalTableQueries.setFilterQuery(filterQuery);
+        else{
+            JOptionPane.showMessageDialog(mainMenu, filterQuery, "Error", JOptionPane.ERROR_MESSAGE);
+            return null;
+        }
 
-        String filterQueryAggr = getFilterQuery(true);
 
         String colFilterQuery = getColFilterQuery();
-        if (!filterQuery.equals("ERROR"))
+        if (!colFilterQuery.contains("ERROR"))
             globalTableQueries.setColFilterQuery(colFilterQuery);
+        else{
+            JOptionPane.showMessageDialog(mainMenu, colFilterQuery, "Error", JOptionPane.ERROR_MESSAGE);
+            return null;
+        }
 
-        if (!filterQueryAggr.equals("ERROR"))
+        String filterQueryAggr = getFilterQuery(true);
+        if (!filterQueryAggr.contains("ERROR"))
             globalTableQueries.setFilterAggrQuery(filterQueryAggr);
+        else{
+            JOptionPane.showMessageDialog(mainMenu, filterQueryAggr, "Error", JOptionPane.ERROR_MESSAGE);
+            return null;
+        }
+
         if (!filterTableExistsInRows()){
             LoadingScreenAnimator.closeGeneralLoadingAnimation();
             backButton.setEnabled(true);
@@ -2350,7 +2383,7 @@ public class QueryUI extends JPanel{
 
     private boolean addAggrRow(DefaultListModel listModel, GlobalTableData globalTable, GlobalColumnData attribute, boolean isMeasure){
 
-        if ((attribute.getAggrOp() == null || attribute.getAggrOp().isEmpty()) )//if attribute
+        if ((attribute.getAggrOp() == null || attribute.getAggrOp().isEmpty()) )
             attribute.setAggrOp(aggregationOpComboBox.getSelectedItem().toString(), false);
 
         if (isMeasure) {
@@ -2441,7 +2474,8 @@ public class QueryUI extends JPanel{
         globalTableQueries.deleteAllRowsWithAggregations();
         aggregationsPane.getViewport().remove(aggregationsList);
         aggregationsPane.getViewport().add(manualAggregations);
-        editFilters.setText(filtersStr);
+        if (!filtersStr.contains("ERROR"))
+            editFilters.setText(filtersStr);
         measuresLabel.setText("Aggregations - Manual Edit Mode");
 
         aggrAreaPanel.remove(aggregationOpComboBox);
@@ -2499,7 +2533,8 @@ public class QueryUI extends JPanel{
         editFilters.setVisible(true);
         filterPane.getViewport().remove(rowFilterTree);
         filterPane.getViewport().add(editFilters);
-        editFilters.setText(filtersStr);
+        if (!filtersStr.contains("ERROR"))
+            editFilters.setText(filtersStr);
         filtersLabel.setText("Filters - Manual Edit Mode");
         globalTableQueries.clearNormalFilters();
     }
@@ -2609,7 +2644,8 @@ public class QueryUI extends JPanel{
         editFiltersAggr.setVisible(true);
         aggrFilterPane.getViewport().remove(aggrFiltersTree);
         aggrFilterPane.getViewport().add(editFiltersAggr);
-        editFiltersAggr.setText(filtersStr);
+        if (!filtersStr.contains("ERROR"))
+            editFiltersAggr.setText(filtersStr);
         aggrFiltersLabel.setText("Aggregation Filters - Manual Mode");
     }
 

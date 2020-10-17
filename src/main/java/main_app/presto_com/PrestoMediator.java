@@ -1,9 +1,9 @@
 package main_app.presto_com;
 
-import helper_classes.elements.ColumnData;
-import helper_classes.elements.DBData;
-import helper_classes.elements.DBModel;
-import helper_classes.elements.TableData;
+import helper_classes.ColumnData;
+import helper_classes.DBData;
+import helper_classes.DBModel;
+import helper_classes.TableData;
 import io.prestosql.jdbc.$internal.guava.collect.ImmutableSet;
 
 import javax.swing.*;
@@ -211,12 +211,14 @@ public class PrestoMediator {
                 config += "cassandra.password="+dbData.getPass()+"\n";
             }
         }
-
         else if (dbData.getDbModel().equals(DBModel.HIVE)){
             config += "hive.metastore.uri=thrift://"+dbData.getUrl()+"\n";
             //if ( dbData.getPass() != null && !dbData.getPass().isEmpty()) {
               //  config += "redis.password="+dbData.getPass()+"\n";
             //}
+        }
+        else if (dbData.getDbModel().equals(DBModel.File)){
+            return config;
         }
 
         else {
@@ -500,7 +502,7 @@ public class PrestoMediator {
             return commandExecutedStatus;
         }
         try {
-            Thread.sleep(8000); //pause 6 seconds, give time to start
+            Thread.sleep(6000); //pause 6 seconds, give time to start
         } catch(InterruptedException ex) {
             Thread.currentThread().interrupt();
         }
@@ -522,7 +524,7 @@ public class PrestoMediator {
                 nTries++;
             }
             try {
-                Thread.sleep(6000); //pause 6 seconds, give time to start
+                Thread.sleep(8000); //pause 8 seconds, give time to start
             } catch(InterruptedException ex) {
                 Thread.currentThread().interrupt();
             }

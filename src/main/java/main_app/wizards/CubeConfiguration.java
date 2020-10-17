@@ -1,9 +1,9 @@
 package main_app.wizards;
 
-import helper_classes.elements.FactsTable;
-import helper_classes.elements.GlobalColumnData;
-import helper_classes.elements.GlobalTableData;
-import helper_classes.elements.StarSchema;
+import helper_classes.FactsTable;
+import helper_classes.GlobalColumnData;
+import helper_classes.GlobalTableData;
+import helper_classes.StarSchema;
 import main_app.MainMenu;
 import main_app.metadata_storage.MetaDataManager;
 

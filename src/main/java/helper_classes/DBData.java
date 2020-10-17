@@ -1,4 +1,4 @@
-package helper_classes.elements;
+package helper_classes;
 
 import helper_classes.utils_other.Constants;
 
@@ -37,6 +37,9 @@ public class DBData implements Serializable {
         if (dbModel == DBModel.Cassandra) {//cassandra may not contain the port on the url
             String urlNoPort = url.split(":")[0];
             this.catalogName = dbModel + "_" + urlNoPort + "_" + fixedDbName;
+        }
+        else if (dbModel == DBModel.File) {
+            this.catalogName = "flex";
         }
         else
             this.catalogName = dbModel+"_"+this.url+"_"+fixedDbName;

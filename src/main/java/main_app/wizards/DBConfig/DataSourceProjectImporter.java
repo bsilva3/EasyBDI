@@ -1,6 +1,6 @@
 package main_app.wizards.DBConfig;
 
-import helper_classes.elements.SimpleDBData;
+import helper_classes.SimpleDBData;
 import main_app.metadata_storage.MetaDataManager;
 
 import javax.swing.*;

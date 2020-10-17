@@ -1,4 +1,4 @@
-package helper_classes.elements;
+package helper_classes;
 
 import java.io.Serializable;
 import java.util.*;
@@ -133,6 +133,8 @@ public class GlobalTableData implements Serializable {
     }
 
     public MappingType getMappingType(){//same for all matches, therefore, check only a column
+        if (globalColumnData.isEmpty())
+            return MappingType.Undefined;
         return globalColumnData.get(0).getLocalColumns().iterator().next().getMapping();
     }
 

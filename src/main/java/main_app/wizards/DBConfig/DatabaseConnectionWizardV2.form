@@ -2,7 +2,7 @@
 <form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="main_app.wizards.DBConfig.DatabaseConnectionWizardV2">
   <grid id="27dc6" binding="mainPanel" layout-manager="GridBagLayout">
     <constraints>
-      <xy x="20" y="20" width="893" height="525"/>
+      <xy x="20" y="20" width="1125" height="542"/>
     </constraints>
     <properties>
       <preferredSize width="1000" height="700"/>
@@ -13,6 +13,8 @@
         <rowspec value="center:max(d;4px):noGrow"/>
         <rowspec value="top:4dlu:noGrow"/>
         <rowspec value="center:d:noGrow"/>
+        <rowspec value="top:4dlu:noGrow"/>
+        <rowspec value="center:max(d;4px):noGrow"/>
         <rowspec value="top:4dlu:noGrow"/>
         <rowspec value="center:max(d;4px):noGrow"/>
         <rowspec value="top:4dlu:noGrow"/>
@@ -44,7 +46,7 @@
           </component>
           <component id="b9a70" class="javax.swing.JTextField" binding="urlText">
             <constraints>
-              <grid row="4" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
+              <grid row="6" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
                 <preferred-size width="150" height="-1"/>
               </grid>
               <forms top="0" left="0" bottom="0" right="5" defaultalign-horz="false"/>
@@ -53,9 +55,9 @@
               <maximumSize width="500" height="20"/>
             </properties>
           </component>
-          <component id="3c3b" class="javax.swing.JLabel">
+          <component id="3c3b" class="javax.swing.JLabel" binding="urlLabel">
             <constraints>
-              <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+              <grid row="6" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
               <forms/>
             </constraints>
             <properties>
@@ -64,7 +66,7 @@
           </component>
           <component id="f00b" class="javax.swing.JLabel" binding="credentialsTxt">
             <constraints>
-              <grid row="6" column="0" row-span="1" col-span="3" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+              <grid row="8" column="0" row-span="1" col-span="3" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
               <forms top="0" left="10" bottom="0" right="10"/>
             </constraints>
             <properties>
@@ -73,7 +75,7 @@
           </component>
           <component id="1f61d" class="javax.swing.JTextField" binding="userText">
             <constraints>
-              <grid row="8" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
+              <grid row="10" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
                 <preferred-size width="150" height="-1"/>
               </grid>
               <forms top="0" left="0" bottom="0" right="5" defaultalign-horz="false"/>
@@ -82,9 +84,9 @@
               <text value=""/>
             </properties>
           </component>
-          <component id="bb110" class="javax.swing.JLabel">
+          <component id="bb110" class="javax.swing.JLabel" binding="userLabel">
             <constraints>
-              <grid row="8" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+              <grid row="10" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
               <forms/>
             </constraints>
             <properties>
@@ -93,16 +95,16 @@
           </component>
           <component id="b3e64" class="javax.swing.JPasswordField" binding="passText">
             <constraints>
-              <grid row="10" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
+              <grid row="12" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
                 <preferred-size width="150" height="-1"/>
               </grid>
               <forms top="0" left="0" bottom="0" right="5" defaultalign-horz="false"/>
             </constraints>
             <properties/>
           </component>
-          <component id="8eac5" class="javax.swing.JLabel">
+          <component id="8eac5" class="javax.swing.JLabel" binding="passLabel">
             <constraints>
-              <grid row="10" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+              <grid row="12" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
               <forms/>
             </constraints>
             <properties>
@@ -133,6 +135,16 @@
               <forms top="0" left="0" bottom="0" right="5"/>
             </constraints>
             <properties/>
+          </component>
+          <component id="e89f8" class="javax.swing.JLabel" binding="fileLabel">
+            <constraints>
+              <grid row="4" column="0" row-span="1" col-span="3" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+              <forms/>
+            </constraints>
+            <properties>
+              <text value="&lt;html&gt;&lt;p&gt;If the file is local, add 'file://' followed by the path to the file.&lt;/p&gt;&lt;p&gt; You can also add remote files by specifying the link.&lt;/p&gt;&lt;/html&gt;"/>
+              <visible value="true"/>
+            </properties>
           </component>
         </children>
       </grid>

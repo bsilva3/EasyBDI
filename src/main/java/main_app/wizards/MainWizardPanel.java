@@ -1,7 +1,7 @@
 package main_app.wizards;
 
+import helper_classes.*;
 import main_app.database_integration.SchemaMatcher;
-import helper_classes.elements.*;
 import main_app.*;
 import main_app.metadata_storage.MetaDataManager;
 import main_app.presto_com.PrestoMediator;

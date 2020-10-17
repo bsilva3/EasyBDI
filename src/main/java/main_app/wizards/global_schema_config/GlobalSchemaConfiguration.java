@@ -1,8 +1,7 @@
 package main_app.wizards.global_schema_config;
 
-import helper_classes.elements.*;
+import helper_classes.*;
 import helper_classes.utils_other.Constants;
-import helper_classes.elements.DBModel;
 import main_app.metadata_storage.MetaDataManager;
 
 import javax.imageio.ImageIO;

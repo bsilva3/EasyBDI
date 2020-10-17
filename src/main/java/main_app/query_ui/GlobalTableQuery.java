@@ -1,6 +1,6 @@
 package main_app.query_ui;
 
-import helper_classes.elements.*;
+import helper_classes.*;
 import helper_classes.utils_other.Utils;
 import main_app.presto_com.PrestoMediator;
 
