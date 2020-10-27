@@ -148,6 +148,8 @@ public class CustomTreeNode extends DefaultMutableTreeNode implements Serializab
                 return "mongo_icon.png";
             case HIVE:
                 return "hive_icon.png";
+            case File:
+                return "file_icon.png";
         }
         return "database_icon.png";
     }

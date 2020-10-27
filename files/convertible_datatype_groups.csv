@@ -1,0 +1,16 @@
+numeric,string,TRUE,
+numeric,numeric,TRUE,
+numeric,time,FALSE,
+numeric,boolean,FALSE,
+string,string,TRUE,
+string,numeric,TRUE,May Not WORK!
+string,time,TRUE,May Not WORK!
+string,boolean,TRUE,May Not WORK!
+time,string,TRUE,
+time,numeric,FALSE,
+time,time,TRUE,
+time,boolean,FALSE,
+boolean,string,TRUE,
+boolean,numeric,FALSE,
+boolean,time,FALSE,
+boolean,boolean,TRUE,

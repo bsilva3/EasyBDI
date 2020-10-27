@@ -242,15 +242,6 @@
           </scrollpane>
         </children>
       </grid>
-      <component id="6ec7b" class="javax.swing.JButton" binding="backButton" default-binding="true">
-        <constraints>
-          <grid row="11" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-          <gridbag weightx="1.0" weighty="0.1"/>
-        </constraints>
-        <properties>
-          <text value="Back"/>
-        </properties>
-      </component>
       <grid id="a01e3" layout-manager="GridBagLayout">
         <constraints>
           <grid row="10" column="1" row-span="1" col-span="4" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>

@@ -227,6 +227,8 @@ public class ColumnData implements Serializable {
     }
 
     public String getCompletePrestoColumnName(){
+        if (table.getDB().getDbModel() == DBModel.File)
+            return "\""+name+"\"";
         return table.getCompletePrestoTableName()+"."+name;
     }
 

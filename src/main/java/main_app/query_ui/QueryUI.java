@@ -64,7 +64,7 @@ public class QueryUI extends JPanel{
     private JList rowsList;
     private JPanel mainPanel;
     private JButton executeQueryButton;
-    private JButton backButton;
+    private JButton homeButton;
     private JList columnsList;
     private JTabbedPane logPane;
     private JList queryLogList;
@@ -223,14 +223,42 @@ public class QueryUI extends JPanel{
             currentStarSchema = starSchemas.get(0);//when opening this window, select first star schema by default
             //Set JMENU BAR
             JMenuBar menuBar = new JMenuBar();
+
+            // back button
+            homeButton = new JButton("Home");
+            BufferedImage image = null;
+            try {
+                image = ImageIO.read(new File(Constants.IMAGES_DIR+"home_icon.png"));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            //advancedOptions.setHorizontalTextPosition(SwingConstants.CENTER);
+            //advancedOptions.setVerticalTextPosition(SwingConstants.BOTTOM);
+            homeButton.setIcon(new ImageIcon(image.getScaledInstance(25, 25, 0)));
+            homeButton.setOpaque(false);
+            homeButton.setContentAreaFilled(false);
+            homeButton.setBorderPainted(false);
+
+
+            homeButton.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    //remove manubar
+                    mainMenu.setJMenuBar(null);
+                    metaDataManager.close();
+                    mainMenu.returnToMainMenu();
+                }
+            });
+            menuBar.add(homeButton);
+
+
             //star schema selection
             starSchemaMenu = new JMenu("Choose Star Schema");
-            BufferedImage image = null;
             try {
                 image = ImageIO.read(new File(Constants.IMAGES_DIR+"cube_icon.png"));
             } catch (IOException e) {
                 e.printStackTrace();
             }
+
             //starSchemaMenu.setHorizontalTextPosition(SwingConstants.CENTER);
             //starSchemaMenu.setVerticalTextPosition(SwingConstants.BOTTOM);
             populateStarSchemaMenu(starSchemas);
@@ -402,16 +430,6 @@ public class QueryUI extends JPanel{
             //tablePane.add(queryResultsTableGroupable);
             //this.queryResultsTable.setModel(defaultTableModel);
             //queryResultsTableGroupable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);//maintain column width
-
-            backButton.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    //open wizard and edit current project
-                    //remove manubar
-                    mainMenu.setJMenuBar(null);
-                    metaDataManager.close();
-                    mainMenu.returnToMainMenu();
-                }
-            });
 
             executeQueryButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
@@ -1345,7 +1363,7 @@ public class QueryUI extends JPanel{
                     //remove node
                     FilterNode parent = (FilterNode) node.getParent();
                     int index = parent.getIndex(node);
-                    FilterNode notNode = new FilterNode("NOT", "NOT", FilterNodeType.BOOLEAN_OPERATION);
+                    FilterNode notNode = new FilterNode("NOT", "NOT", "", FilterNodeType.BOOLEAN_OPERATION);
                     List <FilterNode> childNodes = getAllChildNodes(node);
                     //remove all childs, make a new child called not and have all childs be child of not node
                     for (FilterNode n : childNodes)
@@ -1371,7 +1389,7 @@ public class QueryUI extends JPanel{
                     FilterNode parent = (FilterNode) node.getParent();
                     int index = parent.getIndex(node);
                     parent.remove(node);
-                    FilterNode notNode = new FilterNode("NOT", "NOT", FilterNodeType.BOOLEAN_OPERATION);
+                    FilterNode notNode = new FilterNode("NOT", "NOT", "", FilterNodeType.BOOLEAN_OPERATION);
                     notNode.add(node);
                     parent.insert(notNode, index);
                     tree.expandPath(new TreePath(notNode.getPath()));
@@ -1565,7 +1583,7 @@ public class QueryUI extends JPanel{
         String query = "";
         for (int i = 0 ; i < nChilds; i++){
             FilterNode filterNode = (FilterNode) root.getChildAt(i);
-            query += filterNode.getUserObject().toString() +" ";
+            query += filterNode.getEscappedFilterStringObj() +" ";
             if (!isAggrFilter && filterNode.getNodeType() == FilterNodeType.CONDITION){
                 GlobalColumnData c = (GlobalColumnData) filterNode.getObj();
                 globalTableQueries.addFilter(c.getFullName());
@@ -1679,7 +1697,7 @@ public class QueryUI extends JPanel{
                     JOptionPane.showMessageDialog(null, "Could not execute query:\n"+localQuery, "Query Error", JOptionPane.ERROR_MESSAGE);
                     queryStatusLogModel.addElement(new QueryLog(localQuery, beginTime, null, 0));
                     LoadingScreenAnimator.closeGeneralLoadingAnimation();
-                    backButton.setEnabled(true);
+                    homeButton.setEnabled(true);
                     return null;
                 }
                 //execute query by presto
@@ -1690,7 +1708,7 @@ public class QueryUI extends JPanel{
 
                 if (results == null){
                     LoadingScreenAnimator.closeGeneralLoadingAnimation();
-                    backButton.setEnabled(true);
+                    homeButton.setEnabled(true);
                     //JOptionPane.showMessageDialog(mainMenu, "Query returned with no results. Check if Presto is running and\nthat the data source is also available.",
                      //       "Query empty", JOptionPane.ERROR_MESSAGE);
                     return null;
@@ -1702,7 +1720,7 @@ public class QueryUI extends JPanel{
                 System.out.println("Query and Results Processing took: " + (endTime - startTime) + " milliseconds");
 
                 LoadingScreenAnimator.closeGeneralLoadingAnimation();
-                backButton.setEnabled(true);
+                homeButton.setEnabled(true);
                 return null;
             }
 
@@ -1776,7 +1794,7 @@ public class QueryUI extends JPanel{
 
         if (!filterTableExistsInRows()){
             LoadingScreenAnimator.closeGeneralLoadingAnimation();
-            backButton.setEnabled(true);
+            homeButton.setEnabled(true);
             //JOptionPane.showMessageDialog(mainMenu, "There is one or more columns in filters \n not selected in the rows area.", "Invalid Query", JOptionPane.ERROR_MESSAGE);
             globalTableQueries.clearAllFilters();
             return "Error: There is one or more columns in filters \n not selected in the rows area.";
@@ -1835,7 +1853,7 @@ public class QueryUI extends JPanel{
             if (data == null){
                 JOptionPane.showMessageDialog(mainMenu, "Error processing query results.", "Error", JOptionPane.ERROR_MESSAGE);
                 LoadingScreenAnimator.closeGeneralLoadingAnimation();
-                backButton.setEnabled(true);
+                homeButton.setEnabled(true);
                 return;
             }
             //add elements to table and add table to scrollpane
@@ -1849,7 +1867,7 @@ public class QueryUI extends JPanel{
         } catch (SQLException throwables) {
             throwables.printStackTrace();
             LoadingScreenAnimator.closeGeneralLoadingAnimation();
-            backButton.setEnabled(true);
+            homeButton.setEnabled(true);
             return;
         }
         DateTime endTime = new DateTime();
@@ -2881,8 +2899,8 @@ public class QueryUI extends JPanel{
                 if (s.length == 0)
                     return false;
                 //no filters added yet
-                FilterNode root = new FilterNode("", null, null);
-                root.add(new FilterNode(s[1], column, FilterNodeType.CONDITION));
+                FilterNode root = new FilterNode("", null, "", null);
+                root.add(new FilterNode(s[1], column, s[2], FilterNodeType.CONDITION));
                 rowFilterTreeModel = new DefaultTreeModel(root);
                 rowFilterTree.setModel(rowFilterTreeModel);
                 rowFilterTree.setRootVisible(false);
@@ -2906,7 +2924,7 @@ public class QueryUI extends JPanel{
                 if (s.length == 0)
                     return false;
                 //filterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION), parent, parent.getChildCount());
-                rowFilterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), parent, parent.getChildCount());
+                rowFilterTreeModel.insertNodeInto(new FilterNode(s[1], column, s[2], FilterNodeType.CONDITION), parent, parent.getChildCount());
                 path = new TreePath(parent.getPath());
             }
             else if (parent.getNodeType() == null && parent.getChildCount() > 0){
@@ -2915,8 +2933,8 @@ public class QueryUI extends JPanel{
                 }
                 if (s.length == 0)
                     return false;
-                rowFilterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION), parent, parent.getChildCount());
-                rowFilterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), parent, parent.getChildCount());
+                rowFilterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], "", FilterNodeType.BOOLEAN_OPERATION), parent, parent.getChildCount());
+                rowFilterTreeModel.insertNodeInto(new FilterNode(s[1], column,s[2], FilterNodeType.CONDITION), parent, parent.getChildCount());
                 //globalTableQueries.addFilter(column.getFullName());//for validation purposes
                 path = new TreePath(parent.getPath());
             }
@@ -2934,15 +2952,15 @@ public class QueryUI extends JPanel{
                     //if creating a new expression nested in a codition, add a boolean operator between the condition and a boolean operator. Make the inner expression child of the boolean operator
                     FilterNode parentOfParent = (FilterNode) parent.getParent();
                     int indexOfParent = parentOfParent.getIndex(parent);
-                    FilterNode booleanNode = new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION);
+                    FilterNode booleanNode = new FilterNode(s[0], s[0], "", FilterNodeType.BOOLEAN_OPERATION);
                     rowFilterTreeModel.insertNodeInto(booleanNode, parentOfParent, indexOfParent+1);// create this condition between the condition and the inner expression
-                    rowFilterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), booleanNode, booleanNode.getChildCount());//Must be child of the bolean operator
+                    rowFilterTreeModel.insertNodeInto(new FilterNode(s[1], column, s[2], FilterNodeType.CONDITION), booleanNode, booleanNode.getChildCount());//Must be child of the bolean operator
                     path = new TreePath(booleanNode.getPath());
                 }
                 else {
                     //inserting on an already existent boolean node with inner expr. IF it has an inner expr, add the operator and cond, else only the cond as childs
-                    rowFilterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION), boleanNodeParent, boleanNodeParent.getChildCount());
-                    rowFilterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), boleanNodeParent, boleanNodeParent.getChildCount());
+                    rowFilterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], "", FilterNodeType.BOOLEAN_OPERATION), boleanNodeParent, boleanNodeParent.getChildCount());
+                    rowFilterTreeModel.insertNodeInto(new FilterNode(s[1], column, s[2], FilterNodeType.CONDITION), boleanNodeParent, boleanNodeParent.getChildCount());
                     path = new TreePath(boleanNodeParent.getPath());
                 }
             }
@@ -2954,8 +2972,8 @@ public class QueryUI extends JPanel{
                 if (s.length == 0)
                     return false;
                 //get the boolean operator next to it and check if it has childs
-                rowFilterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION), parent, parent.getChildCount());
-                rowFilterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), parent, parent.getChildCount());
+                rowFilterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], "", FilterNodeType.BOOLEAN_OPERATION), parent, parent.getChildCount());
+                rowFilterTreeModel.insertNodeInto(new FilterNode(s[1], column, s[2], FilterNodeType.CONDITION), parent, parent.getChildCount());
                 path = new TreePath(parent.getPath());
             }
             rowFilterTree.expandPath(path);
@@ -2974,8 +2992,8 @@ public class QueryUI extends JPanel{
                 if (s.length == 0)
                     return false;
                 //no filters added yet
-                FilterNode root = new FilterNode("", null, null);
-                root.add(new FilterNode(s[1], column, FilterNodeType.CONDITION));
+                FilterNode root = new FilterNode("", null, "", null);
+                root.add(new FilterNode(s[1], column, s[2], FilterNodeType.CONDITION));
                 colFilterTreeModel = new DefaultTreeModel(root);
                 colFiltersTree.setModel(colFilterTreeModel);
                 colFiltersTree.setRootVisible(false);
@@ -2999,7 +3017,7 @@ public class QueryUI extends JPanel{
                 if (s.length == 0)
                     return false;
                 //filterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION), parent, parent.getChildCount());
-                colFilterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), parent, parent.getChildCount());
+                colFilterTreeModel.insertNodeInto(new FilterNode(s[1], column, s[2], FilterNodeType.CONDITION), parent, parent.getChildCount());
                 path = new TreePath(parent.getPath());
             }
             else if (parent.getNodeType() == null && parent.getChildCount() > 0){
@@ -3008,8 +3026,8 @@ public class QueryUI extends JPanel{
                 }
                 if (s.length == 0)
                     return false;
-                colFilterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION), parent, parent.getChildCount());
-                colFilterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), parent, parent.getChildCount());
+                colFilterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], "", FilterNodeType.BOOLEAN_OPERATION), parent, parent.getChildCount());
+                colFilterTreeModel.insertNodeInto(new FilterNode(s[1], column, s[2], FilterNodeType.CONDITION), parent, parent.getChildCount());
                 //globalTableQueries.addFilter(column.getFullName());//for validation purposes
                 path = new TreePath(parent.getPath());
             }
@@ -3027,15 +3045,15 @@ public class QueryUI extends JPanel{
                     //if creating a new expression nested in a codition, add a boolean operator between the condition and a boolean operator. Make the inner expression child of the boolean operator
                     FilterNode parentOfParent = (FilterNode) parent.getParent();
                     int indexOfParent = parentOfParent.getIndex(parent);
-                    FilterNode booleanNode = new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION);
+                    FilterNode booleanNode = new FilterNode(s[0], s[0], "", FilterNodeType.BOOLEAN_OPERATION);
                     colFilterTreeModel.insertNodeInto(booleanNode, parentOfParent, indexOfParent+1);// create this condition between the condition and the inner expression
-                    colFilterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), booleanNode, booleanNode.getChildCount());//Must be child of the bolean operator
+                    colFilterTreeModel.insertNodeInto(new FilterNode(s[1], column, s[2], FilterNodeType.CONDITION), booleanNode, booleanNode.getChildCount());//Must be child of the bolean operator
                     path = new TreePath(booleanNode.getPath());
                 }
                 else {
                     //inserting on an already existent boolean node with inner expr. IF it has an inner expr, add the operator and cond, else only the cond as childs
-                    colFilterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION), boleanNodeParent, boleanNodeParent.getChildCount());
-                    colFilterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), boleanNodeParent, boleanNodeParent.getChildCount());
+                    colFilterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], "", FilterNodeType.BOOLEAN_OPERATION), boleanNodeParent, boleanNodeParent.getChildCount());
+                    colFilterTreeModel.insertNodeInto(new FilterNode(s[1], column, s[2],FilterNodeType.CONDITION), boleanNodeParent, boleanNodeParent.getChildCount());
                     path = new TreePath(boleanNodeParent.getPath());
                 }
             }
@@ -3047,8 +3065,8 @@ public class QueryUI extends JPanel{
                 if (s.length == 0)
                     return false;
                 //get the boolean operator next to it and check if it has childs
-                colFilterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION), parent, parent.getChildCount());
-                colFilterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), parent, parent.getChildCount());
+                colFilterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], "", FilterNodeType.BOOLEAN_OPERATION), parent, parent.getChildCount());
+                colFilterTreeModel.insertNodeInto(new FilterNode(s[1], column, s[2], FilterNodeType.CONDITION), parent, parent.getChildCount());
                 path = new TreePath(parent.getPath());
             }
             colFiltersTree.expandPath(path);
@@ -3068,8 +3086,8 @@ public class QueryUI extends JPanel{
                 if (s.length == 0)
                     return false;
                 //no filters added yet
-                FilterNode root = new FilterNode("", null, null);
-                root.add(new FilterNode(s[1], column, FilterNodeType.CONDITION));
+                FilterNode root = new FilterNode("", null, "",null);
+                root.add(new FilterNode(s[1], column, s[2],FilterNodeType.CONDITION));
                 aggrFilterTreeModel = new DefaultTreeModel(root);
                 aggrFiltersTree.setModel(aggrFilterTreeModel);
                 aggrFiltersTree.setRootVisible(false);
@@ -3093,7 +3111,7 @@ public class QueryUI extends JPanel{
                 if (s.length == 0)
                     return false;
                 //aggrFilterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION), parent, parent.getChildCount());
-                aggrFilterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), parent, parent.getChildCount());
+                aggrFilterTreeModel.insertNodeInto(new FilterNode(s[1], column, s[2], FilterNodeType.CONDITION), parent, parent.getChildCount());
                 path = new TreePath(parent.getPath());
             }
             else if (parent.getNodeType() == null && parent.getChildCount() > 0){
@@ -3102,8 +3120,8 @@ public class QueryUI extends JPanel{
                 }
                 if (s.length == 0)
                     return false;
-                aggrFilterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION), parent, parent.getChildCount());
-                aggrFilterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), parent, parent.getChildCount());
+                aggrFilterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], "", FilterNodeType.BOOLEAN_OPERATION), parent, parent.getChildCount());
+                aggrFilterTreeModel.insertNodeInto(new FilterNode(s[1], column,s[2], FilterNodeType.CONDITION), parent, parent.getChildCount());
                 path = new TreePath(parent.getPath());
             }
             else if (parent.getNodeType() == FilterNodeType.CONDITION ){
@@ -3120,15 +3138,15 @@ public class QueryUI extends JPanel{
                     //if creating a new expression nested in a codition, add a boolean operator between the condition and a boolean operator. Make the inner expression child of the boolean operator
                     FilterNode parentOfParent = (FilterNode) parent.getParent();
                     int indexOfParent = parentOfParent.getIndex(parent);
-                    FilterNode booleanNode = new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION);
+                    FilterNode booleanNode = new FilterNode(s[0], s[0], "", FilterNodeType.BOOLEAN_OPERATION);
                     aggrFilterTreeModel.insertNodeInto(booleanNode, parentOfParent, indexOfParent+1);// create this condition between the condition and the inner expression
-                    aggrFilterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), booleanNode, booleanNode.getChildCount());//Must be child of the bolean operator
+                    aggrFilterTreeModel.insertNodeInto(new FilterNode(s[1], column, s[2],FilterNodeType.CONDITION), booleanNode, booleanNode.getChildCount());//Must be child of the bolean operator
                     path = new TreePath(booleanNode.getPath());
                 }
                 else {
                     //inserting on an already existent boolean node with inner expr. IF it has an inner expr, add the operator and cond, else only the cond as childs
-                    aggrFilterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION), boleanNodeParent, boleanNodeParent.getChildCount());
-                    aggrFilterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), boleanNodeParent, boleanNodeParent.getChildCount());
+                    aggrFilterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], "", FilterNodeType.BOOLEAN_OPERATION), boleanNodeParent, boleanNodeParent.getChildCount());
+                    aggrFilterTreeModel.insertNodeInto(new FilterNode(s[1], column, s[2],FilterNodeType.CONDITION), boleanNodeParent, boleanNodeParent.getChildCount());
                     path = new TreePath(boleanNodeParent.getPath());
                 }
             }
@@ -3140,8 +3158,8 @@ public class QueryUI extends JPanel{
                 if (s.length == 0)
                     return false;
                 //get the boolean operator next to it and check if it has childs
-                aggrFilterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION), parent, parent.getChildCount());
-                aggrFilterTreeModel.insertNodeInto(new FilterNode(s[1], column, FilterNodeType.CONDITION), parent, parent.getChildCount());
+                aggrFilterTreeModel.insertNodeInto(new FilterNode(s[0], s[0],"", FilterNodeType.BOOLEAN_OPERATION), parent, parent.getChildCount());
+                aggrFilterTreeModel.insertNodeInto(new FilterNode(s[1], column, s[2],FilterNodeType.CONDITION), parent, parent.getChildCount());
                 path = new TreePath(parent.getPath());
             }
 
@@ -3151,13 +3169,25 @@ public class QueryUI extends JPanel{
             return true;
         }
 
+        //this logic should not be handled here....
         private String[] createFilterStringOperation(GlobalColumnData droppedCol, boolean isFirst, boolean isFilterAggr){
-            String s[] = new String [2];
+            String s[] = new String [3];
             String elem = "";
-            if (isFilterAggr)
+            String elemEscapped = "";
+            if (isFilterAggr){
                 elem = droppedCol.getAggrOpFullName();//aggrOP(table.column)
-            else
+                if (droppedCol.isOriginalDatatypeChanged())
+                    elemEscapped+= droppedCol.getAggrOp()+"(CAST "+droppedCol.getFullNameEscapped() +" AS "+droppedCol.getDataType()+")";
+                else
+                    elemEscapped+=droppedCol.getAggrOpFullNameEscapped();
+            }
+            else {
                 elem = droppedCol.getFullName();
+                if (droppedCol.isOriginalDatatypeChanged())
+                    elemEscapped = "CAST("+droppedCol.getFullNameEscapped()+" AS "+droppedCol.getDataType()+") ";
+                else
+                    elemEscapped = droppedCol.getFullNameEscapped();
+            }
             //filter operations depende on data type (<, >, <= only for numeric OR date)
             String[] filterOps;
             //select filter operations that can be performed depending on datatype
@@ -3209,6 +3239,8 @@ public class QueryUI extends JPanel{
                     return null;
                 }
                 elem+= " "+filter.getSelectedItem().toString() +" "+ filterValue;
+                elemEscapped+= " "+filter.getSelectedItem().toString() +" "+ filterValue;
+
             }
             else{
                 JOptionPane.showMessageDialog(null, "Please select a filter operation and insert a filter value with same data type",
@@ -3219,6 +3251,7 @@ public class QueryUI extends JPanel{
                 s[0] = logicOperation.getSelectedItem().toString();
             }
             s[1] = elem;
+            s[2] = elemEscapped;
             return s;
         }
 

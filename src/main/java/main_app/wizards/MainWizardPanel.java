@@ -320,7 +320,6 @@ public class MainWizardPanel extends JPanel{
             dbTables = metaDataManager.insertColumnData(dbTables);//columns in tables updates with their id
             db.setTableList(dbTables);
         }
-
         // check all elements to see if they have ids. if their id is 0, they were already inserted.
         return dbs;
     }

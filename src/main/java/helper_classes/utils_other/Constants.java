@@ -14,6 +14,7 @@ public class Constants {
     public static final String FILES_DIR = "files";
     public static final String IMAGES_DIR= FILES_DIR+ File.separator+"images"+File.separator;
     public static final String DATATYPE_CONVERTIBLES_DICT = FILES_DIR + File.separator + "convertible_datatypes.csv";
+    public static final String DATATYPE_CONVERTIBLES_GROUP_DICT = FILES_DIR + File.separator + "convertible_datatype_groups.csv";
     public static final String LOADING_GIF = IMAGES_DIR + File.separator + "loading.gif";
 
     //SQLITE
@@ -72,6 +73,8 @@ public class Constants {
     public static final String GLOBAL_COLUMN_DATA_TABLE_FIELD = "global_table_id";//table the column belongs to
     public static final String GLOBAL_COLUMN_DATA_ID_FIELD = "global_col_id";
     public static final String GLOBAL_COLUMN_DATA_TYPE_FIELD = "data_type";
+    public static final String GLOBAL_COLUMN_DATA_TYPEOG_FIELD = "data_type_original";
+    public static final String GLOBAL_COLUMN_DATA_TYPE_CHANGE_FIELD = "is_datatype_change";
     public static final String GLOBAL_COLUMN_DATA_PRIMARY_KEY_FIELD = "is_primary_key";
     public static final String GLOBAL_COLUMN_DATA_FOREIGN_KEY_FIELD = "foreign_key";
 
@@ -179,6 +182,17 @@ public class Constants {
 
     //sql query list:
     public static final String[] SQL_COMMANDS = new String[] {"select", "insert", "remove", "drop", "insert", "update", "alter", "delete"};
+
+    //presto datatypes
+    public static final String NUMERIC_DATATYPE = "numeric";
+    public static final String STRING_DATATYPE = "string";
+    public static final String TIME_DATATYPE = "time";
+    public static final String BOOLEAN_DATATYPE = "boolean";
+    public static final String[] NUMERIC_DATATYPES = {"integer", "tinyint", "bigint", "smallint", "double", "real", "decimal"};
+    public static final String[] STRING_DATATYPES = {"varchar", "char", "varbinary", "json"};
+    public static final String[] BOOLEAN_DATATYPES = {"boolean"};
+    public static final String[] TIME_DATATYPES = {"date", "time", "timestamp", "timestamp with time zone", "interval year to month"};
+
 
 
 

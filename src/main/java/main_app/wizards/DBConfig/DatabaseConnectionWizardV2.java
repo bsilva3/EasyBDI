@@ -5,6 +5,7 @@ import helper_classes.ui_utils.LoadingScreenAnimator;
 import helper_classes.SimpleDBData;
 import helper_classes.TableData;
 import helper_classes.DBModel;
+import helper_classes.utils_other.Utils;
 import main_app.metadata_storage.MetaDataManager;
 import main_app.presto_com.PrestoMediator;
 
@@ -80,7 +81,13 @@ public class DatabaseConnectionWizardV2 extends JPanel {
         addDatabaseButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                addDatabase(nameText.getText(), (DBModel) databaseModelSelect.getSelectedItem(), urlText.getText(), userText.getText(), String.valueOf(passText.getPassword()), false);
+                DBModel dbModel = (DBModel) databaseModelSelect.getSelectedItem();
+                if (dbModel == DBModel.File && Utils.hasExtension(urlText.getText())){
+                    //if file and not inserted extension, refuse
+                    JOptionPane.showMessageDialog(mainPanel, "Please, add the file's extension at the end", "Error: no file extension", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                addDatabase(nameText.getText(), dbModel, urlText.getText(), userText.getText(), String.valueOf(passText.getPassword()), false);
             }
         });
 
@@ -218,7 +225,7 @@ public class DatabaseConnectionWizardV2 extends JPanel {
         if (result.equals(SUCCESS_STR)){
             //connection success
             JOptionPane.showMessageDialog(null,
-                    "Connection to database was succesfull!",
+                    "Connection to data source was succesfull!",
                     "Connection Test Success",
                     JOptionPane.INFORMATION_MESSAGE);
             connListModel.set(index, "Success");
@@ -227,7 +234,7 @@ public class DatabaseConnectionWizardV2 extends JPanel {
         else{
             //connection error
             JOptionPane.showMessageDialog(null,
-                    "Could not connect to database. Error: \n"+result,
+                    "Could not connect to data source. The following error occurred: \n"+result,
                     "Connection Test Failed",
                     JOptionPane.ERROR_MESSAGE);
             connListModel.set(index, "Error: "+ result);
@@ -238,16 +245,16 @@ public class DatabaseConnectionWizardV2 extends JPanel {
     public List<DBData> getDbList(){
         if (dbConnectionTested.contains(false) || dbConnectionTested.contains(null)){
             JOptionPane.showMessageDialog(null,
-                    "There are databases that could not be connected or databases in which a connection test was not made.\n"
-                    +"Please, make sure the url, database name and other credentials to access the database are correct, then test its connection.\n"
-                    +"You can only move on when all databases in the list have been successfully connected.",
-                    "Invalid Database connections",
+                    "There are data sources that could not be connected or data source in which a connection test was not made.\n"
+                    +"Please, make sure the url, data source name and other credentials to access the data source are correct, then test its connection.\n"
+                    +"You can only move on when all data source in the list have been successfully connected.",
+                    "Invalid data source connections",
                     JOptionPane.ERROR_MESSAGE);
             return null;
         }
         if (dbList.size() == 0){
-            JOptionPane.showConfirmDialog(this, "Please, add databases and test their connection before moving on.",
-                    "Insuficient validated databases", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showConfirmDialog(this, "Please, add data sources and test their connection before moving on.",
+                    "Insuficient validated data sources", JOptionPane.WARNING_MESSAGE);
             return dbList;
         }
         for (int i = 0; i < dbList.size(); i++){
@@ -280,6 +287,7 @@ public class DatabaseConnectionWizardV2 extends JPanel {
         if (db.getDbModel() == DBModel.File){
             TableData table = new TableData(db.getUrl(), getExtension(db.getUrl()), db);//if the 'db' is a file, the schema is its extension and the table name is its file name
             table = prestoMediator.getColumnsInTable(table);
+
             List<TableData> tables = new ArrayList<>(1);
             tables.add(table);
             db.setTableList(tables);

@@ -36,4 +36,15 @@ public class Utils {
         String filename = split[split.length-1];
         return filename.split("\\.")[1];
     }
+
+    public static boolean hasExtension(String filePath){
+        if (!filePath.contains("\\."))
+            return false;
+        String extension = filePath.substring(filePath.lastIndexOf(".") + 1);
+        //Checks if there is any extension after the last . in the input
+        if (!extension.isEmpty()) {
+           return true;
+        }
+        return false;
+    }
 }

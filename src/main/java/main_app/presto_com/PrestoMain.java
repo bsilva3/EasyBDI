@@ -5,7 +5,7 @@ public class PrestoMain {
         /*PrestoMediator p = new PrestoMediator();
         p.createConnection();
         System.out.println(p.makeQuery("show create view system.pvFactsView"));*/
-        for (int i = 1; i <= (48*4); i++){
+        for (int i = 1; i <= (366*48); i++){
             System.out.print("("+i+"),");
         }
     }

@@ -4,6 +4,7 @@ import helper_classes.ColumnData;
 import helper_classes.DBData;
 import helper_classes.DBModel;
 import helper_classes.TableData;
+import helper_classes.utils_other.Utils;
 import io.prestosql.jdbc.$internal.guava.collect.ImmutableSet;
 
 import javax.swing.*;
@@ -166,7 +167,11 @@ public class PrestoMediator {
         int status = restartPresto();
         if (status != SUCCESS)
             return "Failed (Presto not restarted)";
-        String state = this.makeQuery("show schemas from \""+db.getCatalogName()+"\"");
+        String state = "";
+        if (db.getDbModel() == DBModel.File)
+            state = this.makeQuery("show columns from \""+db.getCatalogName()+"\"."+ Utils.getExtension(db.getUrl())+".\""+db.getUrl()+"\"");
+        else
+            state = this.makeQuery("show schemas from \""+db.getCatalogName()+"\"");
         if (!state.equals(SUCCESS_STR))
             removeDBFile(db.getFullFilePath()); //remove config file that points to DB with incorrect permitions or data
         return state;

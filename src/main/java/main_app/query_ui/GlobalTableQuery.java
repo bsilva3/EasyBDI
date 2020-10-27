@@ -406,11 +406,17 @@ public class GlobalTableQuery {
             GlobalTableData t = dimTable.getKey();
             for (GlobalColumnData c : cols){
                 if (c.getAggrOp()!=null && !c.getAggrOp().isEmpty()  &&!c.getAggrOp().equalsIgnoreCase("Group By")){
-                    query += c.getAggrOpFullName()+" AS \""+c.getAggrOp().toLowerCase() +" of "+c.getFullName()+"\",";// aggregationOP (table.column) as "aggrOP of table.column"
+                    if (c.isOriginalDatatypeChanged())
+                        query += c.getAggrOp()+"(CAST( "+c.getFullNameEscapped()+"AS "+c.getDataType()+")) AS \""+c.getAggrOp().toLowerCase() +" of "+c.getFullName()+"\","; //aggrOP("CAST( table.column as datatype)as "aggr of table.column"
+                    else
+                        query += c.getAggrOpFullNameEscapped()+" AS \""+c.getAggrOp().toLowerCase() +" of "+c.getFullName()+"\",";// aggregationOP (table.column) as "aggrOP of table.column"
                     hasAggregations = true;
                 }
                 else {
-                    query += t.getTableName() + "." + c.getName() + ",";// or c.getFullname();
+                    if (c.isOriginalDatatypeChanged())
+                        query += "CAST("+c.getFullNameEscapped()+" AS "+c.getDataType()+")AS \""+c.getFullName()+"\",";// or c.getFullname();
+                    else
+                        query += c.getFullNameEscapped()+",";// or c.getFullname();
                     selectColsNoAggr += t.getTableName() + "." + c.getName() +",";
                     if (c.getAggrOp().equalsIgnoreCase("Group By"))
                         hasAggregations = true;
@@ -499,10 +505,17 @@ public class GlobalTableQuery {
             for (GlobalColumnData c : cols){
                 if (c.getAggrOp()!=null && !c.getAggrOp().isEmpty()  && !c.getAggrOp().equalsIgnoreCase("Group By")){ //agregations
                     hasAggregations = true;
-                    query += c.getAggrOpFullName()+" AS \""+c.getAggrOp().toLowerCase() +" of "+c.getFullName()+"\",";// aggregationOP (table.column) as "aggrOP of table.column"
+                    if (c.isOriginalDatatypeChanged())
+                        query += c.getAggrOp()+"CAST( "+c.getFullNameEscapped() + "AS "+c.getDataType()+") AS \""+c.getAggrOp().toLowerCase() +" of "+c.getFullName()+"\","; //aggrOP("CAST( table.column as datatype)as "aggr of table.column"
+                    else
+                        query += c.getAggrOpFullNameEscapped()+" AS \""+c.getAggrOp().toLowerCase() +" of "+c.getFullName()+"\",";// aggregationOP (table.column) as "aggrOP of table.column"
+                    //query += c.getAggrOpFullName()+" AS \""+c.getAggrOp().toLowerCase() +" of "+c.getFullName()+"\",";// aggregationOP (table.column) as "aggrOP of table.column"
                 }
                 else {
-                    query += t.getTableName() + "." + c.getName() + ",";// no aggregation
+                    if (c.isOriginalDatatypeChanged())
+                        query += "CAST(\""+c.getFullNameEscapped()+"\" AS "+c.getDataType()+")AS \""+c.getFullName()+"\",";// CAST(table.col as datatype) as table.col
+                    else
+                        query += "\""+c.getFullNameEscapped()+ "\",";
                     selectColsNoAggr.add(c.getFullName());
                     if (c.getAggrOp().equalsIgnoreCase("Group By")) {//no aggregate but selected to be added to group by
                         selectColsGroupBy.add(c.getFullName());
@@ -540,11 +553,17 @@ public class GlobalTableQuery {
                 if (measureCol.getAggrOp()!=null && !measureCol.getAggrOp().isEmpty() && !measureCol.getAggrOp().equalsIgnoreCase("Group By")){//no  aggregation, only add measure name
                     //query += measureName + " AS " + measureAlias + ",";
                     String measureAlias = "\"" + measureCol.getAggrOp() + " of " + measureCol.getName() + "\"";
-                    query += measureCol.getAggrOpName() + " AS " + measureAlias + ",";
+                    if (measureCol.isOriginalDatatypeChanged())
+                        query += measureCol.getAggrOp()+"(CAST(\""+measureCol.getName()+"\" AS "+measureCol.getDataType()+")) AS " + measureAlias + ",";//aggr(cast col as datatype) as "agrop of col"
+                    else
+                        query += "\""+measureCol.getAggrOpName() + "\" AS " + measureAlias + ",";
                     hasAggregations = true;
                 }
                 else{
-                    query += measureCol.getName() + ",";
+                    if (measureCol.isOriginalDatatypeChanged())
+                        query += "CAST(\""+measureCol.getName() + "\" AS "+measureCol.getDataType()+") AS \""+measureCol.getName()+"\",";
+                    else
+                        query += "\""+measureCol.getName() + "\",";
                     if( measureCol.getAggrOp() != null && measureCol.getAggrOp().equalsIgnoreCase("Group By"))
                         selectColsGroupBy.add(factsTable.getGlobalTable().getTableName() + "." + measureCol.getName());
                     else

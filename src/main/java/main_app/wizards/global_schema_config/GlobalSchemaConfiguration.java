@@ -14,9 +14,14 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.*;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.*;
 import java.util.List;
+
+import static helper_classes.utils_other.Constants.*;
 
 public class GlobalSchemaConfiguration extends JPanel {
     private JTree globalSchemaTree;
@@ -33,7 +38,6 @@ public class GlobalSchemaConfiguration extends JPanel {
     private JTextField localTableSearchField;
     private JButton resetFilterLocalSchemaBtn;
     private JButton resetFilterGlobalSchemaBtn;
-    private static final String[] DATATYPES = {"varchar", "char", "integer", "tiny int", "big int", "small int", "double", "decimal"};
     private CustomTreeNode selectedNode;
     private DefaultTreeModel globalSchemaModel;
     private DefaultTreeModel localSchemaModel;
@@ -551,9 +555,46 @@ public class GlobalSchemaConfiguration extends JPanel {
     //pop up menu that shows up when right clicking a column
     private JPopupMenu getPopUpMenuForColumn() {
         JPopupMenu menu = new JPopupMenu();
-        JMenuItem item = new JMenuItem("Edit");
+        JMenuItem item = new JMenuItem("Edit Name");
         item.addActionListener(getEditActionListener());
         menu.add(item);
+
+        JMenu item1 = new JMenu("Change datatype");
+        //fill menus with types of data types, then fill in each datatype
+        //numeric
+        JMenu subnumeric = new JMenu(NUMERIC_DATATYPE);
+        for (String datatype : Constants.NUMERIC_DATATYPES){
+            JMenuItem i = new JMenuItem(datatype);
+            i.addActionListener(changeDataType(NUMERIC_DATATYPE, datatype));
+            subnumeric.add(i);
+        }
+        item1.add(subnumeric);
+
+        //string
+        JMenu substring = new JMenu(STRING_DATATYPE);
+        for (String datatype : Constants.STRING_DATATYPES){
+            JMenuItem i = new JMenuItem(datatype);
+            i.addActionListener(changeDataType(STRING_DATATYPE, datatype));
+            substring.add(i);
+        }
+        item1.add(substring);
+
+        //time
+        JMenu subtime = new JMenu(TIME_DATATYPE);
+        for (String datatype : Constants.TIME_DATATYPES){
+            JMenuItem i = new JMenuItem(datatype);
+            i.addActionListener(changeDataType(TIME_DATATYPE, datatype));
+            subtime.add(i);
+        }
+        item1.add(subtime);
+
+        //time
+        JMenuItem subboolean = new JMenuItem(BOOLEAN_DATATYPE);
+        subboolean.addActionListener(changeDataType(BOOLEAN_DATATYPE, BOOLEAN_DATATYPE));
+        item1.add(subboolean);
+
+        //item1.addActionListener(getEditActionListener());
+        menu.add(item1);
 
         JMenuItem item2 = new JMenuItem("Add Primary Key");
         item2.addActionListener(getAddPrimaryKeyActionListener());
@@ -568,6 +609,47 @@ public class GlobalSchemaConfiguration extends JPanel {
         menu.add(item4);
 
         return menu;
+    }
+
+    private ActionListener changeDataType(String dataTypeCategoryToConvert, String datatype){
+        return arg0 -> {
+            if(selectedNode != null){
+                //edit here
+                GlobalColumnData col = (GlobalColumnData) selectedNode.getObj();
+                String datatypeCategoryOG = col.getOGDataTypeCategory();
+                if (datatypeCategoryOG == null)
+                    return;
+                Map<DatatypePair, String> convertibleDict = loadConvertibleDataTypeFile();
+                String canBeConverted = convertibleDict.get(new DatatypePair(datatypeCategoryOG, dataTypeCategoryToConvert));
+                if (canBeConverted.equalsIgnoreCase("true")){
+                    col.setDataType(datatype);
+                    selectedNode.setObj(col);
+                    CustomTreeNode datatypeNode = (CustomTreeNode) selectedNode.getChildAt(0);//datatypeNode
+                    datatypeNode.setUserObject(datatype);
+                    globalSchemaTree.revalidate();
+                    globalSchemaTree.updateUI();
+                }else{
+                    JOptionPane.showMessageDialog(mainPanel, "A "+datatypeCategoryOG+" datatype cannot be converted to "+dataTypeCategoryToConvert);
+                    return;
+                }
+            }
+        };
+    }
+
+    private Map<DatatypePair, String> loadConvertibleDataTypeFile(){
+        String line = "";
+        String csvSplitBy = ",";
+        Map<DatatypePair, String> convertipleDataTypes = new HashMap<>();
+        try (BufferedReader br = new BufferedReader(new FileReader(DATATYPE_CONVERTIBLES_GROUP_DICT))) {
+            while ((line = br.readLine()) != null) {
+                String[] elements = line.split(csvSplitBy);
+                convertipleDataTypes.put(new DatatypePair(elements[0], elements[1]), elements[2]);
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return convertipleDataTypes;
     }
 
     //pop up menu that shows up when right clicking a column
@@ -1040,16 +1122,20 @@ public class GlobalSchemaConfiguration extends JPanel {
                     break;
                 }
             }
+            int nFK = 0;
             for (TableData  localTable : completeLocalTables) {
                 for (ColumnData localColumn : localTable.getColumnsList()){
                     //check for columns that are both primary and foreign keys
                     if (localColumn.isPrimaryKey() && localColumn.hasForeignKey()){
+                        nFK++;
                         ColumnData referencedCol = localColumn.getForeignKeyColumn(metaDataManager);
                         if (referencedCol != null && !referencedCol.equals(primKeyOriginalTable))
                             return false;
                     }
                 }
             }
+            if (nFK == 0)
+                return false; //no foreign keys between tables, cannot be vertical mapping
             return true;
         }
         return false;
@@ -1064,14 +1150,14 @@ public class GlobalSchemaConfiguration extends JPanel {
      */
     private boolean isHorizontalMapping(GlobalTableData globalTable) {
         Set<TableData> completeLocalTables = globalTable.getLocalTablesFromCols();
-        if (completeLocalTables.size() > 1) {
+        if (completeLocalTables.size() > 1) {//there are matches for more than one table
             for (TableData localTable : completeLocalTables) {
                 //all local and global tables have same nº of columns if horizontal partioning
                 if (localTable.getNCols() != globalTable.getNCols())
                     return false;
-                for (GlobalColumnData gc : globalTable.getGlobalColumnDataList()){
+                for (ColumnData gc : localTable.getColumnsList()){
                     //if all columns in all local tables are the same as the cols in global table, then there is vertical partiotioning
-                    if (!localTable.columnExists(gc.getName(), gc.getDataTypeNoLimit(), gc.isPrimaryKey()))
+                    if (!globalTable.columnExists(gc.getName(), gc.getDataTypeNoLimit(), gc.isPrimaryKey()))
                         return false;
                 }
             }

@@ -6,7 +6,7 @@ public class MainTest {
 
     public static void main(String[] args){
 
-        MetaDataManager m = new MetaDataManager("minho ssb+");
+        MetaDataManager m = new MetaDataManager("filetest");
         //m.deleteTablesToSaveQueries();
         //m.createTables();
         //manager.dropTables();
@@ -59,7 +59,8 @@ public class MainTest {
 
         //m.makeQueryAndPrint("ALTER TABLE "+QUERY_FILTERS+" ADD COLUMN "+QUERY_COL_FILTERS_OBJ+" blob;");
         //m.makeQueryAndPrint("ALTER TABLE "+QUERY_MANUAL+" ADD COLUMN "+QUERY_COL_FILTER_STR+" text;");
-        m.makeQueryAndPrint("SELECT "+ QUERY_MEASURE_OBJ+" FROM " + QUERY_MEASURES + " WHERE "+QUERY_ID+" = 5;");
+        //m.makeQueryAndPrint("SELECT "+ QUERY_MEASURE_OBJ+" FROM " + QUERY_MEASURES + " WHERE "+QUERY_ID+" = 5;");
+        m.makeQueryAndPrint("SELECT * FROM " + GLOBAL_COLUMN_DATA +";");
         //m.makeQueryAndPrint("SELECT * FROM "+QUERY_MEASURES+";");
 
         //m.makeQueryAndPrint("SELECT * FROM "+ TABLE_DATA);

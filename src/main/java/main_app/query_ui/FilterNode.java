@@ -15,14 +15,16 @@ public class FilterNode extends DefaultMutableTreeNode implements Serializable {
     /**
      * The icon which is displayed on the JTree object. open, close, leaf icon.
      */
+    private String escappedFilterStringObj;
     private ImageIcon icon;
     private FilterNodeType nodeType;
     private Serializable obj;
 
-    public FilterNode(String userObject, Serializable obj, FilterNodeType nodeType) {
+    public FilterNode(String userObject, Serializable obj, String escappedFilterStringObj, FilterNodeType nodeType) {
         super(userObject);
         this.obj = obj;
         this.nodeType = nodeType;
+        this.escappedFilterStringObj = escappedFilterStringObj;
         this.icon = loadImageForLocalSchemaTree(nodeType);
     }
 
@@ -48,6 +50,14 @@ public class FilterNode extends DefaultMutableTreeNode implements Serializable {
 
     public void setObj(Serializable obj) {
         this.obj = obj;
+    }
+
+    public String getEscappedFilterStringObj() {
+        return escappedFilterStringObj;
+    }
+
+    public void setEscappedFilterStringObj(String escappedFilterStringObj) {
+        this.escappedFilterStringObj = escappedFilterStringObj;
     }
 
     public ImageIcon loadImageForLocalSchemaTree(FilterNodeType type){

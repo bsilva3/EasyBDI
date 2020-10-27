@@ -1,5 +1,7 @@
 package helper_classes;
 
+import helper_classes.utils_other.Constants;
+
 import java.io.Serializable;
 import java.util.*;
 
@@ -8,11 +10,13 @@ public class GlobalColumnData implements Serializable {
     private Set<ColumnData> localColumns;
     private String name;
     private String dataType;
+    private String ogDataType;
     private boolean isPrimaryKey;
     private String foreignKey; //globalTablename.globalColumnName
     private String orderBy; //just for the query save
     private String fullName; //table.column
     private String aggrOp; //aggrOP
+    private boolean originalDatatypeChanged; //aggrOP
 
     //public static final long serialVersionUID = 3468197598887017481L;
     public static final long serialVersionUID = 4654436492332727651L;
@@ -21,37 +25,45 @@ public class GlobalColumnData implements Serializable {
     public GlobalColumnData(String name, String dataType, boolean isPrimaryKey, Set<ColumnData> localCols) {
         this.name = name;
         this.dataType = dataType;
+        this.ogDataType = dataType;
         this.isPrimaryKey = isPrimaryKey;
         this.localColumns = localCols;
         this.aggrOp = "";
+        this.originalDatatypeChanged = false;
     }
 
     public GlobalColumnData(String name, String dataType, boolean isPrimaryKey, Set<ColumnData> localCols, int id) {
         this.name = name;
         this.dataType = dataType;
+        this.ogDataType = dataType;
         this.isPrimaryKey = isPrimaryKey;
         this.localColumns = localCols;
         this.columnID = id;
         this.aggrOp = "";
+        this.originalDatatypeChanged = false;
     }
 
     public GlobalColumnData(String name, String dataType, boolean isPrimaryKey, ColumnData localCol) {
         this.name = name;
         this.dataType = dataType;
+        this.ogDataType = dataType;
         this.isPrimaryKey = isPrimaryKey;
         this.localColumns = new HashSet<>();
         this.localColumns.add(localCol);
         this.aggrOp = "";
+        this.originalDatatypeChanged = false;
     }
 
     public GlobalColumnData(ColumnData column) {
         this.name = column.getName();
         this.dataType = column.getDataType();
+        this.ogDataType = dataType;
         this.isPrimaryKey = column.isPrimaryKey();
         this.foreignKey = column.getForeignKey();
         this.localColumns = new HashSet<>();
         this.localColumns.add(column);
         this.aggrOp = "";
+        this.originalDatatypeChanged = false;
     }
 
     public MappingType getMappingType(){
@@ -61,8 +73,7 @@ public class GlobalColumnData implements Serializable {
     }
 
     public boolean isNumeric(){
-        String[] numericDatatypes = {"integer", "bigint", "smallint", "tinyint", "double", "real"};
-        for (String datatype : numericDatatypes){
+        for (String datatype : Constants.NUMERIC_DATATYPES){
             if (this.getDataType().equalsIgnoreCase(datatype))
                 return true;
         }
@@ -70,8 +81,7 @@ public class GlobalColumnData implements Serializable {
     }
 
     public boolean isDateTime(){
-        String[] timeDatatypes = {"time", "date", "timestamp", "timestamp with time zone", "interval year to month", "interval day to second"};
-        for (String datatype : timeDatatypes){
+        for (String datatype : Constants.TIME_DATATYPES){
             if (this.getDataType().equalsIgnoreCase(datatype))
                 return true;
         }
@@ -112,14 +122,64 @@ public class GlobalColumnData implements Serializable {
         return dataType;
     }
 
+    public String getOgDataType() {
+        String datatypeNoLimit =  ogDataType.split("\\(")[0];
+        datatypeNoLimit = datatypeNoLimit.replaceAll("\\s+","");
+        return datatypeNoLimit;
+    }
+
     public String getDataTypeNoLimit() {
         String datatypeNoLimit =  dataType.split("\\(")[0];
         datatypeNoLimit = datatypeNoLimit.replaceAll("\\s+","");
         return datatypeNoLimit;
     }
 
+    public String getDataTypeCategory() {
+        if (Arrays.stream(Constants.NUMERIC_DATATYPES).anyMatch(d -> d.equalsIgnoreCase(getDataTypeNoLimit()))){
+            return Constants.NUMERIC_DATATYPE;
+        }
+        if (Arrays.stream(Constants.STRING_DATATYPES).anyMatch(d -> d.equalsIgnoreCase(getDataTypeNoLimit()))){
+            return Constants.STRING_DATATYPE;
+        }
+        if (Arrays.stream(Constants.BOOLEAN_DATATYPES).anyMatch(d -> d.equalsIgnoreCase(getDataTypeNoLimit()))){
+            return Constants.BOOLEAN_DATATYPE;
+        }
+        if (Arrays.stream(Constants.TIME_DATATYPES).anyMatch(d -> d.equalsIgnoreCase(getDataTypeNoLimit()))){
+            return Constants.TIME_DATATYPE;
+        }
+        return null;
+    }
+
+    public String getOGDataTypeCategory() {
+        if (Arrays.stream(Constants.NUMERIC_DATATYPES).anyMatch(d -> d.equalsIgnoreCase(getOgDataType()))){
+            return Constants.NUMERIC_DATATYPE;
+        }
+        if (Arrays.stream(Constants.STRING_DATATYPES).anyMatch(d -> d.equalsIgnoreCase(getOgDataType()))){
+            return Constants.STRING_DATATYPE;
+        }
+        if (Arrays.stream(Constants.BOOLEAN_DATATYPES).anyMatch(d -> d.equalsIgnoreCase(getOgDataType()))){
+            return Constants.BOOLEAN_DATATYPE;
+        }
+        if (Arrays.stream(Constants.TIME_DATATYPES).anyMatch(d -> d.equalsIgnoreCase(getOgDataType()))){
+            return Constants.TIME_DATATYPE;
+        }
+        return null;
+    }
+
     public void setDataType(String dataType) {
-        this.dataType = dataType;
+        if(this.dataType == null)
+            this.ogDataType = dataType;
+        if (!getDataTypeNoLimit().equalsIgnoreCase(dataType)){
+            this.originalDatatypeChanged = true;
+            this.dataType = dataType;
+        }
+    }
+
+    public void setOGDataType(String dataType) {
+        this.ogDataType = dataType;
+        if (!getDataTypeNoLimit().equalsIgnoreCase(ogDataType)){
+            this.originalDatatypeChanged = true;
+        }
     }
 
     public boolean isPrimaryKey() {
@@ -172,8 +232,17 @@ public class GlobalColumnData implements Serializable {
         return fullName;
     }
 
+    public String getFullNameEscapped() {
+        String[] split = fullName.split("\\.");
+        return "\""+split[0]+"\".\""+split[1]+"\""; //table."col"
+    }
+
     public void setFullName(String fullName) {
         this.fullName = fullName;
+    }
+
+    public boolean isOriginalDatatypeChanged() {
+        return originalDatatypeChanged;
     }
 
     public String getAggrOp() {
@@ -192,6 +261,17 @@ public class GlobalColumnData implements Serializable {
         return aggrOpFullName;
     }
 
+    public String getAggrOpFullNameEscapped() {
+        String aggrOpFullName = "";
+        if (aggrOp == null || aggrOp.isEmpty())
+            return getFullName(); //no aggregation set for this attribute, just return tab.col
+        else if (aggrOp.contains("DISTINCT"))
+            aggrOpFullName = aggrOp.split(" ")[0]+"(DISTINCT "+getFullNameEscapped()+")";
+        else
+            aggrOpFullName = aggrOp+"("+getFullNameEscapped()+")";
+        return aggrOpFullName;
+    }
+
     //aggrOP(tableName.columnName)
     public String getAggrOpName() {
         String aggrOpFullName = "";
@@ -200,7 +280,7 @@ public class GlobalColumnData implements Serializable {
         else if (aggrOp.contains("DISTINCT"))
             aggrOpFullName = aggrOp.split(" ")[0]+"(DISTINCT "+name+")";
         else
-            aggrOpFullName = aggrOp+"("+name+")";
+            aggrOpFullName = aggrOp+"(\""+name+"\")";
         return aggrOpFullName;
     }
 

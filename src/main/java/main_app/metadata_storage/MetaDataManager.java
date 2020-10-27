@@ -146,6 +146,7 @@ public class MetaDataManager {
         String sql2 = "CREATE TABLE IF NOT EXISTS "+ DB_DATA +" (\n"
                 + "    id integer PRIMARY KEY,\n"
                 + "    "+ DB_DATA_NAME_FIELD +" text NOT NULL,\n"
+                + "    "+ DB_DATA_NAME_FIELD +" text NOT NULL,\n"
                 + "    "+ DB_DATA_SERVER_FIELD +" text NOT NULL,\n"
                 + "    "+ DB_DATA_USER_FIELD + " text,\n"
                 + "    "+ DB_DATA_PASS_FIELD +" text,\n"
@@ -184,6 +185,8 @@ public class MetaDataManager {
                 + "    "+ GLOBAL_COLUMN_DATA_ID_FIELD +" integer PRIMARY KEY,\n"
                 + "    "+ GLOBAL_COLUMN_DATA_NAME_FIELD +" text NOT NULL,\n"
                 + "    "+ GLOBAL_COLUMN_DATA_TYPE_FIELD +" text NOT NULL,\n"
+                + "    "+ GLOBAL_COLUMN_DATA_TYPEOG_FIELD +" text NOT NULL,\n"
+                + "    "+ GLOBAL_COLUMN_DATA_TYPE_CHANGE_FIELD +" boolean NOT NULL,\n"
                 + "    "+ GLOBAL_COLUMN_DATA_TABLE_FIELD +" integer NOT NULL,\n"
                 + "    "+ GLOBAL_COLUMN_DATA_PRIMARY_KEY_FIELD +" boolean, \n"
                 + "    "+ GLOBAL_COLUMN_DATA_FOREIGN_KEY_FIELD +" text, \n"
@@ -875,7 +878,8 @@ public class MetaDataManager {
      */
     private GlobalTableData insertGlobalColumn(GlobalTableData gt){
         String sql = "INSERT INTO "+ GLOBAL_COLUMN_DATA + "("+GLOBAL_TABLE_DATA_ID_FIELD+", "+GLOBAL_COLUMN_DATA_NAME_FIELD+
-                ", "+GLOBAL_COLUMN_DATA_TYPE_FIELD+", "+GLOBAL_COLUMN_DATA_PRIMARY_KEY_FIELD+ ", "+GLOBAL_COLUMN_DATA_FOREIGN_KEY_FIELD+") VALUES(?,?,?,?,?)";
+                ", "+GLOBAL_COLUMN_DATA_TYPE_FIELD+", "+GLOBAL_COLUMN_DATA_TYPEOG_FIELD+", "+GLOBAL_COLUMN_DATA_TYPE_CHANGE_FIELD+", "+
+                GLOBAL_COLUMN_DATA_PRIMARY_KEY_FIELD+ ", "+GLOBAL_COLUMN_DATA_FOREIGN_KEY_FIELD+") VALUES(?,?,?,?,?,?,?)";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             // Iterate through a list of previously inserted global tables and insert, for each table id, the list of its global columns
                 List<GlobalColumnData> globalColumns = gt.getGlobalColumnDataList();
@@ -885,8 +889,10 @@ public class MetaDataManager {
                     pstmt.setInt(1, gt.getId());
                     pstmt.setString(2, column.getName());
                     pstmt.setString(3, column.getDataType());
-                    pstmt.setBoolean(4, column.isPrimaryKey());
-                    pstmt.setString(5, column.getForeignKey());
+                    pstmt.setString(4, column.getOgDataType());
+                    pstmt.setBoolean(5, column.isOriginalDatatypeChanged());
+                    pstmt.setBoolean(6, column.isPrimaryKey());
+                    pstmt.setString(7, column.getForeignKey());
                     pstmt.executeUpdate();
                     //get id of inserted global column
                     ResultSet rs = pstmt.getGeneratedKeys();
@@ -1174,6 +1180,7 @@ public class MetaDataManager {
                 Set<ColumnData> globalColsCorrs = getCorrespondencesFromGlobalColumn(globalColID);
                 GlobalColumnData globalCol = new GlobalColumnData(rs.getString(GLOBAL_COLUMN_DATA_NAME_FIELD), rs.getString(GLOBAL_COLUMN_DATA_TYPE_FIELD),
                         rs.getBoolean(GLOBAL_COLUMN_DATA_PRIMARY_KEY_FIELD), globalColsCorrs);
+                globalCol.setOGDataType(rs.getString(GLOBAL_COLUMN_DATA_TYPEOG_FIELD));
                 globalCol.setColumnID(rs.getInt(GLOBAL_COLUMN_DATA_ID_FIELD));
                 globalCol.setForeignKey(rs.getString(GLOBAL_COLUMN_DATA_FOREIGN_KEY_FIELD));
                 globalCols.add(globalCol);
@@ -1195,6 +1202,7 @@ public class MetaDataManager {
                 Set<ColumnData> globalColsCorrs = getCorrespondencesFromGlobalColumn(globalColID);
                 globalCol = new GlobalColumnData(rs.getString(GLOBAL_COLUMN_DATA_NAME_FIELD), rs.getString(GLOBAL_COLUMN_DATA_TYPE_FIELD),
                         rs.getBoolean(GLOBAL_COLUMN_DATA_PRIMARY_KEY_FIELD), globalColsCorrs);
+                globalCol.setOGDataType(rs.getString(GLOBAL_COLUMN_DATA_TYPEOG_FIELD));
                 globalCol.setColumnID(rs.getInt(GLOBAL_COLUMN_DATA_ID_FIELD));
                 globalCol.setForeignKey(rs.getString(GLOBAL_COLUMN_DATA_FOREIGN_KEY_FIELD));
             }

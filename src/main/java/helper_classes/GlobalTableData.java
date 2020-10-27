@@ -51,6 +51,15 @@ public class GlobalTableData implements Serializable {
         return tables;
     }
 
+    public boolean columnExists(String name, String dataType, boolean isPrimaryKey){
+        for (GlobalColumnData c : this.globalColumnData){
+            if (c.getName().equals(name) && c.getDataTypeNoLimit().equals(dataType) && c.isPrimaryKey() == isPrimaryKey){
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * Return a list of local tables that contains columns that have correspondences with the global tables given. The local tables contain all columns
      * @param cols

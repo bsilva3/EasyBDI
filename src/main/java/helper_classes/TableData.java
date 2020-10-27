@@ -120,7 +120,7 @@ public class TableData implements Serializable {
     }
 
     public String getCompletePrestoTableName(){
-        return db.getCatalogName()+"."+schemaName+"."+tableName;
+        return db.getCatalogName()+"."+schemaName+".\""+tableName+"\"";
     }
 
     //Used for queries in order to select only certain columns
