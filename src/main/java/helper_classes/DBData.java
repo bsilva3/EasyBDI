@@ -15,6 +15,8 @@ public class DBData implements Serializable {
     private String catalogName; //for presto file name
     private int id;
     List<TableData> tableList;
+    private static final long serialVersionUID = -4246483119807663261L;
+
 
     public DBData(String url, DBModel dbModel, String dbName) {
         if (dbName == null || dbName.length() == 0){

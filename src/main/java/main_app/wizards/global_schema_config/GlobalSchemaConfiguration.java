@@ -3,6 +3,7 @@ package main_app.wizards.global_schema_config;
 import helper_classes.*;
 import helper_classes.utils_other.Constants;
 import main_app.metadata_storage.MetaDataManager;
+import main_app.presto_com.PrestoMediator;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -45,8 +46,10 @@ public class GlobalSchemaConfiguration extends JPanel {
     private MetaDataManager metaDataManager;
     private boolean isEdit;
     private Map<GlobalColumnData, String> referencedCols;
+    private PrestoMediator prestoMediator;
 
-    public GlobalSchemaConfiguration(MetaDataManager metaDataManager, List<DBData> dbs, List<GlobalTableData> globalTables){
+    public GlobalSchemaConfiguration(MetaDataManager metaDataManager, List<DBData> dbs, List<GlobalTableData> globalTables, PrestoMediator prestoMediator){
+        this.prestoMediator = prestoMediator;
         this.metaDataManager = metaDataManager;
         referencedCols = new HashMap<>();
 
@@ -59,7 +62,7 @@ public class GlobalSchemaConfiguration extends JPanel {
 
         //global schema tree set up
         globalSchemaTree.setEditable(true);
-        globalSchemaTree.addMouseListener(getMouseListener());
+        globalSchemaTree.addMouseListener(getMouseListenerForGlobalSchemaTree());
         //globalSchemaTree.addMouseListener(getMouseListener());
         //globalSchemaModel = setExampleData();
         //define distribuituin types for each global table
@@ -78,6 +81,7 @@ public class GlobalSchemaConfiguration extends JPanel {
         //local schema tree set up
         localSchemaTree.setTransferHandler(this.new TreeTransferHandler());
         localSchemaTree.setEditable(false);
+        localSchemaTree.addMouseListener(getMouseListenerForLocalSchemaTree());
         //localSchemaModel = setExampleDataForLocalSchema();
         localSchemaModel = setLocalSchemaTree(dbs);
         localSchemaTree.setModel(localSchemaModel);
@@ -487,7 +491,43 @@ public class GlobalSchemaConfiguration extends JPanel {
 
     /** -------pop up menu that appears on right click. It is different if user selects table, column or something else----------**/
 
-    private MouseListener getMouseListener() {
+    private MouseListener getMouseListenerForLocalSchemaTree() {
+        return new MouseAdapter() {
+
+            @Override
+            public void mousePressed(MouseEvent arg0) {
+                if (SwingUtilities.isRightMouseButton(arg0)){
+                    TreePath pathForLocation = localSchemaTree.getPathForLocation(arg0.getPoint().x, arg0.getPoint().y);
+                    localSchemaTree.setSelectionPath(pathForLocation);
+                    JPopupMenu menu = null;
+                    if(pathForLocation != null){
+                        selectedNode = (CustomTreeNode) pathForLocation.getLastPathComponent();
+                        if (selectedNode.getNodeType() == NodeType.TABLE)
+                            menu = getPopUpMenuForLocalTable();
+                        if (menu!= null)
+                            menu.show(arg0.getComponent(), arg0.getX(), arg0.getY());
+                    } else{
+                        //selectedNode = null;
+                        localSchemaTree.setComponentPopupMenu(null);
+                    }
+                }
+                super.mousePressed(arg0);
+            }
+        };
+    }
+
+    //pop up menu that shows up when right clicking on the root node of global tables
+    private JPopupMenu getPopUpMenuForLocalTable() {
+        JPopupMenu menu = new JPopupMenu();
+
+        JMenuItem item1 = new JMenuItem("Create View for table using SQL...");
+        item1.addActionListener(getCreateSQLCodeValidateInsert());
+        menu.add(item1);
+
+        return menu;
+    }
+
+    private MouseListener getMouseListenerForGlobalSchemaTree() {
         return new MouseAdapter() {
 
             @Override
@@ -689,6 +729,43 @@ public class GlobalSchemaConfiguration extends JPanel {
           //  System.out.println(selectedNode.getUserObject());
 
         return menu;
+    }
+
+    private ActionListener getCreateSQLCodeValidateInsert() {
+        return arg0 -> {
+            if(selectedNode != null){
+                CustomTreeNode newNode = null;
+                new ViewCreator(prestoMediator, this, selectedNode.getUserObject().toString());
+            }
+        };
+    }
+
+
+    public void setViewInfo(List<String[]> colsInView, String SQLcode){
+        if (colsInView == null)
+            return;
+        JOptionPane.showMessageDialog(this, "View Created! The new table view can be seen on the local schema tree.", "View created", JOptionPane.PLAIN_MESSAGE);
+        TableData t = (TableData) selectedNode.getObj();
+        TableData view = new TableData(t.getTableName()+" (View)", t.getSchemaName(), t.getDB());
+        view.setSqlCode(SQLcode);
+        List<ColumnData> cols = new ArrayList<>();
+        for (String[] attribute : colsInView){
+            ColumnData c = new ColumnData(attribute[0], attribute[1], false);
+            c.setTable(view);
+            cols.add(c);
+        }
+        view.setColumnsList(cols);
+        //store on SQL
+        view = metaDataManager.insertTableData(view);
+        view = metaDataManager.insertColumnData(view);
+        CustomTreeNode tableNode = new CustomTreeNode(view.getTableName(), view, NodeType.TABLE);
+        for (ColumnData c : view.getColumnsList()){
+            CustomTreeNode colTree = new CustomTreeNode(c.getName(), c, NodeType.COLUMN);
+            colTree.add(new CustomTreeNode(c.getDataType(), NodeType.COLUMN_INFO));
+            tableNode.add(colTree);
+        }
+        localSchemaModel.insertNodeInto(tableNode, (CustomTreeNode) selectedNode.getParent(), selectedNode.getIndex(selectedNode.getParent())+1);
+
     }
 
 

@@ -3230,7 +3230,7 @@ public class QueryUI extends JPanel{
             String filterValue = "";
             if (result == JOptionPane.OK_OPTION) {
                 filterValue = value.getText();
-                if (!Utils.stringIsNumericOrBoolean(filterValue)){
+                if (!Utils.stringIsNumericOrBoolean(filterValue) && !droppedCol.getDataTypeCategory().equalsIgnoreCase(Constants.TIME_DATATYPE)){
                     filterValue = "'"+filterValue+"'";
                 }
                 if (filterValue.length() == 0){

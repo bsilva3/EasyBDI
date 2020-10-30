@@ -17,6 +17,8 @@ public class ColumnData implements Serializable {
     private MappingType mapping;
     private ColumnData fk;
     private String globalColumnName;
+    private static final long serialVersionUID = 8782661231710362513L;
+
 
     public static class Builder {
         private int columnID;

@@ -35,8 +35,17 @@ public class PrestoMediator {
     public static void main (String[] args){
         PrestoMediator connector = new PrestoMediator();
         connector.createConnection();
+
+        /*String query = "PREPARE \"test\" FROM select customer, \"Generator Capacity\", Postcode, \"Consumption Category\", \"date\",  '0:30' as half_hour, \"0:30\" AS value from flex.csv.\"file:///home/bruno/dataset/2012-2013_solar_home_electricity_data_datefix-25cust.csv\"\n" +
+                "UNION ALL\n" +
+                "select customer, \"Generator Capacity\", Postcode, \"Consumption Category\", \"date\",  '1:00' as half_hour, \"1:00\" AS value from flex.csv.\"file:///home/bruno/dataset/2012-2013_solar_home_electricity_data_datefix-25cust.csv\"";
+        */
+        String query = "select * from mysql_test.simple_data_set.employees\n";
+
+        List<String[]> attrs = connector.getQueryColsName(query);
+        System.out.println(attrs);
         //connector.getTableData("select * from mongodb.products.products");
-        System.out.println(connector.makeQuery("show schemas from postgresql_localhost_5432_employees_vertical"));
+        //System.out.println(connector.makeQuery("show schemas from postgresql_localhost_5432_employees_vertical"));
         /*try {
             connector.getOneColumnResultQuery("show tables from mysql_test.sales_schema", true);
         } catch (SQLException e) {
@@ -58,6 +67,30 @@ public class PrestoMediator {
         if (conn == null)
             return false;
         return true;
+    }
+
+    public void makeStatement(String query){
+        Statement stmt = null;
+        try {
+            //Register JDBC driver
+            Class.forName(JDBC_DRIVER);
+            //Execute a query
+            stmt = conn.createStatement();
+            stmt.executeUpdate(query);
+        } catch (SQLException se) {
+            //Handle errors for JDBC
+            se.printStackTrace();
+        } catch (Exception e) {
+            //Handle errors for Class.forName
+            e.printStackTrace();
+        } finally {
+            //finally block used to close resources
+            try {
+                if (stmt != null) stmt.close();
+            } catch (SQLException sqlException) {
+                sqlException.printStackTrace();
+            }
+        }
     }
 
 
@@ -117,6 +150,88 @@ public class PrestoMediator {
                 return queryStateMessage;
             }
         }
+    }
+
+    public List<String[]> getQueryColsName(String query){
+        Statement stmt = null;
+        List<String[]> attrs = new ArrayList<>();
+        try {
+            //Register JDBC driver
+            Class.forName(JDBC_DRIVER);
+            //Execute a query
+            stmt = conn.createStatement();
+            ResultSet res = stmt.executeQuery(query);
+            ResultSetMetaData rsmd = res.getMetaData();
+            //get all columns
+            while (res.next()) {
+                for (int i = 1; i <= rsmd.getColumnCount(); i++){
+                    String[] attributeNameAndType = new String[2];
+                    attributeNameAndType[0] = rsmd.getColumnName(i);
+                    attributeNameAndType[1] = rsmd.getColumnTypeName(i);
+                    attrs.add(attributeNameAndType);
+                }
+                break;
+            }
+            //Clean-up environment
+            res.close();
+            stmt.close();
+        } catch (SQLException se) {
+            //Handle errors for JDBC
+            se.printStackTrace();
+            attrs = null;
+        } catch (Exception e) {
+            //Handle errors for Class.forName
+            e.printStackTrace();
+            attrs = null;
+        } finally {
+            //finally block used to close resources
+            try {
+                if (stmt != null) stmt.close();
+            } catch (SQLException sqlException) {
+                sqlException.printStackTrace();
+                attrs = null;
+            }
+        }
+        return attrs;
+    }
+
+    public List<String[]> describeOutput(String query){
+        Statement stmt = null;
+        List<String[]> attrs = new ArrayList<>();
+        try {
+            //Register JDBC driver
+            Class.forName(JDBC_DRIVER);
+            //Execute a query
+            stmt = conn.createStatement();
+            ResultSet res = stmt.executeQuery(query);
+            //get all columns
+            while (res.next()) {
+                String[] attributeNameAndType = new String[2];
+                attributeNameAndType[0] = res.getString(1);
+                attributeNameAndType[1] = res.getString(5);
+                attrs.add(attributeNameAndType);
+            }
+            //Clean-up environment
+            res.close();
+            stmt.close();
+        } catch (SQLException se) {
+            //Handle errors for JDBC
+            se.printStackTrace();
+            attrs = null;
+        } catch (Exception e) {
+            //Handle errors for Class.forName
+            e.printStackTrace();
+            attrs = null;
+        } finally {
+            //finally block used to close resources
+            try {
+                if (stmt != null) stmt.close();
+            } catch (SQLException sqlException) {
+                sqlException.printStackTrace();
+                attrs = null;
+            }
+        }
+        return attrs;
     }
 
     public void closeConection(){

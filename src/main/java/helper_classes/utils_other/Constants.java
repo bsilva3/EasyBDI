@@ -46,6 +46,7 @@ public class Constants {
     public static final String TABLE_DATA = "table_data";
     //columns
     public static final String TABLE_DATA_NAME_FIELD = "name";
+    public static final String TABLE_CODE_FIELD = "sql_code";
     public static final String TABLE_DATA_SCHEMA_NAME_FIELD = "schema_name";
     public static final String TABLE_DATA_DB_ID_FIELD = "db_id";
 

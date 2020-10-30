@@ -117,7 +117,7 @@ public class MappingTest {
         //g2.setGlobalColumnData(Arrays.asList(globalColMongo1, globalColMongo2, globalColMongo3, globalColMongo4));
         globalTableDataList.add(g1);
 
-        GlobalSchemaConfiguration g = new GlobalSchemaConfiguration(null, dbs, globalTableDataList);
+        GlobalSchemaConfiguration g = new GlobalSchemaConfiguration(null, dbs, globalTableDataList, null);
         g.defineDistributionType(g1);
         System.out.println(g1.getMappingType());
         //globalTableDataList.add(g2);

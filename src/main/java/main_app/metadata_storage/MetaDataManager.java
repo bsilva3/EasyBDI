@@ -146,7 +146,6 @@ public class MetaDataManager {
         String sql2 = "CREATE TABLE IF NOT EXISTS "+ DB_DATA +" (\n"
                 + "    id integer PRIMARY KEY,\n"
                 + "    "+ DB_DATA_NAME_FIELD +" text NOT NULL,\n"
-                + "    "+ DB_DATA_NAME_FIELD +" text NOT NULL,\n"
                 + "    "+ DB_DATA_SERVER_FIELD +" text NOT NULL,\n"
                 + "    "+ DB_DATA_USER_FIELD + " text,\n"
                 + "    "+ DB_DATA_PASS_FIELD +" text,\n"
@@ -157,6 +156,7 @@ public class MetaDataManager {
         String sql3 = "CREATE TABLE IF NOT EXISTS "+ TABLE_DATA +" (\n"
                 + "    id integer PRIMARY KEY,\n"
                 + "    "+ TABLE_DATA_NAME_FIELD +" text NOT NULL,\n"
+                + "    "+ TABLE_CODE_FIELD +" text,\n"
                 + "    "+ TABLE_DATA_DB_ID_FIELD + " integer NOT NULL,\n"
                 + "    " + TABLE_DATA_SCHEMA_NAME_FIELD +" text NOT NULL,\n"
                 + "    UNIQUE("+ TABLE_DATA_DB_ID_FIELD +", " + TABLE_DATA_SCHEMA_NAME_FIELD + ", "+ TABLE_DATA_NAME_FIELD +") ON CONFLICT IGNORE,\n"
@@ -389,8 +389,41 @@ public class MetaDataManager {
         return dbData;
     }
 
+    public TableData insertTableData(TableData table){
+        String sql = "INSERT INTO "+ TABLE_DATA + "("+TABLE_DATA_NAME_FIELD+", "+TABLE_DATA_SCHEMA_NAME_FIELD+", "+TABLE_DATA_DB_ID_FIELD+","+TABLE_CODE_FIELD+") VALUES(?,?,?,?)";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            int dbID = table.getDB().getId();
+            if (dbID <= 0){
+                dbID = getDBID(table.getDB().getDbName(), table.getDB().getUrl());
+                if (dbID == -1){
+                    System.out.println("DB "+table.getDB().getDbName() + " in server " + table.getDB().getUrl() +" not found");
+                    return null;
+                }
+            }
+            pstmt.setString(1, table.getTableName());
+            pstmt.setString(2, table.getSchemaName());
+            pstmt.setInt(3, dbID);
+            pstmt.setString(4, table.getSqlCode());
+            pstmt.executeUpdate();
+
+            ResultSet rs = pstmt.getGeneratedKeys();
+            if(rs.next())
+            {
+                int lastInsertedId = rs.getInt(1);
+                //System.out.println("KEY: "+lastInsertedId);
+                if (lastInsertedId == 0) //if db was inserted previously, id will be zero
+                    lastInsertedId = getTableID(table.getTableName(), table.getSchemaName(), table.getDB());
+                table.setId(lastInsertedId);
+            }
+
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return table;
+    }
+
     public List<TableData> insertTableData(List<TableData> tables){
-        String sql = "INSERT INTO "+ TABLE_DATA + "("+TABLE_DATA_NAME_FIELD+", "+TABLE_DATA_SCHEMA_NAME_FIELD+", "+TABLE_DATA_DB_ID_FIELD+") VALUES(?,?,?)";
+        String sql = "INSERT INTO "+ TABLE_DATA + "("+TABLE_DATA_NAME_FIELD+", "+TABLE_DATA_SCHEMA_NAME_FIELD+", "+TABLE_DATA_DB_ID_FIELD+","+TABLE_CODE_FIELD+") VALUES(?,?,?,?)";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             for (int i = 0; i < tables.size() ; i++){
                 int dbID = tables.get(i).getDB().getId();
@@ -404,6 +437,7 @@ public class MetaDataManager {
                 pstmt.setString(1, tables.get(i).getTableName());
                 pstmt.setString(2, tables.get(i).getSchemaName());
                 pstmt.setInt(3, dbID);
+                pstmt.setString(4, tables.get(i).getSqlCode());
                 pstmt.executeUpdate();
 
                 ResultSet rs = pstmt.getGeneratedKeys();
@@ -423,6 +457,40 @@ public class MetaDataManager {
             System.out.println(e.getMessage());
         }
         return tables;
+    }
+
+    public TableData insertColumnData(TableData columnsInTable){
+        String sql = "INSERT INTO "+ COLUMN_DATA + "("+COLUMN_DATA_NAME_FIELD+", "+COLUMN_DATA_TYPE_FIELD+", "+COLUMN_DATA_IS_PRIMARY_KEY_FIELD+", "+COLUMN_DATA_FOREIGN_KEY_FIELD+", "
+                + COLUMN_DATA_TABLE_FIELD +") VALUES(?,?,?,?,?)";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                List<ColumnData> columns = columnsInTable.getColumnsList();
+                for (int i = 0; i < columns.size(); i++){
+                    pstmt.setString(1, columns.get(i).getName());
+                    pstmt.setString(2, columns.get(i).getDataType());
+                    pstmt.setBoolean(3, columns.get(i).isPrimaryKey());
+                    pstmt.setString(4, columns.get(i).getForeignKey());
+                    pstmt.setInt(5, columnsInTable.getId());
+                    pstmt.executeUpdate();
+
+                    ResultSet rs = pstmt.getGeneratedKeys();
+                    if(rs.next())
+                    {
+                        int lastInsertedId = rs.getInt(1);
+                        //System.out.println("KEY: "+lastInsertedId);
+                        ColumnData cd = columns.get(i);
+                        if (lastInsertedId == 0) //if db was inserted previously, id will be zero
+                            lastInsertedId = getColumnID(columns.get(i).getName(), columnsInTable.getId());
+                        cd.setColumnID(lastInsertedId);
+                        columns.set(i, cd);//update the id of the db list in memory
+                    }
+                TableData t = columnsInTable;
+                t.setColumnsList(columns);
+            }
+
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return columnsInTable;
     }
 
     public List<TableData> insertColumnData(List<TableData> columnsInTables){
@@ -591,7 +659,7 @@ public class MetaDataManager {
             ResultSet rs    = stmt.executeQuery("SELECT * FROM " + TABLE_DATA +" WHERE " + TABLE_DATA_DB_ID_FIELD + " = " + dbData.getId() + ";");
             // loop through the result set
             while (rs.next()) {
-                tables.add(new TableData(rs.getString(TABLE_DATA_NAME_FIELD), rs.getString(TABLE_DATA_SCHEMA_NAME_FIELD), dbData, rs.getInt(ID_FIELD)));
+                tables.add(new TableData(rs.getString(TABLE_DATA_NAME_FIELD), rs.getString(TABLE_DATA_SCHEMA_NAME_FIELD), dbData, rs.getInt(ID_FIELD), rs.getString(TABLE_CODE_FIELD)));
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
@@ -1272,11 +1340,11 @@ public class MetaDataManager {
             try {
                 Statement stmt = conn.createStatement();
                 ResultSet rs = stmt.executeQuery("SELECT "+ TABLE_DATA_NAME_FIELD +", "+TABLE_DATA_SCHEMA_NAME_FIELD+
-                        ", "+TABLE_DATA_DB_ID_FIELD+" FROM " + TABLE_DATA + " where "+ID_FIELD+"="+id+";");
+                        ", "+TABLE_DATA_DB_ID_FIELD+", "+ TABLE_CODE_FIELD+" FROM " + TABLE_DATA + " where "+ID_FIELD+"="+id+";");
                 // loop through the result set
                 while (rs.next()) {
                     DBData db = this.getDatabaseByID(rs.getInt(TABLE_DATA_DB_ID_FIELD));
-                    TableData table = new TableData(rs.getString(TABLE_DATA_NAME_FIELD), rs.getString(TABLE_DATA_SCHEMA_NAME_FIELD), db, id);
+                    TableData table = new TableData(rs.getString(TABLE_DATA_NAME_FIELD), rs.getString(TABLE_DATA_SCHEMA_NAME_FIELD), db, id, rs.getString(TABLE_CODE_FIELD));
                     table.setColumnsList(getColumnsInTable(table));
                     tables.add(table);
                 }
@@ -1292,11 +1360,11 @@ public class MetaDataManager {
             try {
                 Statement stmt = conn.createStatement();
                 ResultSet rs = stmt.executeQuery("SELECT "+ TABLE_DATA_NAME_FIELD +", "+TABLE_DATA_SCHEMA_NAME_FIELD+
-                        ", "+TABLE_DATA_DB_ID_FIELD+" FROM " + TABLE_DATA + " where "+ID_FIELD+"="+tableID+";");
+                        ", "+TABLE_DATA_DB_ID_FIELD+", "+TABLE_CODE_FIELD+" FROM " + TABLE_DATA + " where "+ID_FIELD+"="+tableID+";");
                 // loop through the result set
                 while (rs.next()) {
                     DBData db = this.getDatabaseByID(rs.getInt(TABLE_DATA_DB_ID_FIELD));
-                    table = new TableData(rs.getString(TABLE_DATA_NAME_FIELD), rs.getString(TABLE_DATA_SCHEMA_NAME_FIELD), db, tableID);
+                    table = new TableData(rs.getString(TABLE_DATA_NAME_FIELD), rs.getString(TABLE_DATA_SCHEMA_NAME_FIELD), db, tableID, rs.getString(TABLE_CODE_FIELD));
                     table.setColumnsList(getColumnsInTable(table));
                 }
             } catch (SQLException e) {
@@ -1375,11 +1443,11 @@ public class MetaDataManager {
         TableData t = null;
         try {
             Statement stmt = conn.createStatement();
-            ResultSet rs = stmt.executeQuery("SELECT "+ ID_FIELD+" FROM " + TABLE_DATA + " where "+TABLE_DATA_DB_ID_FIELD+"="+db.getId()+" and "
+            ResultSet rs = stmt.executeQuery("SELECT "+ ID_FIELD+", "+TABLE_CODE_FIELD+" FROM " + TABLE_DATA + " where "+TABLE_DATA_DB_ID_FIELD+"="+db.getId()+" and "
                     +TABLE_DATA_NAME_FIELD +" ='" + tableName +"' and "+TABLE_DATA_SCHEMA_NAME_FIELD+" = '"+schemaName+"';");
             // loop through the result set
             while (rs.next()) {
-                t = new TableData(tableName, schemaName,db, rs.getInt(ID_FIELD));
+                t = new TableData(tableName, schemaName,db, rs.getInt(ID_FIELD), rs.getString(TABLE_CODE_FIELD));
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());

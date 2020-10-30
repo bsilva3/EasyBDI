@@ -9,6 +9,8 @@ public class GlobalTableData implements Serializable {
     private int id;
     private List<GlobalColumnData> globalColumnData;
     private List<TableData> localTables;
+    private static final long serialVersionUID = 1868148548961100910L;
+
 
     public GlobalTableData(String tableName) {
         this.tableName = tableName;
@@ -95,7 +97,7 @@ public class GlobalTableData implements Serializable {
 
         Set<TableData> tablesUpdate = new HashSet<>();
         for (TableData t : tables) {
-            TableData newT = new TableData(t.getTableName(), t.getSchemaName(), t.getDB(), t.getId());
+            TableData newT = new TableData(t.getTableName(), t.getSchemaName(), t.getDB(), t.getId(), t.getSqlCode());
 
             //List<ColumnData> colsSelectInOrder = new ArrayList<>();
             for (ColumnData localCol : localCols){
@@ -127,7 +129,7 @@ public class GlobalTableData implements Serializable {
 
         Set<TableData> tablesUpdate = new HashSet<>();
         for (TableData t : tables) {
-            TableData newT = new TableData(t.getTableName(), t.getSchemaName(), t.getDB(), t.getId());
+            TableData newT = new TableData(t.getTableName(), t.getSchemaName(), t.getDB(), t.getId(), t.getSqlCode());
 
             //List<ColumnData> colsSelectInOrder = new ArrayList<>();
             for (ColumnData localCol : localCols){

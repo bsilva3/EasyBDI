@@ -1184,7 +1184,10 @@ public class GlobalTableQuery {
                 query+=", ";
             }
             query+=localCols.get(localCols.size()-1).getCompletePrestoColumnName()+" ";//last column is whithout a comma
-            query+= "FROM "+localTable.getCompletePrestoTableName()+" ";
+            if (localTable.getSqlCode() == null)
+                query+= "FROM "+localTable.getCompletePrestoTableName()+" ";
+            else
+                query+= "FROM ("+localTable.getSqlCode()+") ";
         }
         return query;
     }

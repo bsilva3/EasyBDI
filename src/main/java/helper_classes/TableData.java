@@ -11,6 +11,9 @@ public class TableData implements Serializable {
     private DBData db;
     private int id;
     private List<ColumnData> columnsList;
+    private String sqlCode;
+    private static final long serialVersionUID = -1183246571292856215L;
+
 
     public TableData(String tableName, String schemaName, DBData db) {
         this.tableName = tableName;
@@ -28,6 +31,14 @@ public class TableData implements Serializable {
         this.db = db;
         this.schemaName = schemaName;
         this.id = id;
+    }
+
+    public TableData(String tableName, String schemaName, DBData db, int id, String SQLcode) {
+        this.tableName = tableName;
+        this.db = db;
+        this.schemaName = schemaName;
+        this.id = id;
+        this.sqlCode = SQLcode;
     }
 
     public void addColumn(ColumnData col){
@@ -117,6 +128,14 @@ public class TableData implements Serializable {
                 return true;
         }
         return false;
+    }
+
+    public String getSqlCode() {
+        return sqlCode;
+    }
+
+    public void setSqlCode(String sqlCode) {
+        this.sqlCode = sqlCode;
     }
 
     public String getCompletePrestoTableName(){
