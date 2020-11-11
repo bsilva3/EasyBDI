@@ -25,15 +25,23 @@ public class Utils {
         return true;
     }
 
+    public static String getFileName(String filePath) {
+        String[] split = filePath.split(File.separator);
+        String filename = split[split.length-1];
+        return filename;
+    }
+
     public static String getFileNameNoExtension(String filePath) {
-        String[] split = filePath.split(File.pathSeparator);
+        String[] split = filePath.split(File.separator);
         String filename = split[split.length-1];
         return filename.split("\\.")[0];
     }
 
     public static String getExtension(String filePath) {
-        String[] split = filePath.split(File.pathSeparator);
+        String[] split = filePath.split(File.separator);
         String filename = split[split.length-1];
+        if (filename.split("\\.").length == 0)
+            return "";
         return filename.split("\\.")[1];
     }
 

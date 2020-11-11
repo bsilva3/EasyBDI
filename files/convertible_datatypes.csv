@@ -26,5 +26,3 @@ time with time zone,varchar,varchar
 timestamp,varchar,varchar
 timestamp,timestamp with time zone,timestamp
 timestamp with time zone,varchar,varchar
-ipaddress,char,char
-ipaddress,varchar,varchar

@@ -9,6 +9,7 @@ public class GlobalColumnData implements Serializable {
     private int columnID;
     private Set<ColumnData> localColumns;
     private String name;
+    private String ogName;
     private String dataType;
     private String ogDataType;
     private boolean isPrimaryKey;
@@ -24,6 +25,7 @@ public class GlobalColumnData implements Serializable {
 
     public GlobalColumnData(String name, String dataType, boolean isPrimaryKey, Set<ColumnData> localCols) {
         this.name = name;
+        this.ogName = name;
         this.dataType = dataType;
         this.ogDataType = dataType;
         this.isPrimaryKey = isPrimaryKey;
@@ -34,6 +36,7 @@ public class GlobalColumnData implements Serializable {
 
     public GlobalColumnData(String name, String dataType, boolean isPrimaryKey, Set<ColumnData> localCols, int id) {
         this.name = name;
+        this.ogName = name;
         this.dataType = dataType;
         this.ogDataType = dataType;
         this.isPrimaryKey = isPrimaryKey;
@@ -45,6 +48,7 @@ public class GlobalColumnData implements Serializable {
 
     public GlobalColumnData(String name, String dataType, boolean isPrimaryKey, ColumnData localCol) {
         this.name = name;
+        this.ogName = name;
         this.dataType = dataType;
         this.ogDataType = dataType;
         this.isPrimaryKey = isPrimaryKey;
@@ -56,6 +60,7 @@ public class GlobalColumnData implements Serializable {
 
     public GlobalColumnData(ColumnData column) {
         this.name = column.getName();
+        this.ogName = name;
         this.dataType = column.getDataType();
         this.ogDataType = dataType;
         this.isPrimaryKey = column.isPrimaryKey();
@@ -233,8 +238,12 @@ public class GlobalColumnData implements Serializable {
     }
 
     public String getFullNameEscapped() {
-        String[] split = fullName.split("\\.");
-        return "\""+split[0]+"\".\""+split[1]+"\""; //table."col"
+        if (fullName.contains(".")) {
+            String[] split = fullName.split("\\.");
+            return "\"" + split[0] + "\".\"" + split[1] + "\""; //table."col"
+        }
+        else
+            return "\""+fullName+"\"";
     }
 
     public void setFullName(String fullName) {
@@ -243,6 +252,10 @@ public class GlobalColumnData implements Serializable {
 
     public boolean isOriginalDatatypeChanged() {
         return originalDatatypeChanged;
+    }
+
+    public String getOgName() {
+        return ogName;
     }
 
     public String getAggrOp() {

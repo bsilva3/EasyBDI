@@ -345,8 +345,12 @@ public class PrestoMediator {
             //relational dbs (mysql, sql server or postgresql) have identical .properties files
             if (dbData.getDbModel() == DBModel.MYSQL)
                 config += "connection-url=jdbc:" + dbData.getDbModel().toString().toLowerCase() + "://"+ dbData.getUrl() +"\n"; //mysql connector throws exception if database is specified. DBs are separed in schemas
-            else
-                config += "connection-url=jdbc:" + dbData.getDbModel().toString().toLowerCase() + "://"+ dbData.getUrl() +"/"+dbData.getDbName()+"\n";
+            else {
+                String dbName = "";
+                if (dbData.getDbModel().isSingleServerOneDatabase())
+                    dbName = "/"+dbData.getDbName();
+                config += "connection-url=jdbc:" + dbData.getDbModel().toString().toLowerCase() + "://" + dbData.getUrl() + dbName + "\n";
+            }
             config += "connection-user="+dbData.getUser()+"\n";
             config += "connection-password="+dbData.getPass()+"\n";
         }

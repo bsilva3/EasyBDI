@@ -113,7 +113,7 @@ public class QueryUI extends JPanel{
     private PrestoMediator prestoMediator;
     private static final String GROUP_BY_OP = "Group By";
     private boolean countAllAdded;
-    private final String[] aggregationsMeasures = { GROUP_BY_OP, "COUNT", "SUM", "AVG"};
+    private final String[] aggregationsMeasures = { "COUNT", "SUM", "AVG", GROUP_BY_OP};
     private final String[] aggregationsRows = {"COUNT", "SUM", "AVERAGE", "MAX", "MIN"};
     private final String[] numberOperations = { "=", "!=", ">", ">=", "<", "<=", "Between", "not Between"};
     private final String[] stringOperations = { "=", "!=", "like", "Between", "Not Between"};
@@ -178,7 +178,7 @@ public class QueryUI extends JPanel{
                     "'table.attribute', along with an aggregate function.</p> <p>Any attribute identified here must be used within an aggregate function. Measures and Dimension attributes can be specified here.</p>" +
                     "<p>Order By attributes cannot be here specified.</p>");
             measuresManualEditLabel.setFont(new Font("", Font.PLAIN, 12));
-            measuresLabel.setText("Aggregations - Normal Edit Mode");
+            measuresLabel.setText("Aggregations - Normal Mode");
             aggrFiltersLabel.setIcon(new ImageIcon(img.getScaledInstance(20, 20, 0)));
             aggrFiltersLabel.addMouseListener(adapterTooltip);
             aggrFiltersLabel.setToolTipText("<html><p>Drag attributes from the aggregations area to create conditions with those attributes.</p> " +
@@ -1583,7 +1583,10 @@ public class QueryUI extends JPanel{
         String query = "";
         for (int i = 0 ; i < nChilds; i++){
             FilterNode filterNode = (FilterNode) root.getChildAt(i);
-            query += filterNode.getEscappedFilterStringObj() +" ";
+            if (filterNode.getNodeType() == FilterNodeType.CONDITION)
+                query += filterNode.getEscappedFilterStringObj() +" ";
+            else if (filterNode.getNodeType() == FilterNodeType.BOOLEAN_OPERATION)
+                query += filterNode.getUserObject() +" ";
             if (!isAggrFilter && filterNode.getNodeType() == FilterNodeType.CONDITION){
                 GlobalColumnData c = (GlobalColumnData) filterNode.getObj();
                 globalTableQueries.addFilter(c.getFullName());
@@ -1616,7 +1619,10 @@ public class QueryUI extends JPanel{
         String query = "";
         for (int i = 0 ; i < nChilds; i++){
             FilterNode filterNode = (FilterNode) root.getChildAt(i);
-            query += filterNode.getUserObject().toString() +" ";
+            if (filterNode.getNodeType() == FilterNodeType.CONDITION)
+                query += filterNode.getEscappedFilterStringObj() +" ";
+            else if (filterNode.getNodeType() == FilterNodeType.BOOLEAN_OPERATION)
+                query += filterNode.getUserObject() +" ";
             if (filterNode.getNodeType() == FilterNodeType.CONDITION){
                 GlobalColumnData c = (GlobalColumnData) filterNode.getObj();
                 globalTableQueries.addColFilter(c.getFullName());
@@ -1638,7 +1644,10 @@ public class QueryUI extends JPanel{
                     globalTableQueries.addFilter(c.getFullName());
                 }
 
-                query += innerFilterNode.getUserObject().toString()+" ";
+                if (filterNode.getNodeType() == FilterNodeType.CONDITION)
+                    query += filterNode.getEscappedFilterStringObj() +" ";
+                else if (filterNode.getNodeType() == FilterNodeType.BOOLEAN_OPERATION)
+                    query += filterNode.getUserObject() +" ";
                 query += processInnerExpressions(innerFilterNode, isAggrFilters);
             }
             query +=")";
@@ -3174,14 +3183,14 @@ public class QueryUI extends JPanel{
             String s[] = new String [3];
             String elem = "";
             String elemEscapped = "";
-            if (isFilterAggr){
+            if (isFilterAggr){//filter aggr, on having
                 elem = droppedCol.getAggrOpFullName();//aggrOP(table.column)
                 if (droppedCol.isOriginalDatatypeChanged())
-                    elemEscapped+= droppedCol.getAggrOp()+"(CAST "+droppedCol.getFullNameEscapped() +" AS "+droppedCol.getDataType()+")";
+                    elemEscapped+= droppedCol.getAggrOp()+"(CAST ("+droppedCol.getFullNameEscapped() +" AS "+droppedCol.getDataType()+"))";
                 else
                     elemEscapped+=droppedCol.getAggrOpFullNameEscapped();
             }
-            else {
+            else { //normal filter, on where
                 elem = droppedCol.getFullName();
                 if (droppedCol.isOriginalDatatypeChanged())
                     elemEscapped = "CAST("+droppedCol.getFullNameEscapped()+" AS "+droppedCol.getDataType()+") ";
@@ -3232,6 +3241,10 @@ public class QueryUI extends JPanel{
                 filterValue = value.getText();
                 if (!Utils.stringIsNumericOrBoolean(filterValue) && !droppedCol.getDataTypeCategory().equalsIgnoreCase(Constants.TIME_DATATYPE)){
                     filterValue = "'"+filterValue+"'";
+                }
+                else if (droppedCol.getDataTypeCategory().equalsIgnoreCase(Constants.TIME_DATATYPE)){
+                    //date and time data type require need a <datatype> 'value' to be used
+                    filterValue = droppedCol.getDataType()+" '"+filterValue+"'";
                 }
                 if (filterValue.length() == 0){
                     JOptionPane.showMessageDialog(null, "Please insert a filter value with same data type",

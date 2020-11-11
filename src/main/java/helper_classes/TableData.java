@@ -134,11 +134,25 @@ public class TableData implements Serializable {
         return sqlCode;
     }
 
+    public boolean hasViewUsingSQL() {
+        if (sqlCode == null)
+            return false;
+        if (sqlCode.length() == 0)
+            return false;
+        return true;
+    }
+
     public void setSqlCode(String sqlCode) {
         this.sqlCode = sqlCode;
     }
 
     public String getCompletePrestoTableName(){
+        return db.getCatalogName()+"."+schemaName+"."+tableName;
+    }
+
+    public String getCompletePrestoTableNameEscapped(){
+        if (tableName.startsWith("\"")&& tableName.endsWith("\""))
+            return db.getCatalogName()+"."+schemaName+"."+tableName+"";//tablename already escapped
         return db.getCatalogName()+"."+schemaName+".\""+tableName+"\"";
     }
 

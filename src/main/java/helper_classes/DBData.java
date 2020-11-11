@@ -43,8 +43,13 @@ public class DBData implements Serializable {
         else if (dbModel == DBModel.File) {
             this.catalogName = "flex";
         }
-        else
-            this.catalogName = dbModel+"_"+this.url+"_"+fixedDbName;
+        else {
+            if(dbModel.isSingleServerOneDatabase())
+                this.catalogName = dbModel + "_" + this.url + "_" + fixedDbName;
+            else
+                this.catalogName = dbModel + "_" + this.url;
+            this.catalogName = catalogName.replace("/", "");
+        }
         this.catalogName = this.catalogName.toLowerCase().replaceAll("[\\:\\-\\/.()]", "_");
     }
 

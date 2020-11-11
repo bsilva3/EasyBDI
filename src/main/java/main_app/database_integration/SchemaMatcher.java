@@ -9,13 +9,14 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
 
+import static helper_classes.utils_other.Constants.DATATYPE_CONVERTIBLES_SCORE;
 import static java.lang.Integer.max;
 import static helper_classes.utils_other.Constants.DATATYPE_CONVERTIBLES_DICT;
 
 
 public class SchemaMatcher {
     private final double tableNameSimilarityThreshold = 0.6;
-    private final double columnSimilarityThreshold = 0.75;
+    private final double columnSimilarityThreshold = 0.70;
 
     private MetaDataManager metaDataManager;
 
@@ -312,7 +313,8 @@ public class SchemaMatcher {
      */
     private List<GlobalTableData> mergeGlobalTableAttributes(List<GlobalTableData> globalTables){
         //to check if the datatypes between two columns is compatible
-        Map<DatatypePair, String> convertibleDataTypes = loadConvertibleDataTypeFile();
+        Map<DatatypePair, Double> convertibleDataTypes = loadDataTypeScoreFile();
+        Map<DatatypePair, String> genericDataTypes = loadConvertibleDataTypeFile();
         for (int i = 0; i < globalTables.size(); i++){
             List<TableData> localTables = globalTables.get(i).getLocalTables();
             if (localTables.size() < 2){
@@ -322,13 +324,13 @@ public class SchemaMatcher {
             /*List<GlobalColumnData> columnsForGlobalTable = getColumnsForGlobalTable(globalTables.get(i), localTables, convertibleDataTypes);
             GlobalTableData globalTableData = globalTables.get(i);
             globalTableData.setGlobalColumnData(columnsForGlobalTable);*/
-            GlobalTableData globalTableData = getColumnsForGlobalTableV2(globalTables.get(i), convertibleDataTypes);
+            GlobalTableData globalTableData = getColumnsForGlobalTable(globalTables.get(i), convertibleDataTypes, genericDataTypes);
             globalTables.set(i, globalTableData);
         }
         return globalTables;
     }
 
-    private GlobalTableData getColumnsForGlobalTableV2(GlobalTableData globalTableData, Map<DatatypePair, String> convertibleDataTypes){
+    private GlobalTableData getColumnsForGlobalTable(GlobalTableData globalTableData, Map<DatatypePair, Double> convertibleDataTypes, Map<DatatypePair, String> genericDatatype){
         List<TableData> localTables = globalTableData.getLocalTables();
         List<ColumnData> initialCols = localTables.get(0).getColumnsList(); //the result of the merging of tables. Starts from the first table
         Map<ColumnData, Set<ColumnData>> correspondences = new HashMap<>(); //for each merged column, contains a list of tables and columns in those tables that make the merge column
@@ -368,7 +370,7 @@ public class SchemaMatcher {
                 }
                 else{
                     //different data types, choose the most generic one
-                    datatype = chooseGenericDataType(col1DataType, col2DataType, convertibleDataTypes);
+                    datatype = chooseGenericDataType(col1DataType, col2DataType, genericDatatype);
                 }
                 //primary key
                 boolean isPrimaryKey = false;
@@ -426,36 +428,63 @@ public class SchemaMatcher {
         return sim;
     }
 
-    //
-    public List<Match> labelTypeSchemaMatchColumns(List<Match> tableMatches){
+    /**
+     * Given two lists of columns from two tables, perform schema matching on te columns.
+     * To determine if 2 columns are similar, name similarity, data type similarity and if it is or not primary key are used.
+     * The following formula is used:
+     * nameSim * 0.4 + datatypeSim * 0.4 + isPrimKey * 0.2
+     * @param cd1
+     * @param cd2
+     * @return
+     */
+    private Map<ColumnData, ColumnData> schemaMatchingColumn(List<ColumnData> cd1, List<ColumnData> cd2, Map<DatatypePair, Double> dataTypeScores){
         //to check if the datatypes between two columns is compatible
-        Map<DatatypePair, String> convertibleDataTypes = loadConvertibleDataTypeFile();
-        for (int k = 0; k < tableMatches.size(); k++){
-            Match m = tableMatches.get(k);
-            TableData t1 = m.getTableData1();
-            TableData t2 = m.getTableData2();
-            List<ColumnData> cd1 = t1.getColumnsList();
-            List<ColumnData> cd2 = t2.getColumnsList();
-            Map<ColumnData, ColumnData> columnMappings = schemaMatchingColumn(cd1, cd2, convertibleDataTypes);
+        Map<ColumnData, ColumnData> columnMappings = new HashMap<>();
+        for (int i = 0; i < cd1.size(); i++) {
+            //avoid inverse permutations ( (col1, col2) and (col2, col1) should not happen)
+            ColumnData c1 = cd1.get(i);
+            for (int j = 0; j < cd2.size(); j++) {
+                ColumnData c2 = cd2.get(j);
+                double datatypeSim = 0.0;
+                if (c1.getDataTypeNoLimit().equalsIgnoreCase(c2.getDataTypeNoLimit()))
+                    datatypeSim = 1.0; //same datatype
+                else {
+                    //check to see if the 2 datatypes are present in the list of convertable data types. If not, the data types are considered to be too diferent (double and boolean for example)
+                    DatatypePair dtpair = new DatatypePair(c1.getDataTypeNoLimit(), c2.getDataTypeNoLimit());
+                    if (dataTypeScores.containsKey(dtpair))
+                        datatypeSim = dataTypeScores.get(dtpair);
+                    if (datatypeSim == 0.0)
+                        continue; //if data types are not convertible, then do not consider as match
+                }
+                double nameSim = getNameSimilarityLevenshtein(c1.getName().toLowerCase(), c2.getName().toLowerCase());
 
-            //all matches between columns in 2 tables are finished. Add these mappings
-            m.setColumnMatches(columnMappings);
-            tableMatches.set(k, m);
+                // ---- check primary keys: if both have or dont have, chance of being similar increases
+                double primaryKeySim = 0.0;
+                if (c1.isPrimaryKey() == c2.isPrimaryKey())
+                    primaryKeySim = 1.0;
+
+                double columnSim = nameSim * 0.4 + datatypeSim * 0.4 + primaryKeySim * 0.2;
+                if (columnSim >= columnSimilarityThreshold){
+                    columnMappings.put(c1, c2); //considered to be semantically similar
+                }
+            }
         }
-        return tableMatches;
+        //all matches between columns in 2 tables are finished. Add these mappings
+        return columnMappings;
     }
+
 
     /**
      * Given two lists of columns from two tables, perform schema matching on te columns.
      * To determine if 2 columns are similar, name similarity, data type similarity and if it is or not primary key are used.
      * The following formula is used:
-     * nameSim * 0.4 + datatypeSim * 0.4 + isPrimKey - 0.2
+     * nameSim * 0.4 + datatypeSim * 0.4 + isPrimKey * 0.2
      * @param cd1
      * @param cd2
      * @param convertibleDataTypes
      * @return
      */
-    private Map<ColumnData, ColumnData> schemaMatchingColumn(List<ColumnData> cd1, List<ColumnData> cd2, Map<DatatypePair, String> convertibleDataTypes){
+    /*private Map<ColumnData, ColumnData> schemaMatchingColumn(List<ColumnData> cd1, List<ColumnData> cd2, Map<DatatypePair, String> convertibleDataTypes){
         //to check if the datatypes between two columns is compatible
         Map<ColumnData, ColumnData> columnMappings = new HashMap<>();
         for (int i = 0; i < cd1.size(); i++) {
@@ -491,7 +520,7 @@ public class SchemaMatcher {
         }
         //all matches between columns in 2 tables are finished. Add these mappings
         return columnMappings;
-    }
+    }*/
 
     /**
      * Load into memory a list of convertible data types from presto to use for column schema matching
@@ -510,6 +539,25 @@ public class SchemaMatcher {
             e.printStackTrace();
         }
         return convertipleDataTypes;
+    }
+
+    /**
+     * Load into memory a list of convertible data types from presto to use for column schema matching
+     */
+    private Map<DatatypePair, Double> loadDataTypeScoreFile(){
+        String line = "";
+        String csvSplitBy = ",";
+        Map<DatatypePair, Double> convertibleDataTypes = new HashMap<>();
+        try (BufferedReader br = new BufferedReader(new FileReader(DATATYPE_CONVERTIBLES_SCORE))) {
+            while ((line = br.readLine()) != null) {
+                String[] elements = line.split(csvSplitBy);
+                convertibleDataTypes.put(new DatatypePair(elements[0], elements[1]), Double.parseDouble(elements[2]));
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return convertibleDataTypes;
     }
 
     /**

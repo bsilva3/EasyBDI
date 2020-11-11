@@ -6,7 +6,7 @@ public class MainTest {
 
     public static void main(String[] args){
 
-        MetaDataManager m = new MetaDataManager("minho");
+        MetaDataManager m = new MetaDataManager("salesdb2");
         //m.deleteTablesToSaveQueries();
         //m.createTables();
         //manager.dropTables();

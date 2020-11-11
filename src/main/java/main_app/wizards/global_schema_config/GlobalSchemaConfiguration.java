@@ -2,6 +2,7 @@ package main_app.wizards.global_schema_config;
 
 import helper_classes.*;
 import helper_classes.utils_other.Constants;
+import helper_classes.utils_other.Utils;
 import main_app.metadata_storage.MetaDataManager;
 import main_app.presto_com.PrestoMediator;
 
@@ -758,13 +759,13 @@ public class GlobalSchemaConfiguration extends JPanel {
         //store on SQL
         view = metaDataManager.insertTableData(view);
         view = metaDataManager.insertColumnData(view);
-        CustomTreeNode tableNode = new CustomTreeNode(view.getTableName(), view, NodeType.TABLE);
+        CustomTreeNode tableNode = new CustomTreeNode(Utils.getFileNameNoExtension(t.getTableName())+" (view)", view, NodeType.TABLE);
         for (ColumnData c : view.getColumnsList()){
             CustomTreeNode colTree = new CustomTreeNode(c.getName(), c, NodeType.COLUMN);
             colTree.add(new CustomTreeNode(c.getDataType(), NodeType.COLUMN_INFO));
             tableNode.add(colTree);
         }
-        localSchemaModel.insertNodeInto(tableNode, (CustomTreeNode) selectedNode.getParent(), selectedNode.getIndex(selectedNode.getParent())+1);
+        localSchemaModel.insertNodeInto(tableNode, (CustomTreeNode) selectedNode.getParent(), selectedNode.getParent().getChildCount());
 
     }
 
@@ -1019,6 +1020,8 @@ public class GlobalSchemaConfiguration extends JPanel {
             globalTableNode = updateMappingsOnNodes(globalTableNode, globTable);//update all the global table
             globalSchemaModel.nodeChanged(globalTableNode);
         }
+        globalSchemaTree.revalidate();
+        globalSchemaTree.updateUI();
     }
 
     private boolean isColumnsReferenced(CustomTreeNode globalTableNode){
@@ -1038,6 +1041,8 @@ public class GlobalSchemaConfiguration extends JPanel {
         int nChilds = globalTableNode.getChildCount();
         for (int i = 0; i < nChilds; i++){
             CustomTreeNode childCol = (CustomTreeNode) globalTableNode.getChildAt(i);
+            if (childCol.getNodeType() != NodeType.GLOBAL_COLUMN)
+                continue;
             GlobalColumnData c = (GlobalColumnData) childCol.getObj();
             if (referencedCols.containsKey(c)){
                 referencedCols.remove(c);
@@ -1233,8 +1238,8 @@ public class GlobalSchemaConfiguration extends JPanel {
                 if (localTable.getNCols() != globalTable.getNCols())
                     return false;
                 for (ColumnData gc : localTable.getColumnsList()){
-                    //if all columns in all local tables are the same as the cols in global table, then there is vertical partiotioning
-                    if (!globalTable.columnExists(gc.getName(), gc.getDataTypeNoLimit(), gc.isPrimaryKey()))
+                    //if all columns in all local tables are the same as the cols in global table, then there is horizontal partiotioning
+                    if (!globalTable.columnExistsOriginalInfo(gc.getName(), gc.getDataTypeNoLimit(), gc.isPrimaryKey()))
                         return false;
                 }
             }
@@ -1352,6 +1357,10 @@ public class GlobalSchemaConfiguration extends JPanel {
             //System.out.println("dropping in: "+parent.getNodeType());
             CustomTreeNode globalTableNode = null;
             boolean updateMappingsInTable = false;
+
+            JTree tree = (JTree)support.getComponent();
+            DefaultTreeModel model = (DefaultTreeModel)tree.getModel();
+            boolean isGlobColInsert = false;
             //determine if user can drop in this location. If possible, rearrange the node accordingly (if needed)
             if (node.getNodeType() == NodeType.TABLE && parent.getNodeType() == NodeType.GLOBAL_TABLES){
                 //Drop a table in the list of global tables and make that table become a global table with the matches to that local table
@@ -1497,16 +1506,17 @@ public class GlobalSchemaConfiguration extends JPanel {
                 newNode.add(matches);
                 node = newNode;
                 updateMappingsInTable = true;
+                isGlobColInsert = true;
             }
             else
                 return false;
-            JTree tree = (JTree)support.getComponent();
-            DefaultTreeModel model = (DefaultTreeModel)tree.getModel();
             // Configure for drop mode.
             int index = childIndex;    // DropMode.INSERT
             if(childIndex == -1) {     // DropMode.ON
                 index = parent.getChildCount();
             }
+            if (isGlobColInsert)
+                index = index -1; //if inserting column in global table, insert before last position. Last position is for the mapping type
             model.insertNodeInto(node, parent, index);
             if (updateMappingsInTable){
                 //update mapping type

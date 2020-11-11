@@ -14,6 +14,7 @@ public class Constants {
     public static final String FILES_DIR = "files";
     public static final String IMAGES_DIR= FILES_DIR+ File.separator+"images"+File.separator;
     public static final String DATATYPE_CONVERTIBLES_DICT = FILES_DIR + File.separator + "convertible_datatypes.csv";
+    public static final String DATATYPE_CONVERTIBLES_SCORE = FILES_DIR + File.separator + "convertible_datatype_groups_score.csv";
     public static final String DATATYPE_CONVERTIBLES_GROUP_DICT = FILES_DIR + File.separator + "convertible_datatype_groups.csv";
     public static final String LOADING_GIF = IMAGES_DIR + File.separator + "loading.gif";
 

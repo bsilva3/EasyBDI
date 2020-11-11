@@ -233,6 +233,9 @@ public class ColumnData implements Serializable {
             return "\""+name+"\"";
         return table.getCompletePrestoTableName()+"."+name;
     }
+    public String getCompletePrestoColumnNameEscaped(){
+        return table.getCompletePrestoTableNameEscapped()+".\""+name+"\"";
+    }
 
     @Override
     public String toString() {

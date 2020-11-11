@@ -54,12 +54,23 @@ public class GlobalTableData implements Serializable {
     }
 
     public boolean columnExists(String name, String dataType, boolean isPrimaryKey){
+        boolean exists = false;
         for (GlobalColumnData c : this.globalColumnData){
             if (c.getName().equals(name) && c.getDataTypeNoLimit().equals(dataType) && c.isPrimaryKey() == isPrimaryKey){
-                return true;
+                exists = true;
             }
         }
-        return false;
+        return exists;
+    }
+
+    public boolean columnExistsOriginalInfo(String name, String dataType, boolean isPrimaryKey){
+        boolean exists = false;
+        for (GlobalColumnData c : this.globalColumnData){
+            if (c.getOgName().equals(name) && c.getOgDataType().equals(dataType) && c.isPrimaryKey() == isPrimaryKey){
+                exists = true;
+            }
+        }
+        return exists;
     }
 
     /**

@@ -1,7 +1,8 @@
 package main_app.wizards.global_schema_config;
 
+import helper_classes.*;
 import helper_classes.utils_other.Constants;
-import helper_classes.DBModel;
+import helper_classes.utils_other.Utils;
 
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
@@ -30,6 +31,11 @@ public class CustomTreeNode extends DefaultMutableTreeNode implements Serializab
     public CustomTreeNode(Object userObject, Object obj, NodeType nodeType) {
         super(userObject);
         this.obj = obj;
+        if ( (nodeType == NodeType.TABLE || nodeType == NodeType.GLOBAL_TABLE) && obj != null){
+            if (userObject.toString().contains(File.separator) && userObject.toString().contains(".")){
+                this.setUserObject(Utils.getFileNameNoExtension(userObject.toString()));
+            }
+        }
         this.nodeType = nodeType;
         this.icon = loadImageForLocalSchemaTree(nodeType);
     }

@@ -1,0 +1,10 @@
+numeric,string,0.4
+numeric,numeric,0.8 
+numeric,time,0.0
+numeric,boolean,0.0
+string,string,0.8
+string,time,0.4
+string,boolean,0.4
+time,time,0.8
+time,boolean,0.0
+boolean,boolean,0.8

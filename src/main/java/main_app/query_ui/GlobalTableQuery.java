@@ -446,7 +446,7 @@ public class GlobalTableQuery {
                     return subQueries;//propagate error
                 }
                 query += subQueries;
-                query += ") AS " + t.getTableName() + ",";
+                query += ") AS \"" + t.getTableName() + "\",";
             }
             else{
                 query += t.getTableName() + ",";
@@ -513,12 +513,12 @@ public class GlobalTableQuery {
                 }
                 else {
                     if (c.isOriginalDatatypeChanged())
-                        query += "CAST(\""+c.getFullNameEscapped()+"\" AS "+c.getDataType()+")AS \""+c.getFullName()+"\",";// CAST(table.col as datatype) as table.col
+                        query += "CAST("+c.getFullNameEscapped()+" AS "+c.getDataType()+")AS \""+c.getFullName()+"\",";// CAST(table.col as datatype) as table.col
                     else
-                        query += "\""+c.getFullNameEscapped()+ "\",";
-                    selectColsNoAggr.add(c.getFullName());
+                        query += ""+c.getFullNameEscapped()+ ",";
+                    selectColsNoAggr.add(c.getFullNameEscapped());
                     if (c.getAggrOp().equalsIgnoreCase("Group By")) {//no aggregate but selected to be added to group by
-                        selectColsGroupBy.add(c.getFullName());
+                        selectColsGroupBy.add(c.getFullNameEscapped());
                     }
                 }
                 //get primary keys of dimensions
@@ -565,9 +565,9 @@ public class GlobalTableQuery {
                     else
                         query += "\""+measureCol.getName() + "\",";
                     if( measureCol.getAggrOp() != null && measureCol.getAggrOp().equalsIgnoreCase("Group By"))
-                        selectColsGroupBy.add(factsTable.getGlobalTable().getTableName() + "." + measureCol.getName());
+                        selectColsGroupBy.add("\""+factsTable.getGlobalTable().getTableName() + "\".\"" + measureCol.getName()+"\"");
                     else
-                        selectColsNoAggr.add(factsTable.getGlobalTable().getTableName() + "." + measureCol.getName());
+                        selectColsNoAggr.add("\""+factsTable.getGlobalTable().getTableName() + "\".\"" + measureCol.getName()+"\"");
                 }
             }
         }
@@ -593,7 +593,7 @@ public class GlobalTableQuery {
                 }
                 query += "(" + subQueries;
                 //Join on facts table
-                query += ") AS " + t.getTableName() + ",";
+                query += ") AS \"" + t.getTableName() + "\",";
             }
             else{
                 query += t.getTableName() + ",";
@@ -639,7 +639,7 @@ public class GlobalTableQuery {
                 return subQueries;//propagate error
             }
             query += subQueries;
-            query += ") AS " + factsTable.getGlobalTable().getTableName() + " ";
+            query += ") AS \"" + factsTable.getGlobalTable().getTableName() + "\" ";
         }
         else{
             query += factsTable.getGlobalTable().getTableName() + " ";
@@ -660,7 +660,19 @@ public class GlobalTableQuery {
                         if (factsCol.hasForeignKey()) {
                             GlobalColumnData referencedCol = isFactsColReferencingDimTable(factsCol.getForeignKey(), tableDim);
                             if (referencedCol != null) {
-                                query += tableDim.getTableName() + "." + referencedCol.getName() + " = " + factsTable.getGlobalTable().getTableName() + "." + factsCol.getName();
+                                String dimCol = "";
+                                if (referencedCol.isOriginalDatatypeChanged())
+                                    dimCol = "CAST ("+"\""+tableDim.getTableName() + "\".\"" + referencedCol.getName() + "\" AS "+referencedCol.getDataType()+")"; //changed data type, perform cast
+                                else
+                                    dimCol = "\""+tableDim.getTableName() + "\".\"" + referencedCol.getName() + "\""; //no change in data type
+
+                                String factColStr = "";
+                                if (factsCol.isOriginalDatatypeChanged())
+                                    factColStr = "CAST (\""+factsTable.getGlobalTable().getTableName()+"\".\""+ factsCol.getName()+"\" AS "+factsCol.getDataType()+")"; //changed data type, perform cast
+                                else
+                                    factColStr = "\""+factsTable.getGlobalTable().getTableName()+"\".\""+ factsCol.getName()+"\""; //no change in data type
+
+                                query += dimCol + " = " + factColStr;
                                 query += " AND ";
                                 break;
                             }
@@ -734,13 +746,13 @@ public class GlobalTableQuery {
             for (GlobalColumnData c : cols){
                 if (c.getAggrOp()!=null && !c.getAggrOp().isEmpty()  && !c.getAggrOp().equalsIgnoreCase("Group By")){ //agregations
                     hasAggregations = true;
-                    query += c.getAggrOpFullName()+" AS \""+c.getAggrOp().toLowerCase() +" of "+c.getFullName()+"\",";// aggregationOP (table.column) as "aggrOP of table.column"
+                    query += c.getAggrOpFullNameEscapped()+" AS \""+c.getAggrOp().toLowerCase() +" of "+c.getFullName()+"\",";// aggregationOP (table.column) as "aggrOP of table.column"
                 }
                 else {
-                    query += t.getTableName() + "." + c.getName() + ",";// no aggregation
-                    selectColsNoAggr.add(c.getFullName());
+                    query += c.getFullNameEscapped()+",";// no aggregation
+                    selectColsNoAggr.add(c.getFullNameEscapped());
                     if (c.getAggrOp().equalsIgnoreCase("Group By")) {//no aggregate but selected to be added to group by
-                        selectColsGroupBy.add(c.getFullName());
+                        selectColsGroupBy.add(c.getFullNameEscapped());
                     }
                 }
                 nSelectCols++;
@@ -860,7 +872,7 @@ public class GlobalTableQuery {
                     return subQueries;//propagate error
                 }
                 query += "(" + subQueries;
-                query += ") AS " + t.getTableName() + ",";
+                query += ") AS \"" + t.getTableName() + "\",";
             }
             else{
                 query += t.getTableName() + ",";
@@ -898,7 +910,7 @@ public class GlobalTableQuery {
                 }
                 query += "(" + subQueries;
                 //Join on facts table
-                query += ") AS " + t.getTableName() + ",";
+                query += ") AS \"" + t.getTableName() + "\",";
             }
             else{
                 query += t.getTableName() + ",";
@@ -958,7 +970,20 @@ public class GlobalTableQuery {
                     if (factsCol.hasForeignKey()) {
                         GlobalColumnData referencedCol = isFactsColReferencingDimTable(factsCol.getForeignKey(), tableDim);
                         if (referencedCol != null) {
-                            query += tableDim.getTableName() + "." + referencedCol.getName() + " = " + factsTable.getGlobalTable().getTableName() + "." + factsCol.getName();
+                            String dimCol = "";
+                            if (referencedCol.isOriginalDatatypeChanged())
+                                dimCol = "CAST ("+"\""+tableDim.getTableName() + "\".\"" + referencedCol.getName() + "\" AS "+referencedCol.getDataType()+")"; //changed data type, perform cast
+                            else
+                                dimCol = "\""+tableDim.getTableName() + "\".\"" + referencedCol.getName() + "\""; //no change in data type
+
+                            String factColStr = "";
+                            if (factsCol.isOriginalDatatypeChanged())
+                                factColStr = "CAST (\""+factsTable.getGlobalTable().getTableName()+"\".\""+ factsCol.getName()+"\" AS "+factsCol.getDataType()+")"; //changed data type, perform cast
+                            else
+                                factColStr = "\""+factsTable.getGlobalTable().getTableName()+"\".\""+ factsCol.getName()+"\""; //no change in data type
+
+
+                            query += dimCol + " = " + factColStr;
                             query += " AND ";
                             break;
                         }
@@ -1177,15 +1202,19 @@ public class GlobalTableQuery {
             List<ColumnData> localCols = localTable.getColumnsList();
             for (int i = 0; i < localCols.size()-1; i++){
                 ColumnData c = localCols.get(i);
-                query+=c.getCompletePrestoColumnName();
+                if (localTable.hasViewUsingSQL())
+                    query+= "\""+c.getName()+"\"";
+                else
+                    query+=c.getCompletePrestoColumnNameEscaped();
                 if (!c.getName().equals(c.getGlobalColumnName())){//if this local column's name is not the same as the matched global column, add an alias
-                    query+=" AS "+c.getGlobalColumnName();
+                    query+=" AS \""+c.getGlobalColumnName()+"\"";
                 }
                 query+=", ";
             }
             query+=localCols.get(localCols.size()-1).getCompletePrestoColumnName()+" ";//last column is whithout a comma
+            //from clause, select local tables, or apply sql code if available
             if (localTable.getSqlCode() == null)
-                query+= "FROM "+localTable.getCompletePrestoTableName()+" ";
+                query+= "FROM "+localTable.getCompletePrestoTableNameEscapped()+" ";
             else
                 query+= "FROM ("+localTable.getSqlCode()+") ";
         }
@@ -1195,8 +1224,12 @@ public class GlobalTableQuery {
         //for each local table that matches with this global table
         String query = " SELECT * ";
         Set<TableData> localTables = t.getAllLocalTablesFromCols(t.getGlobalColumnDataList());
+        //from clause, select local tables, or apply sql code if available
         for (TableData localTable : localTables){
-            query+= "FROM "+localTable.getCompletePrestoTableName()+" ";
+            if (localTable.getSqlCode() == null)
+                query+= "FROM "+localTable.getCompletePrestoTableNameEscapped()+" ";
+            else
+                query+= "FROM ("+localTable.getSqlCode()+") ";
         }
         return query;
     }
@@ -1207,9 +1240,9 @@ public class GlobalTableQuery {
         //for each local table that matches with this global table
         Set<TableData> localTables = t.getAllLocalTablesFromCols(selectCols);
         List<ColumnData> localCols = localTables.iterator().next().getColumnsList();
-        List<String> localColNames = new ArrayList<>();
+        List<ColumnData> localColNames = new ArrayList<>();
         for (ColumnData c : localCols){
-            localColNames.add(c.getName());
+            localColNames.add(c);
         }
         for (TableData localTable : localTables){
             /*List<ColumnData> localCols = localTable.getColumnsList();
@@ -1217,11 +1250,23 @@ public class GlobalTableQuery {
                 query+=localCols.get(i).getCompletePrestoColumnName() +", ";
             }
             query+=localCols.get(localCols.size()-1).getCompletePrestoColumnName()+" ";//last column is whithout a comma*/
-            for (String colName : localColNames){
-                query+=localTable.getCompletePrestoTableName()+"."+colName +", ";
+            for (ColumnData col : localColNames){
+                //select column names
+                if (localTable.hasViewUsingSQL())
+                    query+= "\""+col.getName()+"\"";
+                else
+                    query+=col.getCompletePrestoColumnNameEscaped();
+                if (!col.getName().equals(col.getGlobalColumnName())){//if this local column's name is not the same as the matched global column, add an alias
+                    query+=" AS \""+col.getGlobalColumnName()+"\"";
+                }
+                query+=", ";
             }
             query = query.substring(0, query.length() - ", ".length());
-            query+= " FROM "+localTable.getCompletePrestoTableName()+" ";
+            //from clause, select local tables, or apply sql code if available
+            if (localTable.getSqlCode() == null)
+                query+= "FROM "+localTable.getCompletePrestoTableNameEscapped()+" ";
+            else
+                query+= "FROM ("+localTable.getSqlCode()+") ";
             query+=tableUnionString;
         }
         if (query.endsWith(tableUnionString)) {
@@ -1235,8 +1280,12 @@ public class GlobalTableQuery {
         String tableUnionString = "UNION SELECT ";
         //for each local table that matches with this global table
         Set<TableData> localTables = t.getAllLocalTablesFromCols(t.getGlobalColumnDataList());
+        //from clause, select local tables, or apply sql code if available
         for (TableData localTable : localTables){
-            query+= "FROM "+localTable.getCompletePrestoTableName()+" ";
+            if (localTable.getSqlCode() == null)
+                query+= "FROM "+localTable.getCompletePrestoTableNameEscapped()+" ";
+            else
+                query+= "FROM ("+localTable.getSqlCode()+") ";
             query+=tableUnionString;
         }
         if (query.endsWith(tableUnionString)) {
@@ -1260,7 +1309,14 @@ public class GlobalTableQuery {
         for (TableData localTable : localTablesFromSelectedCols){
             Set<ColumnData> localCols = new HashSet<>(localTable.getColumnsList());
             for (ColumnData col: localCols){
-                query+=col.getCompletePrestoColumnName() +", ";
+                if (localTable.hasViewUsingSQL())
+                    query+= "\""+col.getName()+"\"";
+                else
+                    query+=col.getCompletePrestoColumnNameEscaped();
+                if (!col.getName().equals(col.getGlobalColumnName())){//if this local column's name is not the same as the matched global column, add an alias
+                    query+=" AS \""+col.getGlobalColumnName()+"\"";
+                }
+                query+=", ";
             }
         }
         if (query.endsWith(", ")) {
@@ -1268,7 +1324,11 @@ public class GlobalTableQuery {
         }
         //if only one table on the correspondences of the selected global columns, no need to perform joins)
         if (localTablesFromSelectedCols.size() == 1) {
-            query += " FROM " + localTablesFromSelectedCols.iterator().next().getCompletePrestoTableName();
+            TableData localtable = localTablesFromSelectedCols.iterator().next();
+            if (localtable.getSqlCode() == null)
+                query+= " FROM " + localtable.getCompletePrestoTableNameEscapped();
+            else
+                query+= "FROM ("+localtable.getSqlCode()+") ";
         }
         else{
             //columns were selected that correspond to more than one local table, apply joins
@@ -1281,19 +1341,22 @@ public class GlobalTableQuery {
             if (originalTable == null)
                 return null; //there MUST be a table with no foreign keys (the original table)
             localTablesComplete.remove(originalTable);
-            query += " FROM " + originalTable.getCompletePrestoTableName();
+            if (originalTable.getSqlCode() == null)
+                query += " FROM " + originalTable.getCompletePrestoTableNameEscapped();
+            else
+                query+= "FROM ("+originalTable.getSqlCode()+") ";
             List<ColumnData> pkOriginalColumns = originalTable.getPrimaryKeyColumns();
             Set<TableData> localTablesSelected = getAllDiferentLocalTablesInGlobalColumns(selectCols);//tables with complete columns, but only those that have cols mapped to the selected global cols
             localTablesSelected.remove(originalTable);
             for (TableData tb : localTablesSelected) {
-                query += " "+tableJoinString + " " + tb.getCompletePrestoTableName();
+                query += " "+tableJoinString + " " + tb.getCompletePrestoTableNameEscapped();
                 List<ColumnData> pkColumns = tb.getPrimaryKeyColumns();
                 for (ColumnData pk : pkColumns){
                     ColumnData fk = getForeignKeyRef(pkOriginalColumns, pk);//get wich of the pk originals are referenced by the pk of this pk of the current table
                     if (fk == null){
                         continue;
                     }
-                    query+= " ON " + pk.getCompletePrestoColumnName() + " = " + fk.getCompletePrestoColumnName() +" AND ";
+                    query+= " ON " + pk.getCompletePrestoColumnNameEscaped() + " = " + fk.getCompletePrestoColumnNameEscaped() +" AND ";
                 }
             }
         }
@@ -1318,87 +1381,6 @@ public class GlobalTableQuery {
             return c;
         }
         return null;
-    }
-
-    /*private String handleVerticalMapping(GlobalTableData t, List<GlobalColumnData> selectCols){
-        //for each local table that matches with this global table
-        String query = " SELECT ";
-        String tableJoinString = "INNER JOIN ";
-
-        Set<TableData> localTablesSelectCols = t.getLocalTablesFromColsVerticalMap(selectCols);
-        //Set<TableData> localTables = t.getAllLocalTablesFromCols(t.getGlobalColumnDataList());
-        Set<TableData> localTables = t.getAllLocalTablesFromCols(t.getGlobalColumnDataList());
-        ColumnData primaryKeyCol = null;//primary key column of the original table (may be null if not queried any column or prim key)
-        List<ColumnData> foreignKeyCols = new ArrayList<>();
-        //all columns  from local tables (get primary key)
-        for (TableData localTable : localTables){
-            if (localTable.getColumnsList() == null)
-                continue;
-            Set<ColumnData> localCols = new HashSet<>(localTable.getColumnsList());
-            for (ColumnData col: localCols){
-                if (col.isPrimaryKey() && !col.hasForeignKey()){
-                    primaryKeyCol = col;
-                }
-                else if (col.isPrimaryKey() && col.hasForeignKey() && localTableHasOneColumnInSelect(selectCols, localTable)) {//the foreign key table must have at least one column in the select clause
-                    foreignKeyCols.add(col);
-                }
-            }
-            //query+=localCols.get(localCols.size()-1).getCompletePrestoColumnName()+" ";//last column is whithout a comma
-            //query+= "FROM "+localTable.getCompletePrestoTableName()+" ";
-        }
-        //get all local tables in the selected
-        for (TableData localTable : localTablesSelectCols){
-            Set<ColumnData> localCols = new HashSet<>(localTable.getColumnsList());
-            for (ColumnData col: localCols){
-                query+=col.getCompletePrestoColumnName() +", ";
-            }
-            //query+=localCols.get(localCols.size()-1).getCompletePrestoColumnName()+" ";//last column is whithout a comma
-            //query+= "FROM "+localTable.getCompletePrestoTableName()+" ";
-        }
-        if (query.endsWith(", ")) {
-            query = query.substring(0, query.length() - ", ".length());//last column is whithout a comma
-        }
-        if (localTablesSelectCols.size() == 1 && primaryKeyCol == null){
-            //selected only columns from one table but not any primary key
-            query+= " FROM "+localTablesSelectCols.iterator().next().getCompletePrestoTableName()+" ";//get the only local table present(no join needed)
-        }
-        else {
-            if (primaryKeyCol != null) {
-                query += " FROM " + primaryKeyCol.getTable().getCompletePrestoTableName() + " ";
-                //add joins
-                for (ColumnData col : foreignKeyCols) {
-                    query += tableJoinString + " " + col.getTable().getCompletePrestoTableName() + " ON " + primaryKeyCol.getCompletePrestoColumnName() + " = " + col.getCompletePrestoColumnName();
-                }
-            }
-            else{//TODO: test (more than 2 vertcial partioned tables)
-                //if original table (with prim key) not used in query use the first foreign key to join
-                String fkFullName = foreignKeyCols.get(0).getCompletePrestoColumnName();
-                query += " FROM " + fkFullName + " ";
-                for (int i = 1; i < foreignKeyCols.size(); i++) {
-                    query += tableJoinString + " " + foreignKeyCols.get(i).getTable().getCompletePrestoTableName() + " ON " + fkFullName + " = " + foreignKeyCols.get(i).getCompletePrestoColumnName();
-                }
-            }
-        }
-        return query;
-    }*/
-
-    private boolean localTableCorrespondsToOneOfTheGlobalTables(List<GlobalColumnData> globalCols, ColumnData localCol){
-        for (GlobalColumnData c : globalCols){
-            if (c.getLocalColumns().contains(localCol)){
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean localTableHasOneColumnInSelect(List<GlobalColumnData> globalCols, TableData localTable){
-        for (GlobalColumnData c : globalCols){
-            for (ColumnData localCol : c.getLocalColumns()){
-                if (localCol.getTable().equals(localTable))
-                    return true;
-            }
-        }
-        return false;
     }
 
     public void clearMeasures(){
