@@ -3,7 +3,9 @@ package helper_classes;
 import java.io.Serializable;
 import java.util.*;
 
-//helper class. For a given table, shows its name, columns and information of each column
+/**
+ * Represents a local table (in the local schema)
+ */
 public class TableData implements Serializable {
 
     private String tableName;

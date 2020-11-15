@@ -16,6 +16,11 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
 
+
+/**
+ * Acts as a instal wizard. Users can move to next and last screen.
+ * Changes the content depending on the configuration phase
+ */
 public class MainWizardPanel extends JPanel{
     private JPanel mainPanel;
     private JButton previousButton;
@@ -34,7 +39,6 @@ public class MainWizardPanel extends JPanel{
     private final String DB_SELECTION = "DBSelection";
     private final String GLOBAL_SCHEMA_CONFIG = "globalSchemaConfig";
     private final String MULTI_DIM_CONFIG = "MultidimensionalSchemaConfig";
-    private final String REVIEW = "Review";//?
 
     private boolean isLast;
     private int currentStepNumber;

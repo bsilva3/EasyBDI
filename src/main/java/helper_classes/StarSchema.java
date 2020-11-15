@@ -5,6 +5,9 @@ import helper_classes.GlobalTableData;
 
 import java.util.List;
 
+/**
+ * Represents a star schema, with a name, id, a facts table and list of dimensions
+ */
 public class StarSchema {
 
     private int cubeID;

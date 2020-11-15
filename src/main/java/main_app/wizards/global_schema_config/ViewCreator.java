@@ -37,11 +37,12 @@ public class ViewCreator extends JFrame{
         cancelButton.addActionListener(actionEvent -> closeWindow());
 
         this.setPreferredSize(new Dimension(700, 650));
-        setVisible(true);
         setContentPane(mainPanel);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         this.setTitle("View creation");
         pack();
+        setLocationRelativeTo(null);
+        setVisible(true);
 
     }
 

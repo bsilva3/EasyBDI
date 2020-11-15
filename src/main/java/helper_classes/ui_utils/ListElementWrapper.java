@@ -2,6 +2,9 @@ package helper_classes.ui_utils;
 
 import java.util.Objects;
 
+/**
+ * An element in a list in the query ui
+ */
 public class ListElementWrapper {
     private String name;
     private Object obj;

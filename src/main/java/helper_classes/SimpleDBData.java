@@ -2,6 +2,9 @@ package helper_classes;
 
 import java.util.Objects;
 
+/**
+ * Represents a data source (in the local schema). This class is a more simplified version
+ */
 public class SimpleDBData {
     private String dbName;
     private DBModel dbModel;

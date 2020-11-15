@@ -60,11 +60,12 @@ public class DataSourceProjectImporter extends JFrame{
         dbList.updateUI();
 
         this.setPreferredSize(new Dimension(450, 800));
-        setVisible(true);
         setContentPane(mainPanel);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         this.setTitle("Data source import");
         pack();
+        setLocationRelativeTo(null);
+        setVisible(true);
         cancelButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {

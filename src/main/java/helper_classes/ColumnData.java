@@ -5,7 +5,9 @@ import main_app.metadata_storage.MetaDataManager;
 import java.io.Serializable;
 import java.util.*;
 
-//Helper class. Shows info about a column (data type, name..)
+/*
+ Represents a local column (in the local schema)
+ */
 public class ColumnData implements Serializable {
     private int columnID;
     private String name;

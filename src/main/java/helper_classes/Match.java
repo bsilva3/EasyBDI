@@ -2,6 +2,9 @@ package helper_classes;
 
 import java.util.Map;
 
+/**
+ * Represents a pair of two local tables that match with each other via schema matching
+ */
 public class Match {
 
     private TableData tableData1;

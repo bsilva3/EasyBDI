@@ -8,6 +8,9 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Used in a string to parse table and column names (when using manual mode of the query ui)
+ */
 public class TableColumnNameExtractor {
     private final String regex = "\\w+\\.\\w+";
     private Pattern pattern;

@@ -2,6 +2,7 @@ package helper_classes;
 
 import java.util.Objects;
 
+
 public class DatatypePair {
 
     private String datatype1;

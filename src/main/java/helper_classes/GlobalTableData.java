@@ -3,6 +3,9 @@ package helper_classes;
 import java.io.Serializable;
 import java.util.*;
 
+/**
+ * Represents a global table (in the global schema)
+ */
 public class GlobalTableData implements Serializable {
 
     private String tableName;

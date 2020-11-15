@@ -1,5 +1,8 @@
 package helper_classes;
 
+/**
+ * Defines a mapping type between local and global schemas
+ */
 public enum MappingType {
     Simple(0), Vertical(1), Horizontal(2), Undefined(3);
 

@@ -5,6 +5,9 @@ import helper_classes.utils_other.Constants;
 import java.io.Serializable;
 import java.util.*;
 
+/**
+ Represents a data source  (in the local schema)
+ */
 public class DBData implements Serializable {
 
     private String dbName;

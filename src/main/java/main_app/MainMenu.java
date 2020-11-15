@@ -23,6 +23,9 @@ public class MainMenu extends JFrame{
     private JComboBox projectsComboBox;
     private JButton deleteSelectedProjectButton;
     private JLabel warningsLabel;
+    private JButton changePrestoDirectoryButton;
+    private JLabel prestoDirLabel;
+    private JLabel easybdiText;
     //button icons
     private Image queryBtnImage;
     private Image newProjectBtnImage;
@@ -33,7 +36,7 @@ public class MainMenu extends JFrame{
 
     private Dimension windowSize;
 
-    private final String mainMenuTitle = "Data source configuration wizard";
+    private final String mainMenuTitle = "Easy BDI - Main Menu";
 
     public MainMenu(){
         try {
@@ -51,10 +54,12 @@ public class MainMenu extends JFrame{
 
         //fill combobox with projects
         refreshProjectsInComboBox();
+        this.prestoDirLabel.setText(Constants.PRESTO_DIR);
         projectsComboBox.setSelectedIndex(0);
         currentProjectSelected = projectsComboBox.getSelectedItem().toString();
         checkProject();
         setListeners();
+        easybdiText.setFont(new Font("Serif", Font.PLAIN, 28));
 
         windowSize = new Dimension(1050, 850);
         this.setPreferredSize(windowSize);
@@ -64,6 +69,21 @@ public class MainMenu extends JFrame{
         this.setTitle(mainMenuTitle);
         this.pack();
         this.setVisible(true);
+        changePrestoDirectoryButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                JFileChooser chooser = new JFileChooser();
+                //chooser.setCurrentDirectory(new java.io.File("."));
+                chooser.setDialogTitle("Presto Directory Selection");
+                chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+                // disable the "All files" option.
+                chooser.setAcceptAllFileFilterUsed(false);
+                if (chooser.showOpenDialog(mainPanel) == JFileChooser.APPROVE_OPTION) {
+                    prestoDirLabel.setText(chooser.getSelectedFile().toString());//No validations are made that the selected directory is in fact a Presto directory
+                    Constants.PRESTO_DIR = chooser.getSelectedFile().toString();
+                }
+            }
+        });
     }
 
     public static void main(String[] args){

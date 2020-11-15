@@ -4,7 +4,9 @@ import helper_classes.utils_other.Constants;
 
 import javax.swing.*;
 import java.awt.*;
-
+/**
+ * Utility to create a loading screen
+ */
 public class LoadingScreenAnimator{
 
     private static JFrame frameGeneralLoading;

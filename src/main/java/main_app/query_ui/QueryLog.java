@@ -4,12 +4,15 @@ import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
+import java.util.concurrent.TimeUnit;
+
 public class QueryLog {
 
     private String query;
     private DateTime queryTimeBegin;
     private DateTime queryTimeEnd;
-    private DateTime duration;
+    private long durationSeconds;
+    private long durationMiliseconds;
     private int nResultsLines;
     private DateTimeFormatter formatter;
     private DateTimeFormatter formatter2;
@@ -24,8 +27,9 @@ public class QueryLog {
         }
         else {
             //determine difference
-            long diffInMillis = queryTimeBegin.getMillis() - queryTimeEnd.getMillis();
-            this.duration = new DateTime(diffInMillis);
+            long diffInMillis = queryTimeEnd.getMillis() - queryTimeBegin.getMillis();
+            this.durationSeconds = TimeUnit.MILLISECONDS.toSeconds(diffInMillis);
+            this.durationMiliseconds = diffInMillis;
         }
         this.nResultsLines = nResultsLines;
         this.formatter = DateTimeFormat.forPattern("HH:mm:ss");
@@ -56,12 +60,12 @@ public class QueryLog {
         this.queryTimeEnd = queryTimeEnd;
     }
 
-    public DateTime getDuration() {
-        return this.duration;
+    public long getDurationSeconds() {
+        return this.durationSeconds;
     }
 
-    public void setDuration(DateTime duration) {
-        this.duration = duration;
+    public void setDurationSeconds(long durationSeconds) {
+        this.durationSeconds = durationSeconds;
     }
 
     public int getnResultsLines() {
@@ -72,12 +76,17 @@ public class QueryLog {
         this.nResultsLines = nResultsLines;
     }
 
+    public long getDurationMiliseconds() {
+        return durationMiliseconds;
+    }
+
     @Override
     public String toString() {
         if (!queryFailed) {
-            return "Start time: " + formatter.print(queryTimeBegin) + " - Query Time End: " + formatter.print(queryTimeEnd) + " (" + formatter2.print(duration) + ") "
+            return "Start time: " + formatter.print(queryTimeBegin) + " - Query Time End: " + formatter.print(queryTimeEnd) +
+                    " (" + durationSeconds + " seconds and "+durationMiliseconds+" miliseconds) "
                     + "\nNumber of rows: " + nResultsLines
-                    + "\nQuery: \n" + query;
+                    + "\n Query: \n" + query;
         }
         return "Start time: " + formatter.print(queryTimeBegin) + " - QUERY FAILED"
                 + "\nQuery: \n" + query;

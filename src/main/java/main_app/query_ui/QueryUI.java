@@ -453,11 +453,8 @@ public class QueryUI extends JPanel{
                             return;
                         }
                         QueryLog queryLog = (QueryLog) queryStatusLogModel.get(index);
-                        JOptionPane optionPane = new NarrowOptionPane();
-                        optionPane.setMessage(queryLog.toString());
-                        optionPane.setMessageType(JOptionPane.INFORMATION_MESSAGE);
-                        JDialog dialog = optionPane.createDialog(null, "Query Log");
-                        dialog.setVisible(true);
+                        new InfoViewer("Query Log", queryLog.toString());
+
                     }
                 }
             });
@@ -472,11 +469,7 @@ public class QueryUI extends JPanel{
                             return;
                         }
                         QueryLog queryLog = (QueryLog) globalSchemaLogModel.get(index);
-                        JOptionPane optionPane = new NarrowOptionPane();
-                        optionPane.setMessage(queryLog.toString());
-                        optionPane.setMessageType(JOptionPane.INFORMATION_MESSAGE);
-                        JDialog dialog = optionPane.createDialog(null, "Global Schema Query");
-                        dialog.setVisible(true);
+                        new InfoViewer("Global Schema Query", queryLog.toString());
                     }
                 }
             });
@@ -491,11 +484,7 @@ public class QueryUI extends JPanel{
                             return;
                         }
                         QueryLog queryLog = (QueryLog) localSchemaLogModel.get(index);
-                        JOptionPane optionPane = new NarrowOptionPane();
-                        optionPane.setMessage(queryLog.toString());
-                        optionPane.setMessageType(JOptionPane.INFORMATION_MESSAGE);
-                        JDialog dialog = optionPane.createDialog(null, "Local Schema Query");
-                        dialog.setVisible(true);
+                        new InfoViewer("Local Schema Query", queryLog.toString());
                     }
                 }
             });
@@ -3216,18 +3205,18 @@ public class QueryUI extends JPanel{
                 inputs = new JComponent[]{
                         new JLabel("Select Filter Operation"),
                         filter,
-                        new JLabel("Filter value selection"),
+                        new JLabel("Filter value"),
                         value,
                 };
             }
             else{
                 //Need to add logic operation
                 inputs = new JComponent[]{
-                        new JLabel("Select Filter Operation"),
+                        new JLabel("Select Boolean Operation"),
                         logicOperation,
                         new JLabel("Select Filter Operation"),
                         filter,
-                        new JLabel("Filter value selection"),
+                        new JLabel("Filter value"),
                         value,
                 };
             }
@@ -3239,12 +3228,51 @@ public class QueryUI extends JPanel{
             String filterValue = "";
             if (result == JOptionPane.OK_OPTION) {
                 filterValue = value.getText();
-                if (!Utils.stringIsNumericOrBoolean(filterValue) && !droppedCol.getDataTypeCategory().equalsIgnoreCase(Constants.TIME_DATATYPE)){
-                    filterValue = "'"+filterValue+"'";
+                if (droppedCol.getDataTypeCategory().equals(Constants.STRING_DATATYPE) && !droppedCol.getDataTypeCategory().equalsIgnoreCase(Constants.TIME_DATATYPE)){
+                    //string like data types
+                    if (filter.getSelectedItem().toString().equalsIgnoreCase("between") || filter.getSelectedItem().toString().equalsIgnoreCase("not between")){
+                        if (!filterValue.contains("and")){
+                            JOptionPane.showMessageDialog(mainMenu, "Between operator must contain an 'and' between two values.", "error on filter value", JOptionPane.ERROR_MESSAGE);
+                            return null;
+                        }
+                        String[] valueSplit = filterValue.split(" and ");
+                        String value1 = valueSplit[0].trim();
+                        if (!value1.startsWith("'") && !value1.endsWith("'")){
+                            value1 = "'"+value1+"'";
+                        }
+                        String value2 = valueSplit[1].trim();
+                        if (!value2.startsWith("'") && !value2.endsWith("'")){
+                            value2 = "'"+value2+"'";
+                        }
+                        filterValue = value1 + " AND " + value2;
+                    }
+                    else
+                        filterValue = "'"+filterValue+"'";
                 }
                 else if (droppedCol.getDataTypeCategory().equalsIgnoreCase(Constants.TIME_DATATYPE)){
                     //date and time data type require need a <datatype> 'value' to be used
-                    filterValue = droppedCol.getDataType()+" '"+filterValue+"'";
+                    if (filter.getSelectedItem().toString().equalsIgnoreCase("between") || filter.getSelectedItem().toString().equalsIgnoreCase("not between")){
+                        if (!filterValue.contains("and")){
+                            JOptionPane.showMessageDialog(mainMenu, "Between operator must contain an 'and' between two values.", "error on filter value", JOptionPane.ERROR_MESSAGE);
+                            return null;
+                        }
+                        String[] valueSplit = filterValue.split(" and ");
+                        String value1 = valueSplit[0].trim();
+                        if (!value1.startsWith("'") && value1.endsWith("'")){
+                            value1 = "'"+value1+"'";
+                        }
+                        String value2 = valueSplit[1].trim();
+                        if (!value2.startsWith("'") && value2.endsWith("'")){
+                            value2 = "'"+value2+"'";
+                        }
+                        filterValue = droppedCol.getDataType() +" "+value1 + " AND " + droppedCol.getDataType()+" "+value2;
+                    }
+                    else {
+                        if (!filterValue.startsWith("'") && filterValue.endsWith("'")){
+                            filterValue = "'"+filterValue+"'";
+                        }
+                        filterValue = droppedCol.getDataType() + " " + filterValue;
+                    }
                 }
                 if (filterValue.length() == 0){
                     JOptionPane.showMessageDialog(null, "Please insert a filter value with same data type",

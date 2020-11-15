@@ -6,6 +6,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
 
+/**
+ * Simple Frame with a list of saved queries that user can select and load
+ */
 public class QuerySelector extends JFrame {
     private JList queryList;
     private DefaultListModel listModel;
@@ -21,11 +24,12 @@ public class QuerySelector extends JFrame {
         this.queryUI = queryUI;
         loadQueryNames();
         this.setPreferredSize(new Dimension(450, 600));
-        setVisible(true);
         setContentPane(mainPanel);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         this.setTitle("Query Load selection");
         pack();
+        setLocationRelativeTo(null);
+        setVisible(true);
         backButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {

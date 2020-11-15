@@ -2,6 +2,9 @@ package helper_classes;
 
 import java.util.Map;
 
+/**
+ * Represents a facts table
+ */
 public class FactsTable {
 
     private int id;

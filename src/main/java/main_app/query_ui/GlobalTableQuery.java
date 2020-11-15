@@ -794,17 +794,23 @@ public class GlobalTableQuery {
 
             GlobalColumnData measure = measures.get(0); //only one measure is used here.
             String pivotStatement = "";
+            String measureName = "";
+            if (measure.isOriginalDatatypeChanged()){
+                measureName = "CAST ("+"\""+measure.getName()+"\" AS "+measure.getDataType()+")";
+            }
+            else
+                measureName = "\""+measureName+"\"";
             if (measure.getAggrOp().equalsIgnoreCase("COUNT")) {
-                pivotStatement = " SUM(CASE WHEN %s AND " + measure.getName() + " IS NOT NULL THEN 1 ELSE 0 END) AS %s, ";
+                pivotStatement = " SUM(CASE WHEN %s AND " + measureName + " IS NOT NULL THEN 1 ELSE 0 END) AS %s, ";
                 hasAggregations = true;
             } else if (measure.getAggrOp().equalsIgnoreCase("SUM")) {
-                pivotStatement = " SUM(CASE WHEN %s THEN " + measure.getName() + " ELSE 0 END) AS %s, ";
+                pivotStatement = " SUM(CASE WHEN %s THEN " + measureName + " ELSE 0 END) AS %s, ";
                 hasAggregations = true;
             } else if (measure.getAggrOp().equalsIgnoreCase("AVG")) {
-                pivotStatement = " AVG(CASE WHEN %s THEN " + measure.getName() + " ELSE NULL END) AS %s, ";
+                pivotStatement = " AVG(CASE WHEN %s THEN " + measureName + " ELSE NULL END) AS %s, ";
                 hasAggregations = true;
             } else if (measure.getAggrOp().equalsIgnoreCase("SIMPLE") || measure.getAggrOp().isEmpty() || measure.getAggrOp().equalsIgnoreCase("Group By")) {
-                pivotStatement = " (CASE WHEN %s THEN " + measure.getName() + " ELSE 0 END) AS %s, ";
+                pivotStatement = " (CASE WHEN %s THEN " + measureName + " ELSE 0 END) AS %s, ";
                 groupByPivotCols.add(nSelectCols);
             }
             for (List<String> pairs : valuesByGlobalCol) {//for each list of value of each column
@@ -1140,7 +1146,7 @@ public class GlobalTableQuery {
         else {
             //error, query cannot be executed
             if (selectColumns.size() > 0 && (measures.size() != 1 || manualMeasures.size() != 1))
-                return "One measure, and only one, must be selected when submiting queries containing pivoted attributes.";
+                return "Error: one measure, and only one, must be selected when submiting queries containing pivoted attributes.";
             else
                 return "Error invalid query elements given";
         }

@@ -5,6 +5,9 @@ import helper_classes.utils_other.Constants;
 import java.io.Serializable;
 import java.util.*;
 
+/**
+ * Represents a global column (in the global schema)
+ */
 public class GlobalColumnData implements Serializable {
     private int columnID;
     private Set<ColumnData> localColumns;

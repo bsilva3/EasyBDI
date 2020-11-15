@@ -13,28 +13,19 @@ import static helper_classes.utils_other.Constants.DATATYPE_CONVERTIBLES_SCORE;
 import static java.lang.Integer.max;
 import static helper_classes.utils_other.Constants.DATATYPE_CONVERTIBLES_DICT;
 
-
+/**
+ * This class performs schema integration on a
+ */
 public class SchemaMatcher {
     private final double tableNameSimilarityThreshold = 0.6;
     private final double columnSimilarityThreshold = 0.70;
 
     private MetaDataManager metaDataManager;
 
-    public static void main(String[] args){
 
-        SchemaMatcher schemaMatcher = new SchemaMatcher("my project");
-        List<DBData> dbs = schemaMatcher.generateLocalSchema();
-        List<TableData> tables = new ArrayList<>();
-
-        for (DBData db: dbs)
-            tables.addAll(db.getTableList());
-
-        List<GlobalTableData> globalTables = schemaMatcher.schemaIntegration(dbs);
-        schemaMatcher.printGlobalTables(globalTables);
-
-        //GlobalSchemaConfigurationV2 schemaConfigurationV2 = new GlobalSchemaConfigurationV2("my project", schemaMatcher.generateLocalSchema(), globalTables);
-    }
-
+    /*
+    Used mostly just to print the results of schema integration
+     */
     public void printGlobalTables(List<GlobalTableData> globalTables){
         for (GlobalTableData globalTableData: globalTables){
             System.out.println("----------Global table: " + globalTableData.getTableName() +"-----------");
@@ -57,111 +48,6 @@ public class SchemaMatcher {
         metaDataManager = new MetaDataManager(projectName);
     }
 
-    public List<DBData> generateLocalSchema(){
-        DBData db1 = new DBData("http://example", DBModel.MYSQL, "sales");
-        DBData db2 = new DBData("http://example", DBModel.MYSQL, "business");
-        DBData db3 = new DBData("http://example", DBModel.PostgreSQL, "employees");
-        List<TableData> tables = new ArrayList<>();
-        //Table 1 -----------
-        TableData sales = new TableData("sales", "sales_schema", db1);
-        sales.setId(1);
-        List<ColumnData> cols = new ArrayList<>();
-        cols.add(new ColumnData.Builder("sale_id", "integer", true).withID(1).withTable(sales).withForeignKey("").build());
-        cols.add(new ColumnData.Builder("ammount", "double", false).withID(2).withTable(sales).withForeignKey("").build());
-        cols.add(new ColumnData.Builder("market", "varchar", false).withID(3).withTable(sales).withForeignKey("").build());
-        cols.add(new ColumnData.Builder("sale_date", "date", false).withID(4).withTable(sales).withForeignKey("").build());
-        sales.setColumnsList(cols);
-
-        //Table 2 -----------
-        TableData employees = new TableData("employees", "sales_schema", db1);
-        employees.setId(2);
-        cols = new ArrayList<>();
-        cols.add(new ColumnData.Builder("id", "integer", true).withID(5).withTable(employees).withForeignKey("").build());
-        cols.add(new ColumnData.Builder("fullName", "varchar", false).withID(6).withTable(employees).withForeignKey("").build());
-        cols.add(new ColumnData.Builder("badge", "char", false).withID(7).withTable(employees).withForeignKey("").build());
-        cols.add(new ColumnData.Builder("hired_date", "date", false).withID(8).withTable(employees).withForeignKey("").build());
-        employees.setColumnsList(cols);
-
-        //Table 3 -----------
-        TableData product = new TableData("product", "sales_schema", db1);
-        product.setId(3);
-        cols = new ArrayList<>();
-        cols.add(new ColumnData.Builder("prod_id", "integer", true).withID(9).withTable(product).withForeignKey("").build());
-        cols.add(new ColumnData.Builder("price", "double", false).withID(10).withTable(product).withForeignKey("").build());
-        cols.add(new ColumnData.Builder("category", "varchar", false).withID(11).withTable(product).withForeignKey("").build());
-
-        product.setColumnsList(cols);
-
-        db1.addTable(sales);
-        db1.addTable(employees);
-        db1.addTable(product);
-
-        //Table 4 ----------- similar to 2
-        TableData employees2 = new TableData("info_employees", "sales_schema", db2);
-        employees2.setId(4);
-        cols = new ArrayList<>();
-        cols.add(new ColumnData.Builder("id", "integer", true).withID(12).withTable(employees2).withForeignKey("").build());
-        cols.add(new ColumnData.Builder("first_name", "varchar", false).withID(13).withTable(employees2).withForeignKey("").build());
-        cols.add(new ColumnData.Builder("second_name", "varchar", false).withID(14).withTable(employees2).withForeignKey("").build());
-        cols.add(new ColumnData.Builder("badge_code", "integer", false).withID(15).withTable(employees2).withForeignKey("").build());
-        cols.add(new ColumnData.Builder("time_hired", "timestamp", false).withID(16).withTable(employees2).withForeignKey("").build());
-        employees2.setColumnsList(cols);
-
-        //Table 5 ----------- similar to 4 and 2
-        TableData employees3 = new TableData("infoEmployees", "sales", db2);
-        employees3.setId(5);
-        cols = new ArrayList<>();
-        cols.add(new ColumnData.Builder("id", "integer", true).withID(17).withTable(employees3).withForeignKey("").build());
-        cols.add(new ColumnData.Builder("first_name", "varchar", false).withID(18).withTable(employees3).withForeignKey("").build());
-        cols.add(new ColumnData.Builder("second_name", "varchar", false).withID(19).withTable(employees3).withForeignKey("").build());
-        cols.add(new ColumnData.Builder("badge_code", "integer", false).withID(20).withTable(employees3).withForeignKey("").build());
-        cols.add(new ColumnData.Builder("time_hired", "timestamp", false).withID(21).withTable(employees3).withForeignKey("").build());
-        employees3.setColumnsList(cols);
-
-
-        //Table 6 ----------- similar to 5, 4 and 2
-        TableData employees4 = new TableData("employees6", "sales", db2);
-        employees4.setId(6);
-        cols = new ArrayList<>();
-        cols.add(new ColumnData.Builder("id", "integer", true).withID(22).withTable(employees4).withForeignKey("").build());
-        cols.add(new ColumnData.Builder("first_name", "varchar", false).withID(23).withTable(employees4).withForeignKey("").build());
-        cols.add(new ColumnData.Builder("second_name", "varchar", false).withID(24).withTable(employees4).withForeignKey("").build());
-        cols.add(new ColumnData.Builder("badge_code", "integer", false).withID(25).withTable(employees4).withForeignKey("").build());
-        cols.add(new ColumnData.Builder("time_hired", "timestamp", false).withID(26).withTable(employees4).withForeignKey("").build());
-        employees4.setColumnsList(cols);
-
-        db2.addTable(employees2);
-        db2.addTable(employees3);
-        db2.addTable(employees4);
-
-        //Table 7 ----------- similar to 6, 5, 4 and 2
-        TableData employees5 = new TableData("employees7", "sales", db3);
-        employees5.setId(7);
-        cols = new ArrayList<>();
-        cols.add(new ColumnData.Builder("id", "integer", true).withID(27).withTable(employees5).withForeignKey("").build());
-        cols.add(new ColumnData.Builder("first_name", "varchar", false).withID(28).withTable(employees5).withForeignKey("").build());
-        cols.add(new ColumnData.Builder("second_name", "varchar", false).withID(29).withTable(employees5).withForeignKey("").build());
-        cols.add(new ColumnData.Builder("time_hired", "timestamp", false).withID(30).withTable(employees5).withForeignKey("").build());
-        employees5.setColumnsList(cols);
-
-        //Table 8 ----------- similar to 3
-        TableData product2 = new TableData("products", "sales_schema", db3);
-        product2.setId(8);
-        cols = new ArrayList<>();
-        cols.add(new ColumnData.Builder("prod_id", "integer", true).withID(31).withTable(product2).withForeignKey("").build());
-        cols.add(new ColumnData.Builder("price", "double", false).withID(32).withTable(product2).withForeignKey("").build());
-        cols.add(new ColumnData.Builder("category", "varchar", true).withID(33).withTable(product2).withForeignKey("").build());
-        product2.setColumnsList(cols);
-
-        db3.addTable(employees5);
-        db3.addTable(product2);
-        List<DBData> dbs = new ArrayList<>();
-        dbs.add(db1);
-        dbs.add(db2);
-        dbs.add(db3);
-        return dbs;
-    }
-
     public List<TableData> getAllTablesInDB(List<DBData> dbs){
         List<TableData> tables = new ArrayList<>();
 
@@ -170,10 +56,16 @@ public class SchemaMatcher {
         return tables;
     }
 
+    /**
+     * Perfoms schema integration by grouping similar tables to a global tables and setting correspondences to local tables and columns
+     * Given a list of databases (with tables), perform schema matching on the tables using the name, then form pairs of similar tables, finds the "chain" of pairs that will form a global table
+     * integrates the columns of all table by aplying schema matching on the columns and "merging" similar columns
+     * @param dbs
+     * @return
+     */
     public List<GlobalTableData> schemaIntegration(List<DBData> dbs){
         List<TableData> tables = getAllTablesInDB(dbs);
-        List<Match> matches = labelSchemaMatchingTables(tables);
-        //matches = labelTypeSchemaMatchColumns(matches); // column matching (should it be here)
+        List<Match> matches = labelSchemaMatchingTables(tables); //schema matching on tables, get list of pairs of identical tables (one table can match with many tables)
         //get the tables that did not match
         if (matches.size() == 0){ //no matches, simply convert each local table into a global table
             List<GlobalTableData> globalTables = new ArrayList<>();
@@ -291,20 +183,6 @@ public class SchemaMatcher {
         return groupedTables;
     }
 
-    private List<TableData> getTablesInAllPairs(List<Match> matches, Match match){
-        List<TableData> tables = new ArrayList<>();
-        for (int i = 0; i < matches.size(); i++){
-            TableData t = matches.get(i).getOtherTable(match.getTableData1());
-            if (t == null){
-                t = matches.get(i).getOtherTable(match.getTableData2());
-            }
-            if (t != null){
-                matches.remove(i);
-                tables.add(t);
-            }
-        }
-        return tables;
-    }
 
     /**
      * For each global table merge all tables's atributes for the global table
@@ -404,7 +282,7 @@ public class SchemaMatcher {
     }
 
     /**
-     * Given 2 datatype, choose the one that is more generic. For example, varchar e is more generic than integer
+     * Given 2 datatype, choose the one that is more generic. For example, varchar  is more generic than integer
      * @param dataType1
      * @param dataType2
      * @return
@@ -473,54 +351,6 @@ public class SchemaMatcher {
         return columnMappings;
     }
 
-
-    /**
-     * Given two lists of columns from two tables, perform schema matching on te columns.
-     * To determine if 2 columns are similar, name similarity, data type similarity and if it is or not primary key are used.
-     * The following formula is used:
-     * nameSim * 0.4 + datatypeSim * 0.4 + isPrimKey * 0.2
-     * @param cd1
-     * @param cd2
-     * @param convertibleDataTypes
-     * @return
-     */
-    /*private Map<ColumnData, ColumnData> schemaMatchingColumn(List<ColumnData> cd1, List<ColumnData> cd2, Map<DatatypePair, String> convertibleDataTypes){
-        //to check if the datatypes between two columns is compatible
-        Map<ColumnData, ColumnData> columnMappings = new HashMap<>();
-        for (int i = 0; i < cd1.size(); i++) {
-            //avoid inverse permutations ( (col1, col2) and (col2, col1) should not happen)
-            ColumnData c1 = cd1.get(i);
-            for (int j = 0; j < cd2.size(); j++) {
-                ColumnData c2 = cd2.get(j);
-                double datatypeSim = 0.0;
-                if (c1.getDataTypeNoLimit().equalsIgnoreCase(c2.getDataTypeNoLimit()))
-                    datatypeSim = 1.0; //same datatype
-                else {
-                    //check to see if the 2 datatypes are present in the list of convertable data types. If not, the data types are considered to be too diferent (double and boolean for example)
-                    if (convertibleDataTypes.containsKey(new DatatypePair(c1.getDataTypeNoLimit(), c2.getDataTypeNoLimit())))
-                        datatypeSim = 0.5;
-                    else if (convertibleDataTypes.containsKey(new DatatypePair(c2.getDataTypeNoLimit(), c1.getDataTypeNoLimit())))//switch order to find in the map if not yet found
-                        datatypeSim = 0.5;
-                    else
-                        continue; //if data types are not convertible, then do not consider as match
-                }
-                double nameSim = getNameSimilarityLevenshtein(c1.getName().toLowerCase(), c2.getName().toLowerCase());
-                // if not present, types are too diferent, datatypeSim remains at 0.0
-
-                // ---- check primary keys: if both have or dont have, chance of being similar increases
-                double primaryKeySim = 0.0;
-                if (c1.isPrimaryKey() == c2.isPrimaryKey())
-                    primaryKeySim = 1.0;
-
-                double columnSim = nameSim * 0.4 + datatypeSim * 0.4 + primaryKeySim * 0.2;
-                if (columnSim >= columnSimilarityThreshold){
-                    columnMappings.put(c1, c2); //considered to be semantically similar
-                }
-            }
-        }
-        //all matches between columns in 2 tables are finished. Add these mappings
-        return columnMappings;
-    }*/
 
     /**
      * Load into memory a list of convertible data types from presto to use for column schema matching

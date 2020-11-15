@@ -546,6 +546,8 @@ public class GlobalSchemaConfiguration extends JPanel {
                         }
                         else if (selectedNode.getNodeType() == NodeType.GLOBAL_COLUMN)
                             menu = getPopUpMenuForColumn();
+                        else if (selectedNode.getNodeType() == NodeType.COLUMN_MATCHES_TYPE)
+                            menu = getPopUpMenuForMapping();
                         else if (selectedNode.getNodeType() == NodeType.PRIMARY_KEY)
                             menu = getPopUpMenuForPrimaryKey();
                         else if (selectedNode.getNodeType() == NodeType.FOREIGN_KEY)
@@ -589,6 +591,65 @@ public class GlobalSchemaConfiguration extends JPanel {
         JMenuItem item2 = new JMenuItem("Delete Table");
         item2.addActionListener(getRemoveActionListener());
         menu.add(item2);
+
+        return menu;
+    }
+
+    //pop up menu that shows up when right clicking a mapping type node
+    private JPopupMenu getPopUpMenuForMapping() {
+        JPopupMenu menu = new JPopupMenu();
+        JMenuItem item = new JMenuItem("Edit Name");
+        item.addActionListener(getEditActionListener());
+        menu.add(item);
+
+        JMenu item1 = new JMenu("Change datatype");
+        //fill menus with types of data types, then fill in each datatype
+        //numeric
+        JMenu subnumeric = new JMenu(NUMERIC_DATATYPE);
+        for (String datatype : Constants.NUMERIC_DATATYPES){
+            JMenuItem i = new JMenuItem(datatype);
+            i.addActionListener(changeDataType(NUMERIC_DATATYPE, datatype));
+            subnumeric.add(i);
+        }
+        item1.add(subnumeric);
+
+        //string
+        JMenu substring = new JMenu(STRING_DATATYPE);
+        for (String datatype : Constants.STRING_DATATYPES){
+            JMenuItem i = new JMenuItem(datatype);
+            i.addActionListener(changeDataType(STRING_DATATYPE, datatype));
+            substring.add(i);
+        }
+        item1.add(substring);
+
+        //time
+        JMenu subtime = new JMenu(TIME_DATATYPE);
+        for (String datatype : Constants.TIME_DATATYPES){
+            JMenuItem i = new JMenuItem(datatype);
+            i.addActionListener(changeDataType(TIME_DATATYPE, datatype));
+            subtime.add(i);
+        }
+        item1.add(subtime);
+
+        //time
+        JMenuItem subboolean = new JMenuItem(BOOLEAN_DATATYPE);
+        subboolean.addActionListener(changeDataType(BOOLEAN_DATATYPE, BOOLEAN_DATATYPE));
+        item1.add(subboolean);
+
+        //item1.addActionListener(getEditActionListener());
+        menu.add(item1);
+
+        JMenuItem item2 = new JMenuItem("Add Primary Key");
+        item2.addActionListener(getAddPrimaryKeyActionListener());
+        menu.add(item2);
+
+        JMenuItem item3 = new JMenuItem("Add Foreign Key");
+        item3.addActionListener(addForeignKeyActionListener());
+        menu.add(item3);
+
+        JMenuItem item4 = new JMenuItem("Delete column");
+        item4.addActionListener(getRemoveActionListener());
+        menu.add(item4);
 
         return menu;
     }
