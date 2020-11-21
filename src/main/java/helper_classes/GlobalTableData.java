@@ -69,7 +69,7 @@ public class GlobalTableData implements Serializable {
     public boolean columnExistsOriginalInfo(String name, String dataType, boolean isPrimaryKey){
         boolean exists = false;
         for (GlobalColumnData c : this.globalColumnData){
-            if (c.getOgName().equals(name) && c.getOgDataType().equals(dataType) && c.isPrimaryKey() == isPrimaryKey){
+            if (c.getOgName().equals(name) && c.getOgDataTypeNoLimit().equals(dataType) && c.isPrimaryKey() == isPrimaryKey){
                 exists = true;
             }
         }

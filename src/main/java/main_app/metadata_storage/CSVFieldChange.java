@@ -10,16 +10,13 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 public class CSVFieldChange {
 
     public static void main (String[] args){
 
-        try {
+        /*try {
             CSVFieldChange.removeParethesesFromCSV("/home/bruno/Desktop/pv_dataset/2011-2012_solar_home_electricity_data_datefix_25.csv");
         } catch (IOException e) {
             e.printStackTrace();
@@ -35,7 +32,12 @@ public class CSVFieldChange {
             CSVFieldChange.removeParethesesFromCSV("/home/bruno/Desktop/pv_dataset/2011-2012_solar_home_electricity_data_datefix_25.csv");
         } catch (IOException e) {
             e.printStackTrace();
-        }
+        }*/
+        /*try {
+            CSVFieldChange.readCSVCols("/home/bruno/Desktop/pv_dataset/original_dataset_split/2010-2011_Solar_home_electricity_data-1.csv", 0, 1);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }*/
     }
 
 
@@ -81,6 +83,8 @@ public class CSVFieldChange {
             writer.flush();
         }
     }
+
+
 
     /**
      * Update CSV by row and column
@@ -156,5 +160,47 @@ public class CSVFieldChange {
             writer.writeAll(csvBody);
             writer.flush();
         }
+    }
+
+    public static void readCSVCols(String file, int col1, int col2) throws IOException {
+
+        File inputFile = new File(file);
+
+        // Read existing file
+        List<String[]> csvBody = new ArrayList<>();
+        Map<Integer, Double> cols = new HashMap<>();
+        try (CSVReader reader = new CSVReader(new FileReader(inputFile))) {
+            csvBody = reader.readAll();
+            // get CSV row column
+            for (int i = 1; i < csvBody.size(); i++){
+                cols.put(Integer.parseInt(csvBody.get(i)[col1]), Double.parseDouble(csvBody.get(i)[col2]));
+            }
+        } catch (CsvException e) {
+            e.printStackTrace();
+        }
+
+        for (Map.Entry<Integer, Double> c : cols.entrySet()){
+            System.out.println("("+c.getKey()+", "+c.getValue()+"),");
+        }
+    }
+
+    public static double sumCol(String file, int col) throws IOException {
+
+        File inputFile = new File(file);
+
+        // Read existing file
+        List<String[]> csvBody = new ArrayList<>();
+        double total = 0;
+        try (CSVReader reader = new CSVReader(new FileReader(inputFile))) {
+            csvBody = reader.readAll();
+            // get CSV row column
+            for (int i = 1; i < csvBody.size(); i++){
+                total += Double.parseDouble(csvBody.get(i)[col]);
+            }
+        } catch (CsvException e) {
+            e.printStackTrace();
+        }
+
+        return total;
     }
 }

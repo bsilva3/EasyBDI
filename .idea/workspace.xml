@@ -5,37 +5,210 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="4372070e-ade1-4e3a-bab8-4e40966e7856" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/java/main_app/query_ui/InfoViewer.form" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/main_app/query_ui/InfoViewer.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/HdrHistogram-2.1.9.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/aether-api-1.13.1.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/aether-connector-asynchttpclient-1.13.1.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/aether-connector-file-1.13.1.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/aether-impl-1.13.1.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/aether-spi-1.13.1.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/aether-util-1.13.1.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/aircompressor-0.16.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/antlr4-runtime-4.7.1.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/aopalliance-1.0.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/asm-6.2.1.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/asm-analysis-6.2.1.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/asm-tree-6.2.1.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/asm-util-6.2.1.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/assertj-core-3.16.1.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/async-http-client-1.6.5.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/bootstrap-0.197.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/bval-jsr-2.0.0.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/bytecode-1.2.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/cglib-nodep-3.3.0.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/checker-qual-2.11.1.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/commons-codec-1.11.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/commons-collections4-4.2.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/commons-compress-1.18.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/commons-math3-3.6.1.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/concurrent-0.197.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/configuration-0.197.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/curvesapi-1.05.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/discovery-0.197.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/discovery-server-1.29.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/error_prone_annotations-2.3.4.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/esri-geometry-api-2.2.2.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/event-0.197.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/failsafe-2.0.1.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/failureaccess-1.0.1.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/fastutil-8.3.0.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/guava-29.0-jre.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/guice-4.2.3.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/guice-multibindings-4.2.3.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/hk2-api-2.5.0-b42.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/hk2-locator-2.5.0-b42.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/hk2-utils-2.5.0-b42.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/http-client-0.197.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/http-server-0.197.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/http2-client-9.4.27.v20200227.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/http2-common-9.4.27.v20200227.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/http2-hpack-9.4.27.v20200227.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/http2-http-client-transport-9.4.27.v20200227.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/http2-server-9.4.27.v20200227.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/j2objc-annotations-1.3.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/jackson-annotations-2.10.3.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/jackson-core-2.10.3.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/jackson-databind-2.10.3.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/jackson-dataformat-smile-2.10.3.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/jackson-datatype-guava-2.10.3.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/jackson-datatype-jdk8-2.10.3.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/jackson-datatype-joda-2.10.3.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/jackson-datatype-jsr310-2.10.3.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/jackson-module-parameter-names-2.10.3.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/javassist-3.22.0-CR2.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/javax.activation-api-1.2.0.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/javax.annotation-api-1.3.2.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/javax.inject-1.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/javax.servlet-api-4.0.1.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/javax.ws.rs-api-2.1.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/jaxb-api-2.3.1.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/jaxrs-0.197.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/jcl-over-slf4j-1.7.30.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/jcommander-1.48.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/jersey-client-2.26.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/jersey-common-2.26.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/jersey-container-servlet-2.26.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/jersey-container-servlet-core-2.26.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/jersey-hk2-2.26.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/jersey-media-jaxb-2.26.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/jersey-server-2.26.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/jetty-alpn-client-9.4.27.v20200227.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/jetty-alpn-java-client-9.4.27.v20200227.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/jetty-client-9.4.27.v20200227.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/jetty-http-9.4.27.v20200227.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/jetty-io-9.4.27.v20200227.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/jetty-jmx-9.4.27.v20200227.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/jetty-security-9.4.27.v20200227.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/jetty-server-9.4.27.v20200227.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/jetty-servlet-9.4.27.v20200227.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/jetty-util-9.4.27.v20200227.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/jgrapht-core-0.9.0.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/jjwt-0.9.0.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/jmx-0.197.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/jmx-http-0.197.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/jmx-http-rpc-0.159.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/jmxutils-1.21.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/joda-time-2.10.5.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/jol-core-0.2.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/joni-2.1.5.3.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/json-0.197.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/jsr305-3.0.2.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/jts-core-1.16.1.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/leveldb-0.10.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/leveldb-api-0.10.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/log-0.197.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/log-manager-0.197.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/log4j-over-slf4j-1.7.30.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/logback-core-1.2.3.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/lucene-analyzers-common-8.4.1.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/lucene-core-8.4.1.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/maven-aether-provider-3.0.4.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/maven-artifact-3.0.4.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/maven-compat-3.0.4.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/maven-core-3.0.4.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/maven-embedder-3.0.4.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/maven-model-3.0.4.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/maven-model-builder-3.0.4.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/maven-plugin-api-3.0.4.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/maven-repository-metadata-3.0.4.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/maven-settings-3.0.4.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/maven-settings-builder-3.0.4.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/netty-3.6.2.Final.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/node-0.197.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/okhttp-3.9.0.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/okhttp-urlconnection-3.9.0.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/okio-1.13.0.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/osgi-resource-locator-1.0.1.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/parameternames-1.4.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/pcollections-2.1.2.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/plexus-cipher-1.7.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/plexus-classworlds-2.4.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/plexus-component-annotations-1.5.5.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/plexus-container-default-1.5.5.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/plexus-interpolation-1.14.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/plexus-sec-dispatcher-1.3.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/plexus-utils-3.0.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/poi-4.0.1.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/poi-ooxml-4.0.1.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/poi-ooxml-schemas-4.0.1.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/presto-array-334.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/presto-client-334.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/presto-flex-0.3-SNAPSHOT-sources.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/presto-flex-0.3-SNAPSHOT-test-sources.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/presto-flex-0.3-SNAPSHOT-tests.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/presto-flex-0.3-SNAPSHOT.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/presto-flex-0.3-SNAPSHOT.zip" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/presto-geospatial-toolkit-334.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/presto-main-334.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/presto-matching-334.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/presto-memory-context-334.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/presto-parser-334.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/presto-plugin-toolkit-334.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/presto-spi-334.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/re2j-td-1.4.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/resolver-1.5.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/security-0.197.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/slf4j-api-1.7.30.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/slf4j-jdk14-1.7.30.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/slice-0.38.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/stats-0.197.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/testing-0.197.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/testng-6.10.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/trace-token-0.197.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/units-1.6.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/validation-api-2.0.1.Final.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/wagon-provider-api-2.2.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/xbean-reflect-3.4.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flex_jars/xmlbeans-3.0.2.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/metadata/pv_final2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/metadata/pv_partiotioning_final" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pv_dataset/2010-2011_solar_home_electricity_datefix_25.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pv_dataset/2011-2012_solar_home_electricity_data_datefix_25.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pv_dataset/2012-2013_solar_home_electricity_data_datefix-25_2.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pv_dataset/Ausgrid solar home electricity data notes (Aug 2014).pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pv_dataset/Residential load and rooftop PV generation an Australian distribution network dataset.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pv_dataset/cleaned_dataset/pv_2010_2011_cleaned.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pv_dataset/cleaned_dataset/pv_2011_2012_cleaned.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pv_dataset/cleaned_dataset/pv_2012_2013_cleaned.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pv_dataset/file_view_queries/union_pv_queryV2_10_11.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pv_dataset/file_view_queries/union_pv_queryV2_11_12.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pv_dataset/file_view_queries/union_pv_queryV2_12_13.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pv_dataset/original_dataset/2010-2011_Solar_home_electricity_data.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pv_dataset/original_dataset/2011-2012 Solar home electricity data v2.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pv_dataset/original_dataset/2012-2013_solar_home_electricity_data_v2.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pv_dataset/original_dataset_split/2010-2011_Solar_home_electricity_data-1.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pv_dataset/original_dataset_split/2011-2012 Solar home electricity data v2-1.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pv_dataset/original_dataset_split/2012-2013_solar_home_electricity_data_v2_split1.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pv_dataset/original_dataset_split/2012-2013_solar_home_electricity_data_v2_split2.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pv_dataset/postalcode_file_to_import_toDB/postcodes.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pv_dataset/script_for_costumer_creation/create_costumers.sql" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pv_dataset/scripts_for_time_dim_creation/createT.sql" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pv_dataset/scripts_for_time_dim_creation/time_dim_gen2.sql" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/relation_db_view_creation_scripts/mysql_view_creation.sql" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/relation_db_view_creation_scripts/postgres_view_creation.sql" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/helper_classes/ColumnData.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/helper_classes/ColumnData.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/helper_classes/DBData.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/helper_classes/DBData.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/helper_classes/DatatypePair.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/helper_classes/DatatypePair.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/helper_classes/FactsTable.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/helper_classes/FactsTable.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/f.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/logs/winter.log" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/metadata/pv_partitioning_final" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/metadata/salesdb_partitioning" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/relation_db_scripts/view_creation.sql" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/helper_classes/GlobalColumnData.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/helper_classes/GlobalColumnData.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/helper_classes/GlobalTableData.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/helper_classes/GlobalTableData.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/helper_classes/MappingType.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/helper_classes/MappingType.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/helper_classes/Match.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/helper_classes/Match.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/helper_classes/SimpleDBData.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/helper_classes/SimpleDBData.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/helper_classes/StarSchema.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/helper_classes/StarSchema.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/helper_classes/TableData.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/helper_classes/TableData.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/helper_classes/ui_utils/ListElementType.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/helper_classes/ui_utils/ListElementType.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/helper_classes/ui_utils/ListElementWrapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/helper_classes/ui_utils/ListElementWrapper.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/helper_classes/ui_utils/LoadingScreenAnimator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/helper_classes/ui_utils/LoadingScreenAnimator.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/helper_classes/ui_utils/StripeRenderer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/helper_classes/ui_utils/StripeRenderer.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/helper_classes/utils_other/Constants.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/helper_classes/utils_other/Constants.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/helper_classes/utils_other/TableColumnNameExtractor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/helper_classes/utils_other/TableColumnNameExtractor.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/main_app/MainMenu.form" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/main_app/MainMenu.form" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/main_app/MainMenu.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/main_app/MainMenu.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/main_app/database_integration/SchemaMatcher.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/main_app/database_integration/SchemaMatcher.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/main_app/metadata_storage/CSVFieldChange.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/main_app/metadata_storage/CSVFieldChange.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/main_app/metadata_storage/MetaDataManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/main_app/metadata_storage/MetaDataManager.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/main_app/presto_com/PrestoMain.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/main_app/presto_com/PrestoMain.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/main_app/query_ui/GlobalTableQuery.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/main_app/query_ui/GlobalTableQuery.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/main_app/query_ui/QueryLog.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/main_app/query_ui/QueryLog.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/main_app/query_ui/QuerySelector.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/main_app/query_ui/QuerySelector.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/main_app/query_ui/QueryUI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/main_app/query_ui/QueryUI.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/main_app/wizards/DBConfig/DataSourceProjectImporter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/main_app/wizards/DBConfig/DataSourceProjectImporter.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/main_app/wizards/MainWizardPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/main_app/wizards/MainWizardPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/main_app/wizards/global_schema_config/GlobalSchemaConfiguration.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/main_app/wizards/global_schema_config/GlobalSchemaConfiguration.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/main_app/wizards/global_schema_config/ViewCreator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/main_app/wizards/global_schema_config/ViewCreator.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -88,6 +261,9 @@
   <component name="RecentsManager">
     <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
       <recent name="wizards.global_schema_config" />
+    </key>
+    <key name="CopyClassDialog.RECENTS_KEY">
+      <recent name="main_app.presto_com" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="C:\Users\bsilva\IdeaProjects\EasyBDI\src\main\java\prestoComm\wizards" />
@@ -155,12 +331,12 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Test" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="main_app.database_integration.Test" />
+    <configuration name="TableColumnNameExtractor" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="helper_classes.utils_other.TableColumnNameExtractor" />
       <module name="prestoComunicator" />
       <extension name="coverage">
         <pattern>
-          <option name="PATTERN" value="main_app.database_integration.*" />
+          <option name="PATTERN" value="helper_classes.utils_other.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
@@ -173,15 +349,15 @@
       <item itemvalue="Application.MainMenu" />
       <item itemvalue="Application.MainTest" />
       <item itemvalue="Application.PrestoMain" />
-      <item itemvalue="Application.Test" />
+      <item itemvalue="Application.TableColumnNameExtractor" />
     </list>
     <recent_temporary>
       <list>
         <item itemvalue="Application.MainMenu" />
         <item itemvalue="Application.PrestoMain" />
-        <item itemvalue="Application.MainTest" />
-        <item itemvalue="Application.Test" />
+        <item itemvalue="Application.TableColumnNameExtractor" />
         <item itemvalue="Application.CSVFieldChange" />
+        <item itemvalue="Application.MainTest" />
       </list>
     </recent_temporary>
   </component>
@@ -196,13 +372,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1580145836101</updated>
-    </task>
-    <task id="LOCAL-00013" summary="schema matching of columns improved">
-      <created>1587211066738</created>
-      <option name="number" value="00013" />
-      <option name="presentableId" value="LOCAL-00013" />
-      <option name="project" value="LOCAL" />
-      <updated>1587211066739</updated>
     </task>
     <task id="LOCAL-00014" summary="Mapping type added">
       <created>1587658584952</created>
@@ -540,7 +709,14 @@
       <option name="project" value="LOCAL" />
       <updated>1605138493580</updated>
     </task>
-    <option name="localTasksCounter" value="62" />
+    <task id="LOCAL-00062" summary="Several bug fixes for query generation, such as cast, sql code view. Minor fixes on horizontal mapping algorithm, and UI tweaks">
+      <created>1605452229583</created>
+      <option name="number" value="00062" />
+      <option name="presentableId" value="LOCAL-00062" />
+      <option name="project" value="LOCAL" />
+      <updated>1605452229583</updated>
+    </task>
+    <option name="localTasksCounter" value="63" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -597,15 +773,15 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="287" y="0" width="1336" height="1038" key="#com.intellij.refactoring.rename.AutomaticRenamingDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1605209821610" />
-    <state x="418" y="293" width="1162" height="538" key="#xdebugger.evaluate" timestamp="1604780538648">
+    <state x="398" y="346" width="1162" height="538" key="#xdebugger.evaluate" timestamp="1605714434707">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="418" y="293" width="1162" height="538" key="#xdebugger.evaluate/0.0.1920.1040@0.0.1920.1040" timestamp="1604780538648" />
+    <state x="398" y="346" width="1162" height="538" key="#xdebugger.evaluate/0.0.1920.1040@0.0.1920.1040" timestamp="1605714434707" />
     <state x="895" y="378" key="#xdebugger.evaluate/0.0.1920.1053@0.0.1920.1053" timestamp="1599245044211" />
-    <state x="607" y="116" width="747" height="803" key="CommitChangelistDialog2" timestamp="1605138493224">
+    <state x="607" y="116" width="747" height="803" key="CommitChangelistDialog2" timestamp="1605452229485">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="607" y="116" width="747" height="803" key="CommitChangelistDialog2/0.0.1920.1040@0.0.1920.1040" timestamp="1605138493224" />
+    <state x="607" y="116" width="747" height="803" key="CommitChangelistDialog2/0.0.1920.1040@0.0.1920.1040" timestamp="1605452229485" />
     <state width="1170" height="485" key="DebuggerActiveHint" timestamp="1604070902631">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -614,45 +790,45 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="740" y="275" width="424" height="482" key="FileChooserDialogImpl/0.0.1920.1040@0.0.1920.1040" timestamp="1597677816836" />
-    <state width="1874" height="212" key="GridCell.Tab.0.bottom" timestamp="1605451118277">
+    <state width="1874" height="212" key="GridCell.Tab.0.bottom" timestamp="1605726018662">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1874" height="212" key="GridCell.Tab.0.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1605451118277" />
+    <state width="1874" height="212" key="GridCell.Tab.0.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1605726018662" />
     <state width="1874" height="193" key="GridCell.Tab.0.bottom/0.0.1920.1053@0.0.1920.1053" timestamp="1599245457285" />
-    <state width="1874" height="212" key="GridCell.Tab.0.center" timestamp="1605451118277">
+    <state width="1874" height="212" key="GridCell.Tab.0.center" timestamp="1605726018661">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1874" height="212" key="GridCell.Tab.0.center/0.0.1920.1040@0.0.1920.1040" timestamp="1605451118277" />
+    <state width="1874" height="212" key="GridCell.Tab.0.center/0.0.1920.1040@0.0.1920.1040" timestamp="1605726018661" />
     <state width="1874" height="193" key="GridCell.Tab.0.center/0.0.1920.1053@0.0.1920.1053" timestamp="1599245457284" />
-    <state width="1874" height="212" key="GridCell.Tab.0.left" timestamp="1605451118277">
+    <state width="1874" height="212" key="GridCell.Tab.0.left" timestamp="1605726018661">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1874" height="212" key="GridCell.Tab.0.left/0.0.1920.1040@0.0.1920.1040" timestamp="1605451118277" />
+    <state width="1874" height="212" key="GridCell.Tab.0.left/0.0.1920.1040@0.0.1920.1040" timestamp="1605726018661" />
     <state width="1874" height="193" key="GridCell.Tab.0.left/0.0.1920.1053@0.0.1920.1053" timestamp="1599245457284" />
-    <state width="1874" height="212" key="GridCell.Tab.0.right" timestamp="1605451118277">
+    <state width="1874" height="212" key="GridCell.Tab.0.right" timestamp="1605726018662">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1874" height="212" key="GridCell.Tab.0.right/0.0.1920.1040@0.0.1920.1040" timestamp="1605451118277" />
+    <state width="1874" height="212" key="GridCell.Tab.0.right/0.0.1920.1040@0.0.1920.1040" timestamp="1605726018662" />
     <state width="1874" height="193" key="GridCell.Tab.0.right/0.0.1920.1053@0.0.1920.1053" timestamp="1599245457284" />
-    <state width="1874" height="190" key="GridCell.Tab.1.bottom" timestamp="1605210743634">
+    <state width="1874" height="190" key="GridCell.Tab.1.bottom" timestamp="1605726018655">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1874" height="190" key="GridCell.Tab.1.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1605210743634" />
+    <state width="1874" height="190" key="GridCell.Tab.1.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1605726018655" />
     <state width="1874" height="240" key="GridCell.Tab.1.bottom/0.0.1920.1053@0.0.1920.1053" timestamp="1599245457280" />
-    <state width="1874" height="190" key="GridCell.Tab.1.center" timestamp="1605210743633">
+    <state width="1874" height="190" key="GridCell.Tab.1.center" timestamp="1605726018654">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1874" height="190" key="GridCell.Tab.1.center/0.0.1920.1040@0.0.1920.1040" timestamp="1605210743633" />
+    <state width="1874" height="190" key="GridCell.Tab.1.center/0.0.1920.1040@0.0.1920.1040" timestamp="1605726018654" />
     <state width="1874" height="240" key="GridCell.Tab.1.center/0.0.1920.1053@0.0.1920.1053" timestamp="1599245457280" />
-    <state width="1874" height="190" key="GridCell.Tab.1.left" timestamp="1605210743632">
+    <state width="1874" height="190" key="GridCell.Tab.1.left" timestamp="1605726018654">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1874" height="190" key="GridCell.Tab.1.left/0.0.1920.1040@0.0.1920.1040" timestamp="1605210743632" />
+    <state width="1874" height="190" key="GridCell.Tab.1.left/0.0.1920.1040@0.0.1920.1040" timestamp="1605726018654" />
     <state width="1874" height="240" key="GridCell.Tab.1.left/0.0.1920.1053@0.0.1920.1053" timestamp="1599245457280" />
-    <state width="1874" height="190" key="GridCell.Tab.1.right" timestamp="1605210743634">
+    <state width="1874" height="190" key="GridCell.Tab.1.right" timestamp="1605726018654">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1874" height="190" key="GridCell.Tab.1.right/0.0.1920.1040@0.0.1920.1040" timestamp="1605210743634" />
+    <state width="1874" height="190" key="GridCell.Tab.1.right/0.0.1920.1040@0.0.1920.1040" timestamp="1605726018654" />
     <state width="1874" height="240" key="GridCell.Tab.1.right/0.0.1920.1053@0.0.1920.1053" timestamp="1599245457280" />
     <state x="490" y="175" width="924" height="682" key="Maven.ArtifactSearchDialog" timestamp="1600023928814">
       <screen x="0" y="0" width="1920" height="1040" />
@@ -662,10 +838,10 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="839" y="314" width="246" height="404" key="UIDesigner.ListEditorDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1598901314448" />
-    <state x="555" y="255" width="800" height="526" key="Vcs.Push.Dialog.v2" timestamp="1605138494935">
+    <state x="555" y="255" width="800" height="526" key="Vcs.Push.Dialog.v2" timestamp="1605452239958">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="555" y="255" width="800" height="526" key="Vcs.Push.Dialog.v2/0.0.1920.1040@0.0.1920.1040" timestamp="1605138494935" />
+    <state x="555" y="255" width="800" height="526" key="Vcs.Push.Dialog.v2/0.0.1920.1040@0.0.1920.1040" timestamp="1605452239958" />
     <state width="960" height="520" key="XDebugger.FullValuePopup" timestamp="1604077326136">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -780,7 +956,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-method">
           <url>file://$PROJECT_DIR$/src/main/java/main_app/query_ui/GlobalTableQuery.java</url>
-          <line>1383</line>
+          <line>1408</line>
           <properties class="main_app.query_ui.GlobalTableQuery" method="getForeignKeyRef">
             <option name="EMULATED" value="true" />
           </properties>
@@ -804,7 +980,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-method">
           <url>file://$PROJECT_DIR$/src/main/java/main_app/query_ui/QueryUI.java</url>
-          <line>1756</line>
+          <line>1778</line>
           <properties class="main_app.query_ui.QueryUI">
             <option name="EMULATED" value="true" />
           </properties>
@@ -812,7 +988,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-method">
           <url>file://$PROJECT_DIR$/src/main/java/main_app/query_ui/QueryUI.java</url>
-          <line>2979</line>
+          <line>3001</line>
           <properties class="main_app.query_ui.QueryUI.TreeTransferHandler">
             <option name="EMULATED" value="true" />
           </properties>
@@ -835,16 +1011,8 @@
           <option name="timeStamp" value="949" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-method">
-          <url>file://$PROJECT_DIR$/src/main/java/main_app/query_ui/GlobalTableQuery.java</url>
-          <line>387</line>
-          <properties class="main_app.query_ui.GlobalTableQuery" method="buildQuerySelectRowsOnly">
-            <option name="EMULATED" value="true" />
-          </properties>
-          <option name="timeStamp" value="962" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-method">
           <url>file://$PROJECT_DIR$/src/main/java/helper_classes/GlobalColumnData.java</url>
-          <line>279</line>
+          <line>292</line>
           <properties class="helper_classes.GlobalColumnData" method="getAggrOpFullNameEscapped">
             <option name="EMULATED" value="true" />
           </properties>
@@ -941,7 +1109,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/main_app/query_ui/GlobalTableQuery.java</url>
-          <line>1294</line>
+          <line>1319</line>
           <option name="timeStamp" value="353" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
@@ -966,22 +1134,22 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/main_app/query_ui/QueryUI.java</url>
-          <line>1986</line>
+          <line>2008</line>
           <option name="timeStamp" value="523" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/main_app/query_ui/QueryUI.java</url>
-          <line>2014</line>
+          <line>2036</line>
           <option name="timeStamp" value="607" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/main_app/query_ui/QueryUI.java</url>
-          <line>2029</line>
+          <line>2051</line>
           <option name="timeStamp" value="608" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/main_app/query_ui/QueryUI.java</url>
-          <line>1991</line>
+          <line>2013</line>
           <option name="timeStamp" value="609" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
@@ -1066,7 +1234,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/main_app/query_ui/GlobalTableQuery.java</url>
-          <line>324</line>
+          <line>343</line>
           <option name="timeStamp" value="793" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
@@ -1086,7 +1254,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/main_app/query_ui/QueryUI.java</url>
-          <line>1699</line>
+          <line>1721</line>
           <option name="timeStamp" value="864" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
@@ -1116,7 +1284,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/main_app/query_ui/QueryUI.java</url>
-          <line>2996</line>
+          <line>3018</line>
           <option name="timeStamp" value="874" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
@@ -1131,12 +1299,12 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/main_app/metadata_storage/CSVFieldChange.java</url>
-          <line>139</line>
+          <line>143</line>
           <option name="timeStamp" value="941" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/main_app/metadata_storage/CSVFieldChange.java</url>
-          <line>136</line>
+          <line>140</line>
           <option name="timeStamp" value="944" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
@@ -1165,23 +1333,18 @@
           <option name="timeStamp" value="959" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/main_app/query_ui/GlobalTableQuery.java</url>
-          <line>1233</line>
-          <option name="timeStamp" value="961" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/main_app/metadata_storage/CSVFieldChange.java</url>
-          <line>63</line>
+          <line>65</line>
           <option name="timeStamp" value="972" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/helper_classes/GlobalColumnData.java</url>
-          <line>283</line>
+          <line>296</line>
           <option name="timeStamp" value="974" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/helper_classes/GlobalColumnData.java</url>
-          <line>285</line>
+          <line>298</line>
           <option name="timeStamp" value="975" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
@@ -1230,49 +1393,124 @@
           <option name="timeStamp" value="992" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/main_app/query_ui/GlobalTableQuery.java</url>
-          <line>660</line>
-          <option name="timeStamp" value="994" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/main_app/query_ui/GlobalTableQuery.java</url>
-          <line>662</line>
-          <option name="timeStamp" value="995" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/main_app/query_ui/GlobalTableQuery.java</url>
-          <line>663</line>
-          <option name="timeStamp" value="996" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/main_app/query_ui/QueryUI.java</url>
-          <line>1572</line>
-          <option name="timeStamp" value="997" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/main_app/query_ui/QueryUI.java</url>
-          <line>1578</line>
-          <option name="timeStamp" value="998" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/main_app/query_ui/QueryUI.java</url>
-          <line>3228</line>
+          <line>3250</line>
           <option name="timeStamp" value="1000" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/main_app/query_ui/QueryUI.java</url>
-          <line>3230</line>
+          <line>3252</line>
           <option name="timeStamp" value="1001" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/main_app/query_ui/QueryUI.java</url>
-          <line>3276</line>
+          <line>3298</line>
           <option name="timeStamp" value="1002" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/main_app/query_ui/QueryUI.java</url>
           <line>485</line>
           <option name="timeStamp" value="1003" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/main_app/metadata_storage/CSVFieldChange.java</url>
+          <line>175</line>
+          <option name="timeStamp" value="1004" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/main_app/query_ui/GlobalTableQuery.java</url>
+          <line>1334</line>
+          <option name="timeStamp" value="1010" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/main_app/query_ui/GlobalTableQuery.java</url>
+          <line>1330</line>
+          <option name="timeStamp" value="1011" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/main_app/query_ui/GlobalTableQuery.java</url>
+          <line>1356</line>
+          <option name="timeStamp" value="1012" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/main_app/query_ui/GlobalTableQuery.java</url>
+          <line>1363</line>
+          <option name="timeStamp" value="1013" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/helper_classes/utils_other/TableColumnNameExtractor.java</url>
+          <line>20</line>
+          <option name="timeStamp" value="1018" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/main_app/query_ui/GlobalTableQuery.java</url>
+          <line>270</line>
+          <option name="timeStamp" value="1033" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/main_app/query_ui/GlobalTableQuery.java</url>
+          <line>1160</line>
+          <option name="timeStamp" value="1040" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/main_app/query_ui/GlobalTableQuery.java</url>
+          <line>1164</line>
+          <option name="timeStamp" value="1041" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/main_app/query_ui/GlobalTableQuery.java</url>
+          <line>598</line>
+          <option name="timeStamp" value="1045" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/main_app/query_ui/GlobalTableQuery.java</url>
+          <line>599</line>
+          <option name="timeStamp" value="1046" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/main_app/query_ui/GlobalTableQuery.java</url>
+          <line>258</line>
+          <option name="timeStamp" value="1047" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/main_app/query_ui/GlobalTableQuery.java</url>
+          <line>629</line>
+          <option name="timeStamp" value="1048" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/main_app/query_ui/GlobalTableQuery.java</url>
+          <line>630</line>
+          <option name="timeStamp" value="1049" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/main_app/query_ui/GlobalTableQuery.java</url>
+          <line>626</line>
+          <option name="timeStamp" value="1050" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/main_app/query_ui/GlobalTableQuery.java</url>
+          <line>642</line>
+          <option name="timeStamp" value="1051" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/main_app/query_ui/GlobalTableQuery.java</url>
+          <line>645</line>
+          <option name="timeStamp" value="1052" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/main_app/query_ui/GlobalTableQuery.java</url>
+          <line>659</line>
+          <option name="timeStamp" value="1053" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/main_app/query_ui/GlobalTableQuery.java</url>
+          <line>651</line>
+          <option name="timeStamp" value="1055" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/main_app/query_ui/GlobalTableQuery.java</url>
+          <line>249</line>
+          <option name="timeStamp" value="1057" />
         </line-breakpoint>
         <breakpoint enabled="true" type="java-exception">
           <properties class="java.text.ParseException" package="java.text" />

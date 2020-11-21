@@ -9,12 +9,12 @@ public class PrestoMain {
         /*PrestoMediator p = new PrestoMediator();
         p.createConnection();
         System.out.println(p.makeQuery("show create view system.pvFactsView"));*/
-        /*for (int i = 1; i <= ((366*48)*3); i++){
+        for (int i = 1; i <= ((366*48)*4); i++){
             System.out.print("("+i+"),");
-        }*/
+        }
 
-        String s = "file:///home/bruno/2012_2013_strategy.csv";
+        /*String s = "file:///home/bruno/2012_2013_strategy.csv";
         System.out.println(s.contains(File.separator) && s.contains("."));
-        System.out.println(Utils.getFileNameNoExtension("2012_2013_strategy (view)"));
+        System.out.println(Utils.getFileNameNoExtension("2012_2013_strategy (view)"));*/
     }
 }

@@ -957,7 +957,7 @@ public class MetaDataManager {
                     pstmt.setInt(1, gt.getId());
                     pstmt.setString(2, column.getName());
                     pstmt.setString(3, column.getDataType());
-                    pstmt.setString(4, column.getOgDataType());
+                    pstmt.setString(4, column.getOgDataTypeNoLimit());
                     pstmt.setBoolean(5, column.isOriginalDatatypeChanged());
                     pstmt.setBoolean(6, column.isPrimaryKey());
                     pstmt.setString(7, column.getForeignKey());

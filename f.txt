@@ -1,3 +1,0 @@
-Start time: 23:15:22 - Query Time End: 23:15:22 (00:00) 
-Number of rows: 0
-Query: SELECT email FROM (postgresql_localhost_5432_employees_horizontal.public.staff_rm.email FROM postgresql_localhost_5432_employees_horizontal.public.staff_rm UNION SELECT postgresql_localhost_5432_employees_horizontal.public.staff_lb.email FROM postgresql_localhost_5432_employees_horizontal.public.staff_lb UNION SELECT postgresql_localhost_5432_employees_horizontal.public.staff_md.email FROM postgresql_localhost_5432_employees_horizontal.public.staff_md )

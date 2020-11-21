@@ -130,12 +130,20 @@ public class GlobalColumnData implements Serializable {
         return dataType;
     }
 
-    public String getOgDataType() {
+    /**
+     * Return the original data type without any limits (varchar(54) -> returns only varchar)
+     * @return
+     */
+    public String getOgDataTypeNoLimit() {
         String datatypeNoLimit =  ogDataType.split("\\(")[0];
         datatypeNoLimit = datatypeNoLimit.replaceAll("\\s+","");
         return datatypeNoLimit;
     }
 
+    /**
+     * Return the data type without any limits (varchar(54) -> returns only varchar)
+     * @return
+     */
     public String getDataTypeNoLimit() {
         String datatypeNoLimit =  dataType.split("\\(")[0];
         datatypeNoLimit = datatypeNoLimit.replaceAll("\\s+","");
@@ -159,16 +167,16 @@ public class GlobalColumnData implements Serializable {
     }
 
     public String getOGDataTypeCategory() {
-        if (Arrays.stream(Constants.NUMERIC_DATATYPES).anyMatch(d -> d.equalsIgnoreCase(getOgDataType()))){
+        if (Arrays.stream(Constants.NUMERIC_DATATYPES).anyMatch(d -> d.equalsIgnoreCase(getOgDataTypeNoLimit()))){
             return Constants.NUMERIC_DATATYPE;
         }
-        if (Arrays.stream(Constants.STRING_DATATYPES).anyMatch(d -> d.equalsIgnoreCase(getOgDataType()))){
+        if (Arrays.stream(Constants.STRING_DATATYPES).anyMatch(d -> d.equalsIgnoreCase(getOgDataTypeNoLimit()))){
             return Constants.STRING_DATATYPE;
         }
-        if (Arrays.stream(Constants.BOOLEAN_DATATYPES).anyMatch(d -> d.equalsIgnoreCase(getOgDataType()))){
+        if (Arrays.stream(Constants.BOOLEAN_DATATYPES).anyMatch(d -> d.equalsIgnoreCase(getOgDataTypeNoLimit()))){
             return Constants.BOOLEAN_DATATYPE;
         }
-        if (Arrays.stream(Constants.TIME_DATATYPES).anyMatch(d -> d.equalsIgnoreCase(getOgDataType()))){
+        if (Arrays.stream(Constants.TIME_DATATYPES).anyMatch(d -> d.equalsIgnoreCase(getOgDataTypeNoLimit()))){
             return Constants.TIME_DATATYPE;
         }
         return null;
@@ -230,16 +238,19 @@ public class GlobalColumnData implements Serializable {
         return tableIds;
     }
 
-    public boolean correspondenceColumnExist(ColumnData col){
-        if (this.localColumns.contains(col))
-            return true;
-        return false;
-    }
 
+    /**
+     * returns qualified name of this column (table.column)
+     * @return
+     */
     public String getFullName() {
         return fullName;
     }
 
+    /**
+     * returns qualified name of this column escapped ("table"."column")
+     * @return
+     */
     public String getFullNameEscapped() {
         if (fullName.contains(".")) {
             String[] split = fullName.split("\\.");
@@ -254,6 +265,8 @@ public class GlobalColumnData implements Serializable {
     }
 
     public boolean isOriginalDatatypeChanged() {
+        if (ogDataType == null)
+            return false;
         return originalDatatypeChanged;
     }
 

@@ -18,7 +18,7 @@ public class TableColumnNameExtractor {
 
     public static void main (String[] args){
         TableColumnNameExtractor tableColumnExtract = new TableColumnNameExtractor();
-        tableColumnExtract.getColumnsFromString("csas dfjs egwq.egsjn  sum(fanjnaf.aefjnui * sajnf(");
+        tableColumnExtract.getColumnsFromString("csas dfjs egwq.egsjn  sum(fanjnaf.aefjnui * 0.5(");
     }
     public TableColumnNameExtractor(){
         pattern = Pattern.compile(regex, Pattern.DOTALL);
@@ -30,6 +30,8 @@ public class TableColumnNameExtractor {
         while (matcher.find()) {
             String tableColumn = matcher.group(0);
             String[] tableColSplit = tableColumn.split("\\.");
+            if (tableColSplit[0].matches("[0-9]+") && tableColSplit[1].matches("[0-9]+"))
+                continue;
             if (tableColumnStrings.containsKey(tableColSplit[0]) && !tableColumnStrings.get(tableColSplit[0]).contains(tableColSplit[1])){
                 tableColumnStrings.get(tableColSplit[0]).add(tableColSplit[1]);
             }
@@ -76,6 +78,7 @@ public class TableColumnNameExtractor {
             for (String columnName : columnNames){
                 for (GlobalColumnData c : table.getGlobalColumnDataList()){
                     if (c.getName().equals(columnName)){
+                        c.setFullName(tableName+"."+c.getName());
                         cols.add(c);
                         break;
                     }

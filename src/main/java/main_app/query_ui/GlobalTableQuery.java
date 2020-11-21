@@ -237,18 +237,32 @@ public class GlobalTableQuery {
         colFilters.add(column);
     }
 
+    /**
+     * Given list of attributes add those attributes to the other list, or table if such table does not exist in first list
+     * Primary keys are also added to the local schema query
+     * @param rows
+     * @param rowsToAdd
+     * @return
+     */
     public Map<GlobalTableData, List<GlobalColumnData>> addRowsToListOfRows(Map<GlobalTableData, List<GlobalColumnData>> rows, Map<GlobalTableData, List<GlobalColumnData>> rowsToAdd){
         for (Map.Entry<GlobalTableData, List<GlobalColumnData>> table : rowsToAdd.entrySet()){
             GlobalTableData t = new GlobalTableData(table.getKey());
-            if (t.getTableName().equals(factsTable.getGlobalTable().getTableName()))
+            if (t.getTableName().equals(factsTable.getGlobalTable().getTableName()))//facts table not needed to be added
                 continue;
-            List<GlobalColumnData> cs = rows.get(t);
-            if (cs == null)
-                continue;
-            List<GlobalColumnData> cols = new ArrayList<>(cs);
             if (rows.containsKey(t)){
+                List<GlobalColumnData> cs = rows.get(t);
+                if (cs == null)
+                    continue;
+                List<GlobalColumnData> cols = new ArrayList<>(cs);
+                //iterate the selected columns in second map
                 for (GlobalColumnData col : table.getValue()){
-                    if (!rows.get(t).contains(col)){
+                    if (!rows.get(t).contains(col)){ //add columns present in the second map but not the first
+                        cols.add(col);
+                    }
+                }
+                //iterate all columns of the current table
+                for (GlobalColumnData col : table.getKey().getGlobalColumnDataList()){
+                    if (!rows.get(t).contains(col) && col.isPrimaryKey()){ //add primary keys to first map if not present already to query in local schema
                         cols.add(col);
                     }
                 }
@@ -256,6 +270,11 @@ public class GlobalTableQuery {
             }
             else{
                 //add table and rows
+                List<GlobalColumnData> colsToAdd = table.getValue();
+                for (GlobalColumnData c : table.getKey().getGlobalColumnDataList()){//add primary keys to query in local schema
+                    if (c.isPrimaryKey() && !table.getValue().contains(c))
+                        colsToAdd.add(c);
+                }
                 rows.put(t, new ArrayList<>(table.getValue()));
             }
         }
@@ -578,7 +597,7 @@ public class GlobalTableQuery {
 
         //check if all tables and columns of filters are selected
         tableSelectRowsWithPrimKeys = addFilterColumnIfNeeded(filters, tableSelectRowsWithPrimKeys);
-        tableSelectRowsWithPrimKeys = addRowsToListOfRows(tableSelectRowsWithPrimKeys, manualRowsAggr);
+        tableSelectRowsWithPrimKeys = addRowsToListOfRows(tableSelectRowsWithPrimKeys, manualRowsAggr);//add manual aggregation rows, and all primary keys to selection
 
         for (Map.Entry<GlobalTableData, List<GlobalColumnData>> tableSelectRows : tableSelectRowsWithPrimKeys.entrySet()){
             //for each global column create inner queries in the 'From' clause
@@ -592,7 +611,6 @@ public class GlobalTableQuery {
                     return subQueries;//propagate error
                 }
                 query += "(" + subQueries;
-                //Join on facts table
                 query += ") AS \"" + t.getTableName() + "\",";
             }
             else{
@@ -611,7 +629,7 @@ public class GlobalTableQuery {
         //get necessary attributes of facts table
         List<GlobalColumnData> factsCols = new ArrayList<>();
         for (Map.Entry<GlobalColumnData, Boolean> factsCol : factsTable.getColumns().entrySet()){
-            //for each column, if it's measure, check if it was selected and addit. For foreign keys, check if they are needed and add them for selection
+            //for each column, if it's measure, check if it was selected and add it. For foreign keys, check if they are needed and add them for selection
             Boolean isMeasure = factsCol.getValue();
             GlobalColumnData col = factsCol.getKey();
             if (isMeasure){
@@ -622,10 +640,16 @@ public class GlobalTableQuery {
                     }
                 }
             }
-            else if (col.isForeignKey()){
+            else if (col.isForeignKey()){ //add foreign key columns depending on the dims table selected
                 String fk = col.getForeignKey();//globTable.globCol
                 String tableName = fk.split("\\.")[0];
-                for (Map.Entry<GlobalTableData, List<GlobalColumnData>> selectRow : selectRows.entrySet()){
+                for (Map.Entry<GlobalTableData, List<GlobalColumnData>> selectRow : selectRows.entrySet()){//dims table selected using the interface
+                    if (selectRow.getKey().getTableName().equals(tableName)){
+                        factsCols.add(col);
+                        break;
+                    }
+                }
+                for (Map.Entry<GlobalTableData, List<GlobalColumnData>> selectRow : manualRowsAggr.entrySet()){//dims table selected using the manual mode
                     if (selectRow.getKey().getTableName().equals(tableName)){
                         factsCols.add(col);
                         break;
@@ -1134,7 +1158,8 @@ public class GlobalTableQuery {
     public String buildQuery(boolean includeInnerQueries){
         this.pivotValues.clear();//reset elements
         String query = "";
-        if ((selectColumns.size() == 0 || manualRowsAggr.size()>0) && (measures.size() == 0 && manualMeasures.size() == 0) && selectRows.size() > 0){
+        if (((selectColumns.size() == 0 || manualRowsAggr.size()>0) && (measures.size() == 0 && manualMeasures.size() == 0) && selectRows.size() > 0)
+            ||manualRowsAggr.size() > 0 && manualMeasures.size() == 0){
             query = buildQuerySelectRowsOnly(includeInnerQueries);
         }
         else if (selectColumns.size() == 0 && (measures.size() > 0 || manualMeasures.size() > 0) && selectRows.size() >= 0){
@@ -1217,7 +1242,7 @@ public class GlobalTableQuery {
                 }
                 query+=", ";
             }
-            query+=localCols.get(localCols.size()-1).getCompletePrestoColumnName()+" ";//last column is whithout a comma
+            query+=localCols.get(localCols.size()-1).getCompletePrestoColumnNameEscaped()+" ";//last column is whithout a comma
             //from clause, select local tables, or apply sql code if available
             if (localTable.getSqlCode() == null)
                 query+= "FROM "+localTable.getCompletePrestoTableNameEscapped()+" ";
@@ -1270,9 +1295,9 @@ public class GlobalTableQuery {
             query = query.substring(0, query.length() - ", ".length());
             //from clause, select local tables, or apply sql code if available
             if (localTable.getSqlCode() == null)
-                query+= "FROM "+localTable.getCompletePrestoTableNameEscapped()+" ";
+                query+= " FROM "+localTable.getCompletePrestoTableNameEscapped()+" ";
             else
-                query+= "FROM ("+localTable.getSqlCode()+") ";
+                query+= " FROM ("+localTable.getSqlCode()+") ";
             query+=tableUnionString;
         }
         if (query.endsWith(tableUnionString)) {
@@ -1289,9 +1314,9 @@ public class GlobalTableQuery {
         //from clause, select local tables, or apply sql code if available
         for (TableData localTable : localTables){
             if (localTable.getSqlCode() == null)
-                query+= "FROM "+localTable.getCompletePrestoTableNameEscapped()+" ";
+                query+= " FROM "+localTable.getCompletePrestoTableNameEscapped()+" ";
             else
-                query+= "FROM ("+localTable.getSqlCode()+") ";
+                query+= " FROM ("+localTable.getSqlCode()+") ";
             query+=tableUnionString;
         }
         if (query.endsWith(tableUnionString)) {
@@ -1334,7 +1359,7 @@ public class GlobalTableQuery {
             if (localtable.getSqlCode() == null)
                 query+= " FROM " + localtable.getCompletePrestoTableNameEscapped();
             else
-                query+= "FROM ("+localtable.getSqlCode()+") ";
+                query+= " FROM ("+localtable.getSqlCode()+") ";
         }
         else{
             //columns were selected that correspond to more than one local table, apply joins
@@ -1350,7 +1375,7 @@ public class GlobalTableQuery {
             if (originalTable.getSqlCode() == null)
                 query += " FROM " + originalTable.getCompletePrestoTableNameEscapped();
             else
-                query+= "FROM ("+originalTable.getSqlCode()+") ";
+                query+= " FROM ("+originalTable.getSqlCode()+") ";
             List<ColumnData> pkOriginalColumns = originalTable.getPrimaryKeyColumns();
             Set<TableData> localTablesSelected = getAllDiferentLocalTablesInGlobalColumns(selectCols);//tables with complete columns, but only those that have cols mapped to the selected global cols
             localTablesSelected.remove(originalTable);
@@ -1443,6 +1468,9 @@ public class GlobalTableQuery {
             else{
                 this.manualRowsAggr.put(rowsAgg.getKey(), rowsAgg.getValue());
             }
+            /*if(!selectRows.containsKey(rowsAgg.getKey())){
+                selectRows.put(rowsAgg.getKey(), rowsAgg.getValue());
+            }*/
         }
     }
 

@@ -341,7 +341,7 @@ public class QueryUI extends JPanel{
                 e.printStackTrace();
             }
             exportToCsv.setIcon(new ImageIcon(image.getScaledInstance(20, 20, 0)));
-            exportMenu.addActionListener(e -> exportResultsToCSV());
+            exportToCsv.addActionListener(e -> exportResultsToCSV());
             exportMenu.add(exportToCsv);
 
             menuBar.add(exportMenu);
@@ -1557,8 +1557,10 @@ public class QueryUI extends JPanel{
             filterText = filterText.replaceAll("(?i)insert", "");*/
             if (!isAggrFilter){
                 TableColumnNameExtractor ext = new TableColumnNameExtractor();
-                globalTableQueries.setFilters(ext.getColumnsFromStringSet(textArea.getText()));
+                Set<String> tableCols = ext.getColumnsFromStringSet(textArea.getText());
+                globalTableQueries.setFilters(tableCols);
             }
+            filterText = setCastOperators(filterText);
             return filterText;
         }
         //normal mode
@@ -1584,6 +1586,26 @@ public class QueryUI extends JPanel{
         }
         System.out.println("Filter query: "+query);
         return query;
+    }
+
+    /**
+     * Given an sql code, detect table.column elements and replace them with a cast if needed
+     * @param filterText
+     * @return
+     */
+    public String setCastOperators(String filterText){
+        TableColumnNameExtractor textr = new TableColumnNameExtractor();
+        Map<GlobalTableData, List<GlobalColumnData>> tables = textr.getSchemaObjectsFromSQLText(filterText, starSchema);
+        for (Map.Entry<GlobalTableData, List<GlobalColumnData>> table : tables.entrySet()){
+            List<GlobalColumnData> cols = table.getValue();
+            for (GlobalColumnData c : cols){
+                if (filterText.contains(c.getFullName()) && c.isOriginalDatatypeChanged()){
+                    filterText = filterText.replaceAll(c.getFullName(), "CAST( "+c.getFullNameEscapped()+"AS "+c.getDataType()+")");
+                }
+            }
+        }
+
+        return filterText;
     }
 
     public String getColFilterQuery(){
@@ -1760,7 +1782,7 @@ public class QueryUI extends JPanel{
     private String buildQuery(boolean includeInnerQueries){
         //validate query string
         if (manualAggregations.isVisible()){
-            globalTableQueries.setManualAggregationsStr(manualAggregations.getText());
+            globalTableQueries.setManualAggregationsStr(setCastOperators(manualAggregations.getText()));
             TableColumnNameExtractor tExtractor = new TableColumnNameExtractor();
             globalTableQueries.setManualRowsAndMeasuresAggr(tExtractor.getSchemaObjectsFromSQLText(manualAggregations.getText(), starSchema));
         }
