@@ -341,7 +341,7 @@ public class QueryUI extends JPanel{
                 e.printStackTrace();
             }
             exportToCsv.setIcon(new ImageIcon(image.getScaledInstance(20, 20, 0)));
-            exportToCsv.addActionListener(e -> exportResultsToCSV());
+            exportToCsv .addActionListener(e -> exportResultsToCSV());
             exportMenu.add(exportToCsv);
 
             menuBar.add(exportMenu);
@@ -1136,7 +1136,7 @@ public class QueryUI extends JPanel{
             elem.setObj(c);
             if (isAggrRow) {
                 elem.setName(elem.getName()+" ("+order+")");
-                globalTableQueries.addOrderByRow(c.getAggrOpFullName()+" "+order);//add Aggr(table.col) sortOrder to queries
+                globalTableQueries.addOrderByRow(c.getAggrOpFullNameEscapped()+" "+order);//add Aggr(table.col) sortOrder to queries
                 measuresListModel.setElementAt(elem, index);//update element with ASC or DESC to signal it will be ordered
                 aggregationsList.revalidate();
                 aggregationsList.updateUI();
@@ -1146,7 +1146,7 @@ public class QueryUI extends JPanel{
                 rowsListModel.setElementAt(elem, index);//update element with ASC or DESC to signal it will be ordered
                 rowsList.revalidate();
                 rowsList.updateUI();
-                globalTableQueries.addOrderByRow(tableName+"."+c.getName()+" "+order);
+                globalTableQueries.addOrderByRow("\""+tableName+"\".\""+c.getName()+"\" "+order);
             }
     }
 
@@ -1655,10 +1655,10 @@ public class QueryUI extends JPanel{
                     globalTableQueries.addFilter(c.getFullName());
                 }
 
-                if (filterNode.getNodeType() == FilterNodeType.CONDITION)
-                    query += filterNode.getEscappedFilterStringObj() +" ";
-                else if (filterNode.getNodeType() == FilterNodeType.BOOLEAN_OPERATION)
-                    query += filterNode.getUserObject() +" ";
+                if (innerFilterNode.getNodeType() == FilterNodeType.CONDITION)
+                    query += innerFilterNode.getEscappedFilterStringObj() +" ";
+                else if (innerFilterNode.getNodeType() == FilterNodeType.BOOLEAN_OPERATION)
+                    query += innerFilterNode.getUserObject() +" ";
                 query += processInnerExpressions(innerFilterNode, isAggrFilters);
             }
             query +=")";

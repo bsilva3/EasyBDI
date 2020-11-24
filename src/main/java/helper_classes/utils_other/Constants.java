@@ -183,7 +183,7 @@ public class Constants {
 
 
     //sql query list:
-    public static final String[] SQL_COMMANDS = new String[] {"select", "insert", "remove", "drop", "insert", "update", "alter", "delete"};
+    public static final String[] SQL_COMMANDS = new String[] {"insert", "remove", "drop", "insert", "update", "alter", "delete"};
 
     //presto datatypes
     public static final String NUMERIC_DATATYPE = "numeric";

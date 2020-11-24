@@ -61,6 +61,17 @@ public class GlobalColumnData implements Serializable {
         this.originalDatatypeChanged = false;
     }
 
+    public GlobalColumnData(GlobalColumnData col) {
+        this.name = col.getName();
+        this.ogName = col.getOgName();
+        this.dataType = col.getDataType();
+        this.ogDataType = col.getOgDataType();
+        this.isPrimaryKey = col.isPrimaryKey;
+        this.localColumns = col.getLocalColumns();
+        this.aggrOp = col.getAggrOp();
+        this.originalDatatypeChanged = col.originalDatatypeChanged;
+    }
+
     public GlobalColumnData(ColumnData column) {
         this.name = column.getName();
         this.ogName = name;
@@ -128,6 +139,10 @@ public class GlobalColumnData implements Serializable {
 
     public String getDataType() {
         return dataType;
+    }
+
+    public String getOgDataType() {
+        return ogDataType;
     }
 
     /**

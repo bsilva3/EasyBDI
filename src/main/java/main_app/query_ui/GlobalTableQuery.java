@@ -1,6 +1,7 @@
 package main_app.query_ui;
 
 import helper_classes.*;
+import helper_classes.utils_other.Constants;
 import helper_classes.utils_other.Utils;
 import main_app.presto_com.PrestoMediator;
 
@@ -8,6 +9,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 public class GlobalTableQuery {
@@ -55,8 +57,8 @@ public class GlobalTableQuery {
         manualAggregationsStr = "";
     }
 
-    public void addOrderByRow(String groupByRow){
-        orderBy.add(groupByRow);
+    public void addOrderByRow(String orderByRow){
+        orderBy.add(orderByRow);
     }
 
     public void addSelectColumn(GlobalTableData table, GlobalColumnData col){
@@ -391,6 +393,7 @@ public class GlobalTableQuery {
         return attrs;
     }
 
+
     public String getLocalTableQuery(GlobalTableData t){
         MappingType mapping = t.getMappingType();
         if (mapping == MappingType.Simple)
@@ -534,7 +537,7 @@ public class GlobalTableQuery {
                     if (c.isOriginalDatatypeChanged())
                         query += "CAST("+c.getFullNameEscapped()+" AS "+c.getDataType()+")AS \""+c.getFullName()+"\",";// CAST(table.col as datatype) as table.col
                     else
-                        query += ""+c.getFullNameEscapped()+ ",";
+                        query += c.getFullNameEscapped()+ ",";
                     selectColsNoAggr.add(c.getFullNameEscapped());
                     if (c.getAggrOp().equalsIgnoreCase("Group By")) {//no aggregate but selected to be added to group by
                         selectColsGroupBy.add(c.getFullNameEscapped());
@@ -575,7 +578,7 @@ public class GlobalTableQuery {
                     if (measureCol.isOriginalDatatypeChanged())
                         query += measureCol.getAggrOp()+"(CAST(\""+measureCol.getName()+"\" AS "+measureCol.getDataType()+")) AS " + measureAlias + ",";//aggr(cast col as datatype) as "agrop of col"
                     else
-                        query += "\""+measureCol.getAggrOpName() + "\" AS " + measureAlias + ",";
+                        query += measureCol.getAggrOpName() + " AS " + measureAlias + ",";
                     hasAggregations = true;
                 }
                 else{
@@ -620,9 +623,9 @@ public class GlobalTableQuery {
 
         List <GlobalColumnData> measuresCopy = new ArrayList<>();
         if (measures.size() > 0)
-            measuresCopy = new ArrayList<>(measures);
+            measuresCopy = measures.stream().map(item -> new GlobalColumnData(item)).collect(Collectors.toList());
         else if (manualMeasures.size() > 0) {
-            measuresCopy = new ArrayList<>(manualMeasures);
+            measuresCopy = manualMeasures.stream().map(item -> new GlobalColumnData(item)).collect(Collectors.toList());
         }
         measuresCopy = new ArrayList<>(addFilterColumnIfNeededToMeasures(measuresCopy));
         //get facts table in from clause
@@ -770,10 +773,16 @@ public class GlobalTableQuery {
             for (GlobalColumnData c : cols){
                 if (c.getAggrOp()!=null && !c.getAggrOp().isEmpty()  && !c.getAggrOp().equalsIgnoreCase("Group By")){ //agregations
                     hasAggregations = true;
-                    query += c.getAggrOpFullNameEscapped()+" AS \""+c.getAggrOp().toLowerCase() +" of "+c.getFullName()+"\",";// aggregationOP (table.column) as "aggrOP of table.column"
+                    if (c.isOriginalDatatypeChanged())
+                        query += c.getAggrOp()+"CAST( "+c.getFullNameEscapped() + "AS "+c.getDataType()+") AS \""+c.getAggrOp().toLowerCase() +" of "+c.getFullName()+"\","; //aggrOP("CAST( table.column as datatype)as "aggr of table.column"
+                    else
+                        query += c.getAggrOpFullNameEscapped()+" AS \""+c.getAggrOp().toLowerCase() +" of "+c.getFullName()+"\",";// aggregationOP (table.column) as "aggrOP of table.column"
                 }
                 else {
-                    query += c.getFullNameEscapped()+",";// no aggregation
+                    if (c.isOriginalDatatypeChanged())
+                        query += "CAST("+c.getFullNameEscapped()+" AS "+c.getDataType()+")AS \""+c.getFullName()+"\",";// CAST(table.col as datatype) as table.col
+                    else
+                        query += c.getFullNameEscapped()+",";// no aggregation
                     selectColsNoAggr.add(c.getFullNameEscapped());
                     if (c.getAggrOp().equalsIgnoreCase("Group By")) {//no aggregate but selected to be added to group by
                         selectColsGroupBy.add(c.getFullNameEscapped());
@@ -848,7 +857,11 @@ public class GlobalTableQuery {
                         valueRaw = v.substring(1, v.length() - 1);//remove the ' at the beginning and end of string
                     } else
                         valueRaw = v;
-                    valueRaw = valueRaw.replaceAll("''", "'");//all ' were replaced by '' to be escaped when used as column anmes for presto. Convert back to single '
+                    //check data type, if it is from time group, add type before value (date 'xxxx' or time'xxx')
+                    GlobalColumnData c = getColumnInColsListByFullName(colNames.get(i));//get the global column of this value
+                    if (c != null && c.getDataTypeCategory().equals(Constants.TIME_DATATYPE))
+                        v = c.getDataTypeNoLimit() + " "+ v;
+                    valueRaw = valueRaw.replaceAll("''", "'");//all ' were replaced by '' to be escaped when used as column names for presto. Convert back to single '
                     //valueRaw = v.replaceAll("'", "");
                     valuesRaw.add(valueRaw);
                     //if (valueRaw.isEmpty())
@@ -909,7 +922,9 @@ public class GlobalTableQuery {
             }
         }
 
-        Map<GlobalTableData, List<GlobalColumnData>> selectColsCopy = new HashMap<>(selectColumns);
+        Map<GlobalTableData, List<GlobalColumnData>> selectColsCopy = selectColumns.entrySet().stream()
+                .map(e -> new AbstractMap.SimpleEntry<>(e.getKey(), new ArrayList<>(e.getValue())))
+                .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));//deep copy, without modifying original items
         //do the same for columns selected but with tables that were not previously included, if any
         for (Map.Entry<GlobalTableData, List<GlobalColumnData>> tableSelectCols : selectColumns.entrySet()){
             GlobalTableData gt = tableSelectCols.getKey();
@@ -1091,10 +1106,9 @@ public class GlobalTableQuery {
         }
         String query = "SELECT DISTINCT (";
         for (GlobalColumnData c : allCols){
-            query+=c.getFullName()+",";
+            query+=c.getFullNameEscapped()+",";
         }
         query = query.substring(0, query.length() - 1);//last elemment without comma
-
         Map<GlobalTableData, List<GlobalColumnData>> selectColsCopy = addFilterColumnIfNeeded(colFilters, selectColumns);
         query+=") FROM ";
         for (GlobalTableData t : allTables){
@@ -1115,7 +1129,7 @@ public class GlobalTableQuery {
         }
         query+=" ORDER BY (";
         for (GlobalColumnData c : allCols){
-            query+=c.getFullName()+",";
+            query+=c.getFullNameEscapped()+",";
         }
         query = query.substring(0, query.length() - 1);//last elemment without comma
         query+=")";
@@ -1153,6 +1167,20 @@ public class GlobalTableQuery {
         colFilterQuery = "";
         colFilters.clear();
         return values;
+    }
+
+    private GlobalColumnData getColumnInColsListByFullName(String fullName){
+        String tableName = fullName.split("\\.")[0];
+        String columnName = fullName.split("\\.")[1];
+        for (Map.Entry<GlobalTableData, List<GlobalColumnData>> col : selectColumns.entrySet()){
+            if(col.getKey().getTableName().equals(tableName)){
+                for(GlobalColumnData c : col.getValue()){
+                    if (c.getName().equals(columnName))
+                        return c;
+                }
+            }
+        }
+        return null;
     }
 
     public String buildQuery(boolean includeInnerQueries){
@@ -1195,20 +1223,6 @@ public class GlobalTableQuery {
         manualRowsAggr.clear();
         manualMeasures.clear();
         return query;
-    }
-
-    private List<GlobalColumnData> getSelectedMeasureCols(List<String> measuresString){
-        List<GlobalColumnData> selectedMeasures = new ArrayList<>();
-        Set<GlobalColumnData> measureCols = factsTable.getColumns().keySet();
-        for (String measureString : measuresString){
-            String measureName = measureString.split("[()]")[1]; //split on first space to the measure name (its in the form "aggr(measureName)" )
-            for (GlobalColumnData measureCol : measureCols){
-                if (measureCol.getName().equals(measureName)){
-                    selectedMeasures.add(measureCol);
-                }
-            }
-        }
-        return selectedMeasures;
     }
 
     private GlobalColumnData isFactsColReferencingDimTable(String foreignKey, GlobalTableData dimTable){
