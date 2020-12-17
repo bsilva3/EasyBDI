@@ -1,6 +1,6 @@
 # Easy BDI
 Easy BDI is a tool for performing analytical queries over distributed and possibly heterogeneous data sources, using Presto to communicate with the data sources. Star schemas can be created and used for analytical queries.
-Easy BDI was developed as a masters degree project dissertation for Computer Engineering in University of Aveiro (www.ua.pt) and is partially funded by National Funds through the FCT (Foundation for Science and Technology) in the context of projects...
+Easy BDI was developed as a masters degree project dissertation for Computer Engineering in University of Aveiro (www.ua.pt) and was partially funded by Fundo Europeu de Desenvolvimento Regional (FEDER), Programa Operacional Competitividade e Internacionalização in the context of the project Produtech II SIF -- POCI-01-0247-FEDER-024541.
 
 
 
