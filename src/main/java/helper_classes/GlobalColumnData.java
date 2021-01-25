@@ -267,6 +267,8 @@ public class GlobalColumnData implements Serializable {
      * @return
      */
     public String getFullNameEscapped() {
+        if (fullName == null)
+            return "";
         if (fullName.contains(".")) {
             String[] split = fullName.split("\\.");
             return "\"" + split[0] + "\".\"" + split[1] + "\""; //table."col"

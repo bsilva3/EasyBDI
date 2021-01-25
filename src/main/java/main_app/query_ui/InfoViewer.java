@@ -12,16 +12,17 @@ public class InfoViewer extends JFrame{
     private JButton closeButton;
     private JLabel labelT;
 
-    public InfoViewer(String labelText, String text){
+    public InfoViewer(String labelText, String text, String title){
         this.setPreferredSize(new Dimension(450, 600));
         setContentPane(mainPanel);
         labelT.setText(labelText);
         textArea.setText(text);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        this.setTitle("Query Load selection");
+        this.setTitle(title);
         pack();
         setLocationRelativeTo(null);
         setVisible(true);
+        textArea.setLineWrap(true);
         closeButton.addActionListener(e -> InfoViewer.this.dispose());
     }
 }

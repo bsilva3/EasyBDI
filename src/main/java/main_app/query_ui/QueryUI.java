@@ -453,7 +453,7 @@ public class QueryUI extends JPanel{
                             return;
                         }
                         QueryLog queryLog = (QueryLog) queryStatusLogModel.get(index);
-                        new InfoViewer("Query Log", queryLog.toString());
+                        new InfoViewer("Query Log", queryLog.toString(), "Executed query");
 
                     }
                 }
@@ -469,7 +469,7 @@ public class QueryUI extends JPanel{
                             return;
                         }
                         QueryLog queryLog = (QueryLog) globalSchemaLogModel.get(index);
-                        new InfoViewer("Global Schema Query", queryLog.toString());
+                        new InfoViewer("Global Schema Query", queryLog.toString(), "Global Schema Query");
                     }
                 }
             });
@@ -484,7 +484,7 @@ public class QueryUI extends JPanel{
                             return;
                         }
                         QueryLog queryLog = (QueryLog) localSchemaLogModel.get(index);
-                        new InfoViewer("Local Schema Query", queryLog.toString());
+                        new InfoViewer("Local Schema Query", queryLog.toString(), "Local Schema Query");
                     }
                 }
             });
@@ -1725,7 +1725,9 @@ public class QueryUI extends JPanel{
                 System.out.println("Querying and Retrieving results... ");
                 startTime = System.currentTimeMillis();
                 ResultSet results = prestoMediator.getLocalTablesQueries(localQuery);
-
+                //endTime = System.currentTimeMillis();
+                //System.out.println("Presto Query execution took: " + (endTime - startTime) + " milliseconds");
+                //startTime = System.currentTimeMillis();
                 if (results == null){
                     LoadingScreenAnimator.closeGeneralLoadingAnimation();
                     homeButton.setEnabled(true);
@@ -1737,7 +1739,7 @@ public class QueryUI extends JPanel{
                 //firePropertyChange("results_processing", null, null);
                 setResultsAndCreateLog(results, localQuery, beginTime);
                 endTime = System.currentTimeMillis();
-                System.out.println("Query and Results Processing took: " + (endTime - startTime) + " milliseconds");
+                System.out.println("Presto and Results Processing took: " + (endTime - startTime) + " milliseconds");
 
                 LoadingScreenAnimator.closeGeneralLoadingAnimation();
                 homeButton.setEnabled(true);
@@ -2718,16 +2720,14 @@ public class QueryUI extends JPanel{
     public void addGlobalQueryLog(){
         String query = buildQuery(false);
         DateTime currentTime = new DateTime();
-        DateTimeFormatter formatter = DateTimeFormat.forPattern("HH:mm:ss");
-        globalSchemaLogModel.addElement(formatter.print(currentTime)+ " - "+query);
+        globalSchemaLogModel.addElement(new QueryLog(query, currentTime));
     }
 
     public void addLocalQueryLog(){
         if (showLocalQueryLog) {
             String query = buildQuery(true);
             DateTime currentTime = new DateTime();
-            DateTimeFormatter formatter = DateTimeFormat.forPattern("HH:mm:ss");
-            localSchemaLogModel.addElement(formatter.print(currentTime) + " - " + query);
+            localSchemaLogModel.addElement(new QueryLog(query, currentTime));
         }
     }
 
@@ -2803,8 +2803,9 @@ public class QueryUI extends JPanel{
                 CustomTreeNode data = (CustomTreeNode) t.getTransferData(flavors[0]);
                 boolean added = handleNodeTransfer(data, info);
                 if (added) {
-                    //addGlobalQueryLog();
-                    //addLocalQueryLog();
+                    //NOTE: THESE NEED TO BE TESTED FURTHER! COMMENT IF BUGS ON THE GENERATED QUERIES APPEAR
+                    addGlobalQueryLog();
+                    addLocalQueryLog();
                 }
                 return added;
             } catch (Exception e) {
@@ -2814,8 +2815,8 @@ public class QueryUI extends JPanel{
                         ListElementWrapper listElem = (ListElementWrapper) t.getTransferData(flavors[1]);
                         boolean added = handleListTransfer(listElem, info);
                         if (added) {
-                            //addGlobalQueryLog();
-                            //addLocalQueryLog();
+                            addGlobalQueryLog();
+                            addLocalQueryLog();
                         }
                         return added;
                     } catch (Exception ex) {
@@ -3290,7 +3291,7 @@ public class QueryUI extends JPanel{
                         filterValue = droppedCol.getDataType() +" "+value1 + " AND " + droppedCol.getDataType()+" "+value2;
                     }
                     else {
-                        if (!filterValue.startsWith("'") && filterValue.endsWith("'")){
+                        if (!filterValue.startsWith("'") && !filterValue.endsWith("'")){
                             filterValue = "'"+filterValue+"'";
                         }
                         filterValue = droppedCol.getDataType() + " " + filterValue;

@@ -16,22 +16,34 @@ public class QueryLog {
     private int nResultsLines;
     private DateTimeFormatter formatter;
     private DateTimeFormatter formatter2;
-    private boolean queryFailed = false;
+    private int queryStatus;
+    private static final int QUERY_STATUS_SUCCESS = 0;
+    private static final int QUERY_STATUS_FAILED = -1;
+    private static final int QUERY_STATUS_NOT_EXECUTED = 1;
 
     public QueryLog(String query, DateTime queryTimeBegin, DateTime queryTimeEnd, int nResultsLines) {
         this.query = query;
         this.queryTimeBegin = queryTimeBegin;
         this.queryTimeEnd = queryTimeEnd;
         if (this.queryTimeEnd == null){
-            queryFailed = true;
+            queryStatus = QUERY_STATUS_FAILED;
         }
         else {
+            queryStatus = QUERY_STATUS_SUCCESS;
             //determine difference
             long diffInMillis = queryTimeEnd.getMillis() - queryTimeBegin.getMillis();
             this.durationSeconds = TimeUnit.MILLISECONDS.toSeconds(diffInMillis);
             this.durationMiliseconds = diffInMillis;
         }
         this.nResultsLines = nResultsLines;
+        this.formatter = DateTimeFormat.forPattern("HH:mm:ss");
+        this.formatter2 = DateTimeFormat.forPattern("mm:ss");
+    }
+
+    public QueryLog(String query, DateTime queryTimeBegin) {
+        this.query = query;
+        this.queryTimeBegin = queryTimeBegin;
+        queryStatus = QUERY_STATUS_NOT_EXECUTED;
         this.formatter = DateTimeFormat.forPattern("HH:mm:ss");
         this.formatter2 = DateTimeFormat.forPattern("mm:ss");
     }
@@ -82,13 +94,18 @@ public class QueryLog {
 
     @Override
     public String toString() {
-        if (!queryFailed) {
+        if (queryStatus == QUERY_STATUS_SUCCESS) {
             return "Start time: " + formatter.print(queryTimeBegin) + " - Query Time End: " + formatter.print(queryTimeEnd) +
-                    " (" + durationSeconds + " seconds and "+durationMiliseconds+" miliseconds) "
+                    " (" + durationSeconds + " seconds and " + durationMiliseconds + " miliseconds) "
                     + "\nNumber of rows: " + nResultsLines
                     + "\n Query: \n" + query;
+        } else if (queryStatus == QUERY_STATUS_FAILED) {
+            return "Start time: " + formatter.print(queryTimeBegin) + " - QUERY FAILED"
+                    + "\n Query: \n" + query;
+        } else if (queryStatus == QUERY_STATUS_NOT_EXECUTED) {//used for query creation logs
+            return "time: " + formatter.print(queryTimeBegin)
+                    + "\n Query: \n" + query;
         }
-        return "Start time: " + formatter.print(queryTimeBegin) + " - QUERY FAILED"
-                + "\nQuery: \n" + query;
+        return "";
     }
 }

@@ -427,6 +427,8 @@ public class GlobalTableQuery {
             List<GlobalColumnData> cols = dimTable.getValue();
             GlobalTableData t = dimTable.getKey();
             for (GlobalColumnData c : cols){
+                if (c.getFullName() == null)
+                    c.setFullName(t.getTableName()+"."+c.getName()); //quick fix for an occasional nullpointer exception.
                 if (c.getAggrOp()!=null && !c.getAggrOp().isEmpty()  &&!c.getAggrOp().equalsIgnoreCase("Group By")){
                     if (c.isOriginalDatatypeChanged())
                         query += c.getAggrOp()+"(CAST( "+c.getFullNameEscapped()+"AS "+c.getDataType()+")) AS \""+c.getAggrOp().toLowerCase() +" of "+c.getFullName()+"\","; //aggrOP("CAST( table.column as datatype)as "aggr of table.column"
@@ -525,6 +527,8 @@ public class GlobalTableQuery {
             List<GlobalColumnData> newCols = new ArrayList<>();
             boolean primKeyIsSelected = false;
             for (GlobalColumnData c : cols){
+                if (c.getFullName() == null)
+                    c.setFullName(t.getTableName()+"."+c.getName()); //quick fix for an occasional nullpointer exception.
                 if (c.getAggrOp()!=null && !c.getAggrOp().isEmpty()  && !c.getAggrOp().equalsIgnoreCase("Group By")){ //agregations
                     hasAggregations = true;
                     if (c.isOriginalDatatypeChanged())
@@ -771,6 +775,8 @@ public class GlobalTableQuery {
             List<GlobalColumnData> newCols = new ArrayList<>();
             boolean primKeyIsSelected = false;
             for (GlobalColumnData c : cols){
+                if (c.getFullName() == null)
+                    c.setFullName(t.getTableName()+"."+c.getName()); //quick fix for an occasional nullpointer excpetion
                 if (c.getAggrOp()!=null && !c.getAggrOp().isEmpty()  && !c.getAggrOp().equalsIgnoreCase("Group By")){ //agregations
                     hasAggregations = true;
                     if (c.isOriginalDatatypeChanged())
