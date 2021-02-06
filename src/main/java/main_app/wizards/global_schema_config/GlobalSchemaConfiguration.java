@@ -334,94 +334,7 @@ public class GlobalSchemaConfiguration extends JPanel {
         return false;
     }
 
-    private DefaultTreeModel setExampleData(){
-        java.util.List<GlobalTableData> globalTableDataList = new ArrayList<>();
-        GlobalTableData g1 = new GlobalTableData("employees");
-        //GlobalTableData g2 = new GlobalTableData("inventory");
-        DBData dbData1 = new DBData("http://192.168.11.3", DBModel.MYSQL, "lisbonDB");
-        DBData dbData2 = new DBData("http://192.168.23.2", DBModel.PostgreSQL, "parisDB");
-        //DBData dbData3 = new DBData("http://192.168.23.5", DBModel.MongoDB, "inventory");
-        TableData table1 = new TableData("employees", "schema", dbData1, 1);
-        TableData table2 = new TableData("employees", "schema", dbData2, 2);
-        TableData table3 = new TableData("employees_contacts", "schema", dbData2, 3);
-        //TableData table4 = new TableData("products", "schema", dbData3, 4);
-        Set<ColumnData> colsA = new HashSet<>();
-        Set<ColumnData> colsB = new HashSet<>();
-        Set<ColumnData> colsC = new HashSet<>();
-        Set<ColumnData> colsD = new HashSet<>();
-        colsA.add(new ColumnData.Builder("employee_id", "integer", true).withTable(table1).build());
-        colsB.add(new ColumnData.Builder("full_name", "varchar", false).withTable(table1).build());
-        colsC.add(new ColumnData.Builder("phone_number", "integer", false).withTable(table1).build());
-        colsD.add(new ColumnData.Builder("email", "varchar", false).withTable(table1).build());
-        colsA.add(new ColumnData.Builder("id", "integer", true).withTable(table2).build());
-        colsB.add(new ColumnData.Builder("name", "varchar", false).withTable(table2).build());
-        colsA.add(new ColumnData.Builder("id", "integer", true).withTable(table3).build());
-        colsC.add(new ColumnData.Builder("phone", "integer", false).withTable(table3).build());
-        colsD.add(new ColumnData.Builder("email", "varchar", false).withTable(table3).build());
 
-        GlobalColumnData globalColA = new GlobalColumnData("id", "integer", true, colsA);
-        GlobalColumnData globalColB = new GlobalColumnData("name", "varchar", true, colsB);
-        GlobalColumnData globalColC = new GlobalColumnData("phone_number", "varchar", false, colsC);
-        GlobalColumnData globalColD = new GlobalColumnData("email", "varchar", false, colsD);
-
-        /*GlobalColumnData globalColMongo1 = new GlobalColumnData("product_id", "integer", true, new ColumnData.Builder("product_id", "integer", false).withTable(table4).build());
-        GlobalColumnData globalColMongo2 = new GlobalColumnData("product_name", "varchar", false, new ColumnData.Builder("product_name", "varchar", false).withTable(table4).build());
-        GlobalColumnData globalColMongo3 = new GlobalColumnData("price", "double", false, new ColumnData.Builder("price", "double", false).withTable(table4).build());
-        GlobalColumnData globalColMongo4 = new GlobalColumnData("UnitsInStock", "integer", false, new ColumnData.Builder("UnitsInStock", "integer", false).withTable(table4).build());*/
-        java.util.List<GlobalColumnData> globalCols = new ArrayList<>();
-        globalCols.add(globalColA);
-        globalCols.add(globalColB);
-        globalCols.add(globalColC);
-        globalCols.add(globalColD);
-        /*globalCols.add(globalColMongo1);
-        globalCols.add(globalColMongo2);
-        globalCols.add(globalColMongo3);
-        globalCols.add(globalColMongo4);*/
-
-        g1.setGlobalColumnData(Arrays.asList(globalColA, globalColB, globalColC, globalColD));
-        //g2.setGlobalColumnData(Arrays.asList(globalColMongo1, globalColMongo2, globalColMongo3, globalColMongo4));
-        globalTableDataList.add(g1);
-        //globalTableDataList.add(g2);
-
-        java.util.List<TableData> tableLocals = new ArrayList<>();
-        tableLocals.add(table1);
-        tableLocals.add(table2);
-        tableLocals.add(table3);
-        //tableLocals.add(table4);
-        CustomTreeNode data = new CustomTreeNode("Global Tables", NodeType.GLOBAL_TABLES);
-        //tables
-        for (GlobalTableData gt:globalTableDataList) {
-            CustomTreeNode tables = new CustomTreeNode(gt.getTableName(), gt, NodeType.GLOBAL_TABLE);
-            //global cols
-            for (GlobalColumnData col : gt.getGlobalColumnDataList()) {
-                CustomTreeNode column = new CustomTreeNode(col.getName(), col, NodeType.COLUMN);
-                column.add(new CustomTreeNode(col.getDataType(), NodeType.COLUMN_INFO));
-                if (col.isPrimaryKey())
-                    column.add(new CustomTreeNode("primary key", NodeType.PRIMARY_KEY));
-                //corrs
-                CustomTreeNode corrs = new CustomTreeNode("Matches", NodeType.MATCHES);
-                //THIS PART IS NOT RIGHT!!
-                for (TableData t : tableLocals) {
-                    CustomTreeNode localTableTree = new CustomTreeNode(t.getDB().getDbName()+"."+t.getTableName(), t, NodeType.TABLE_MATCHES);
-                    boolean hasMatches = false;
-                    for (ColumnData localCol : col.getLocalColumns()) {
-                        if (localCol.getTable().equals(t) && col.getLocalColumns().contains(localCol)) {
-                            localTableTree.add(new CustomTreeNode(localCol.getName(), localCol, NodeType.COLUMN_MATCHES));
-                            localTableTree.add(new CustomTreeNode("Mapping Type: "+localCol.getMapping(), null, NodeType.COLUMN_MATCHES_TYPE)); //node indicating mapping type
-                            hasMatches = true;
-                        }
-                    }
-                    if (hasMatches)
-                        corrs.add(localTableTree);
-                }
-                column.add(corrs);
-                tables.add(column);
-            }
-            data.add(tables);
-        }
-        globalSchemaModel = new DefaultTreeModel(data);
-        return globalSchemaModel;
-    }
 
     //set local schema in jtree
     public DefaultTreeModel setLocalSchemaTree(List<DBData> dbs){
@@ -771,6 +684,37 @@ public class GlobalSchemaConfiguration extends JPanel {
         menu.add(item1);
 
         return menu;
+    }
+
+    private JPopupMenu getPopUpMenuForMappingType() {
+        JPopupMenu menu = new JPopupMenu();
+
+        JMenuItem item1 = new JMenuItem("Change Mapping");
+        JMenuItem s = new JMenuItem("Simple");
+        JMenuItem h = new JMenuItem("Horizontal");
+        JMenuItem v = new JMenuItem("Vertical");
+        s.addActionListener(setMappingActionListener(MappingType.Simple));
+        h.addActionListener(setMappingActionListener(MappingType.Horizontal));
+        v.addActionListener(setMappingActionListener(MappingType.Vertical));
+        item1.add(s);
+        item1.add(h);
+        item1.add(v);
+        menu.add(item1);
+
+        return menu;
+    }
+
+    private ActionListener setMappingActionListener(MappingType type) {
+        return new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent arg0) {
+                if(selectedNode != null && selectedNode.getNodeType() == NodeType.COLUMN_MATCHES_TYPE){
+                    selectedNode.setUserObject("Mapping Type: "+type);
+                    selectedNode.setObj(type);
+                }
+            }
+        };
     }
 
     //pop up menu that shows up when right clicking

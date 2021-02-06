@@ -4,6 +4,9 @@ import helper_classes.*;
 
 import java.util.*;
 
+/**
+ * Used only to test mappings identification
+ */
 public class MappingTest {
 
     public static void main(String[] args){
