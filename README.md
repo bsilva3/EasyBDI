@@ -11,7 +11,7 @@ Easy BDI was developed as a masters degree project dissertation for Computer Eng
 - Queries can be saved and re-used again and query results can be exported.
 
 ## System requirements and How to install
-Easy BDI requires JRE 8. It can be installed in any Operative System. However, Presto, the distributed query engine used to communicate with the data sources, is only compatible with linux distribuitions, which means that most of Easy BDI's functionalities can only be executed on a linux system, since some of them use Presto (local schema view creation, query execution)
+Easy BDI requires JRE 8. It can be installed in any Operative System. However, Presto (also known as Trino), the distributed query engine used to communicate with the data sources, is only compatible with linux distribuitions, which means that most of Easy BDI's functionalities can only be executed on a linux system, since some of them use Presto (local schema view creation, query execution)
 
 ## How to use
 
