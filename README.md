@@ -26,6 +26,16 @@ To demonstrate the system, two case studies are available for usage:
 - More than 3 years of real data on photovoltaic panel production/consumption data in Sidney, Australia and nearby areas
 - SSB+ benchmark – retail and streaming data containing sales, deliveries and social media popularity of retail stores
 
+## Citation
+This project was subject of a demo paper to be published in EDBT 2021. To cite this work, please use (complete citation will be updated soon):
+>Bruno Silva, José Moreira and Rogério L. C. Costa. 2019. *EasyBDI: Near Real-Time Data Analytics over Heterogeneous DistributedData Sources* in xxx
+
+For a more in depth analysis of this work, please consult the master thesis developed for this project at (link to be added once it is published in the University's repository)
+
+
+## Aknowledgements
+This work was partially funded by the European Regional Development Fund (ERDF), Operational Program Competitiveness and Internationalization in the context of the PRODUCECH SIF project – Soluções para a Indústria de Futuro – POCI-01-0247-FEDER-024541
+
 ## License
 
 It is free software; you can redistribute it and/or modify
