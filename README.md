@@ -11,7 +11,7 @@ Easy BDI was developed as a masters degree project dissertation for Computer Eng
 - Queries can be saved and re-used again and query results can be exported.
 
 ## System requirements and How to install
-Easy BDI requires JRE 8. It can be installed in any Operative System. However, Presto, the distributed query engine used to communicate with the data sources, is only compatible with linux distribuitions, which means that most of Easy BDI's functionalities can only be executed on a linux system, since some of them use Presto (local schema view creation, query execution)
+Easy BDI requires JRE 8. It can be installed in any Operative System. However, Presto (also known as Trino), the distributed query engine used to communicate with the data sources, is only compatible with linux distribuitions, which means that most of Easy BDI's functionalities can only be executed on a linux system, since some of them use Presto (local schema view creation, query execution)
 
 ## How to use
 
@@ -25,6 +25,16 @@ Easy BDI uses Presto to query each data source, therefore the ammount of data so
 To demonstrate the system, two case studies are available for usage:
 - More than 3 years of real data on photovoltaic panel production/consumption data in Sidney, Australia and nearby areas
 - SSB+ benchmark – retail and streaming data containing sales, deliveries and social media popularity of retail stores
+
+## Citation
+This project was subject of a demo paper to be published in EDBT 2021. To cite this work, please use (complete citation will be updated soon):
+>Bruno Silva, José Moreira and Rogério L. C. Costa. 2019. *EasyBDI: Near Real-Time Data Analytics over Heterogeneous DistributedData Sources* in xxx
+
+For a more in depth analysis of this work, please consult the master thesis developed for this project at (link to be added once it is published in the University's repository)
+
+
+## Aknowledgements
+This work was partially funded by the European Regional Development Fund (ERDF), Operational Program Competitiveness and Internationalization in the context of the PRODUCECH SIF project – Soluções para a Indústria de Futuro – POCI-01-0247-FEDER-024541
 
 ## License
 
