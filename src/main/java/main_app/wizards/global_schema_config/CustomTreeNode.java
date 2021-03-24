@@ -33,7 +33,10 @@ public class CustomTreeNode extends DefaultMutableTreeNode implements Serializab
         this.obj = obj;
         if ( (nodeType == NodeType.TABLE || nodeType == NodeType.GLOBAL_TABLE) && obj != null){
             if (userObject.toString().contains(File.separator) && userObject.toString().contains(".")){
-                this.setUserObject(Utils.getFileNameNoExtension(userObject.toString()));
+                String f = Utils.getFileNameNoExtension(userObject.toString());
+                if (userObject.toString().contains("(View)"))
+                    f += " (View)";
+                this.setUserObject(f);
             }
         }
         this.nodeType = nodeType;
@@ -132,7 +135,7 @@ public class CustomTreeNode extends DefaultMutableTreeNode implements Serializab
         }
         BufferedImage img = null;
         try {
-            img = ImageIO.read(new File(Constants.IMAGES_DIR+fileName));
+            img = ImageIO.read(this.getClass().getClassLoader().getResourceAsStream(Constants.IMAGES_DIR+fileName));
         } catch (IOException e) {
         }
         return new ImageIcon(img.getScaledInstance(20,20, 5));

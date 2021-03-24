@@ -11,8 +11,7 @@ import static helper_classes.utils_other.Constants.*;
 
 public class MetaDataManager {
 
-    private static final String PROJECT_FILE_DIR = SQLITE_DB_FOLDER + File.separator;
-    private static final String URL = "jdbc:sqlite:" + PROJECT_FILE_DIR;
+    private static final String URL = "jdbc:sqlite:" + PROJECT_DIR;
     private String DB_FILE_URL = URL;//will have the database name to connect to
     private Connection conn;
     private String databaseName;
@@ -24,6 +23,11 @@ public class MetaDataManager {
     }
 
     public Connection connect() {
+        try {
+            Class.forName("org.sqlite.JDBC");
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
         Connection conn = null;
         try {
             conn = DriverManager.getConnection(DB_FILE_URL);
@@ -38,20 +42,17 @@ public class MetaDataManager {
     }
 
     public static File[] listAllProjectFiles(){
-        File folder = new File(PROJECT_FILE_DIR);
+        File folder = new File(PROJECT_DIR);
         File[] listOfFiles = folder.listFiles();
 
-        for (int i = 0; i < listOfFiles.length; i++) {
-            if (listOfFiles[i].isFile()) {
-                System.out.println("File " + listOfFiles[i].getName());
-            } else if (listOfFiles[i].isDirectory()) {
-                System.out.println("Directory " + listOfFiles[i].getName());
-            }
+        if (listOfFiles == null || listOfFiles.length == 0){
+            return new File[]{};
         }
         return listOfFiles;
     }
+
     public static boolean deleteProject(String projectName){
-        File folder = new File(PROJECT_FILE_DIR);
+        File folder = new File(PROJECT_DIR);
         File[] listOfFiles = folder.listFiles();
         for (int i = 0; i < listOfFiles.length; i++) {
             if (listOfFiles[i].isFile() && listOfFiles[i].getName().equals(projectName)) {
@@ -659,7 +660,9 @@ public class MetaDataManager {
             ResultSet rs    = stmt.executeQuery("SELECT * FROM " + TABLE_DATA +" WHERE " + TABLE_DATA_DB_ID_FIELD + " = " + dbData.getId() + ";");
             // loop through the result set
             while (rs.next()) {
-                tables.add(new TableData(rs.getString(TABLE_DATA_NAME_FIELD), rs.getString(TABLE_DATA_SCHEMA_NAME_FIELD), dbData, rs.getInt(ID_FIELD), rs.getString(TABLE_CODE_FIELD)));
+                TableData t = new TableData(rs.getString(TABLE_DATA_NAME_FIELD), rs.getString(TABLE_DATA_SCHEMA_NAME_FIELD), dbData, rs.getInt(ID_FIELD), rs.getString(TABLE_CODE_FIELD));
+                t.setColumnsList(getColumnsInTable(t));
+                tables.add(t);
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
@@ -1106,6 +1109,25 @@ public class MetaDataManager {
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
+    }
+
+    public boolean cubeExists(String cubeName){
+        String sql = "SELECT "+CUBE_ID_FIELD+" FROM "+ CUBE_TABLE +" WHERE "+CUBE_NAME+" = '"+cubeName+"'";
+        boolean exists = false;
+        try {
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql);
+            // loop through the result set
+            if (rs.next()) {
+                int cubeID = rs.getInt(CUBE_ID_FIELD);
+                if (cubeID > 1)
+                    exists = true;
+                System.out.println(cubeID);
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return exists;
     }
 
     public int getOrcreateCube(String cubeName){

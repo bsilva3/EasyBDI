@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="main_app.MainMenu">
+<form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="main_app.EasyBDI">
   <grid id="27dc6" binding="mainPanel" layout-manager="GridBagLayout">
     <constraints>
       <xy x="20" y="20" width="705" height="509"/>
     </constraints>
-    <properties/>
+    <properties>
+      <visible value="true"/>
+    </properties>
     <border type="none"/>
     <children>
       <component id="3d58e" class="javax.swing.JButton" binding="newProjectBtn">
@@ -46,9 +48,20 @@
           <toolTipText value="Edit currently selected Project"/>
         </properties>
       </component>
+      <component id="e29c3" class="javax.swing.JLabel" binding="easybdiText">
+        <constraints>
+          <grid row="0" column="0" row-span="1" col-span="5" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="1.0" weighty="0.2"/>
+        </constraints>
+        <properties>
+          <horizontalAlignment value="0"/>
+          <horizontalTextPosition value="0"/>
+          <text value="Easy BDI"/>
+        </properties>
+      </component>
       <grid id="c67e1" layout-manager="GridBagLayout">
         <constraints>
-          <grid row="1" column="3" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+          <grid row="1" column="1" row-span="1" col-span="3" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
           <gridbag top="0" left="0" bottom="0" right="5" weightx="1.0" weighty="1.0"/>
         </constraints>
         <properties/>
@@ -72,7 +85,7 @@
           </component>
           <component id="55aa1" class="javax.swing.JButton" binding="deleteSelectedProjectButton" default-binding="true">
             <constraints>
-              <grid row="2" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="1" fill="0" indent="0" use-parent-layout="false"/>
+              <grid row="2" column="0" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="1" fill="0" indent="0" use-parent-layout="false"/>
               <gridbag weightx="1.0" weighty="0.2"/>
             </constraints>
             <properties>
@@ -94,54 +107,6 @@
           </component>
         </children>
       </grid>
-      <grid id="68cf" layout-manager="GridBagLayout">
-        <constraints>
-          <grid row="1" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-          <gridbag top="0" left="5" bottom="0" right="0" weightx="1.0" weighty="1.0"/>
-        </constraints>
-        <properties/>
-        <border type="bevel-lowered"/>
-        <children>
-          <component id="eb58d" class="javax.swing.JLabel">
-            <constraints>
-              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-              <gridbag weightx="0.0" weighty="1.0"/>
-            </constraints>
-            <properties>
-              <text value="Current Presto Directory:"/>
-            </properties>
-          </component>
-          <component id="b905f" class="javax.swing.JLabel" binding="prestoDirLabel">
-            <constraints>
-              <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-              <gridbag weightx="1.0" weighty="1.0"/>
-            </constraints>
-            <properties>
-              <text value=""/>
-            </properties>
-          </component>
-          <component id="82c8" class="javax.swing.JButton" binding="changePrestoDirectoryButton" default-binding="true">
-            <constraints>
-              <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-              <gridbag weightx="0.0" weighty="0.2"/>
-            </constraints>
-            <properties>
-              <text value="Change Presto Directory"/>
-            </properties>
-          </component>
-        </children>
-      </grid>
-      <component id="e29c3" class="javax.swing.JLabel" binding="easybdiText">
-        <constraints>
-          <grid row="0" column="0" row-span="1" col-span="5" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
-          <gridbag weightx="1.0" weighty="0.2"/>
-        </constraints>
-        <properties>
-          <horizontalAlignment value="0"/>
-          <horizontalTextPosition value="0"/>
-          <text value="Easy BDI"/>
-        </properties>
-      </component>
     </children>
   </grid>
 </form>

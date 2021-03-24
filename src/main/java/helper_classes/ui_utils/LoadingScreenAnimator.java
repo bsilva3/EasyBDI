@@ -1,9 +1,16 @@
 package helper_classes.ui_utils;
 
 import helper_classes.utils_other.Constants;
+import main_app.query_ui.QueryLog;
+import org.joda.time.DateTime;
 
 import javax.swing.*;
 import java.awt.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.sql.ResultSet;
+import java.util.concurrent.ExecutionException;
+
 /**
  * Utility to create a loading screen
  */
@@ -19,7 +26,7 @@ public class LoadingScreenAnimator{
         frameGeneralLoading.getRootPane().setWindowDecorationStyle(JRootPane.NONE);
         frameGeneralLoading.setLocationRelativeTo(frame);
 
-        ImageIcon loading = new ImageIcon(Constants.LOADING_GIF);
+        ImageIcon loading = new ImageIcon(LoadingScreenAnimator.class.getClassLoader().getResource(Constants.LOADING_GIF));
         //frameGeneralLoading.add(new JLabel(loading, JLabel.CENTER));
         frameGeneralLoading.add(new JLabel(loading),BorderLayout.CENTER);
         messageLabel = new JLabel(text);

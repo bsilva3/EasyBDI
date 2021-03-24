@@ -4,9 +4,7 @@ import helper_classes.*;
 import main_app.metadata_storage.MetaDataManager;
 import org.apache.commons.text.similarity.LevenshteinDistance;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 
 import static helper_classes.utils_other.Constants.DATATYPE_CONVERTIBLES_SCORE;
@@ -359,7 +357,7 @@ public class SchemaMatcher {
         String line = "";
         String csvSplitBy = ",";
         Map<DatatypePair, String> convertipleDataTypes = new HashMap<>();
-        try (BufferedReader br = new BufferedReader(new FileReader(DATATYPE_CONVERTIBLES_DICT))) {
+        try (BufferedReader br = new BufferedReader(new InputStreamReader( getClass().getClassLoader().getResourceAsStream(DATATYPE_CONVERTIBLES_DICT) ))) {
             while ((line = br.readLine()) != null) {
                 String[] elements = line.split(csvSplitBy);
                 convertipleDataTypes.put(new DatatypePair(elements[0], elements[1]), elements[2]);
@@ -378,7 +376,7 @@ public class SchemaMatcher {
         String line = "";
         String csvSplitBy = ",";
         Map<DatatypePair, Double> convertibleDataTypes = new HashMap<>();
-        try (BufferedReader br = new BufferedReader(new FileReader(DATATYPE_CONVERTIBLES_SCORE))) {
+        try ( BufferedReader br = new BufferedReader(new InputStreamReader( getClass().getClassLoader().getResourceAsStream(DATATYPE_CONVERTIBLES_SCORE) )) ) {
             while ((line = br.readLine()) != null) {
                 String[] elements = line.split(csvSplitBy);
                 convertibleDataTypes.put(new DatatypePair(elements[0], elements[1]), Double.parseDouble(elements[2]));

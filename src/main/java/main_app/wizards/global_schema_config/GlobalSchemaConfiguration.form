@@ -6,14 +6,14 @@
     </constraints>
     <properties>
       <minimumSize width="850" height="750"/>
-      <preferredSize width="850" height="750"/>
+      <preferredSize width="850" height="710"/>
     </properties>
     <border type="none"/>
     <children>
       <scrollpane id="5dacf">
         <constraints>
           <grid row="4" column="0" row-span="1" col-span="4" vsize-policy="7" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-          <gridbag top="0" left="5" bottom="0" right="10" weightx="1.5" weighty="1.5"/>
+          <gridbag top="0" left="5" bottom="0" right="10" weightx="1.5" weighty="1.4"/>
         </constraints>
         <properties/>
         <border type="none"/>
@@ -31,7 +31,7 @@
       <scrollpane id="77d04">
         <constraints>
           <grid row="4" column="5" row-span="1" col-span="4" vsize-policy="7" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-          <gridbag weightx="2.0" weighty="1.5"/>
+          <gridbag weightx="2.0" weighty="1.4"/>
         </constraints>
         <properties>
           <verticalScrollBarPolicy value="20"/>
@@ -142,14 +142,14 @@
       </component>
       <component id="f47ae" class="javax.swing.JLabel" binding="stepLabel">
         <constraints>
-          <grid row="0" column="0" row-span="1" col-span="9" vsize-policy="0" hsize-policy="0" anchor="1" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="0" column="0" row-span="1" col-span="9" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
           <gridbag weightx="1.0" weighty="0.2"/>
         </constraints>
         <properties>
           <alignmentX value="0.5"/>
           <horizontalAlignment value="0"/>
           <horizontalTextPosition value="0"/>
-          <text value=""/>
+          <text value="label"/>
         </properties>
       </component>
       <component id="8331" class="javax.swing.JLabel" binding="globalSchemaLabel">

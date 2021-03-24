@@ -1,10 +1,11 @@
 package main_app.query_ui;
 
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
 import helper_classes.*;
 import helper_classes.ui_utils.StripeRenderer;
 import helper_classes.utils_other.Constants;
 import helper_classes.utils_other.TableColumnNameExtractor;
-import helper_classes.utils_other.Utils;
 import helper_classes.ui_utils.ListElementType;
 import helper_classes.ui_utils.ListElementWrapper;
 import helper_classes.ui_utils.LoadingScreenAnimator;
@@ -14,8 +15,6 @@ import io.github.qualtagh.swing.table.view.JBroTableModel;
 import main_app.metadata_storage.MetaDataManager;
 import main_app.presto_com.PrestoMediator;
 import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import main_app.*;
 import main_app.wizards.global_schema_config.CustomTreeNode;
 import main_app.wizards.global_schema_config.CustomeTreeCellRenderer;
@@ -23,6 +22,7 @@ import main_app.wizards.global_schema_config.NodeType;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.border.TitledBorder;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -51,7 +51,7 @@ import java.util.regex.Pattern;
 
 import static main_app.query_ui.GlobalTableQuery.MAX_SELECT_COLS;
 
-public class QueryUI extends JPanel{
+public class QueryUI extends JPanel {
     private JBroTable queryResultsTableGroupable;
     private JTree schemaTree;
     private JTree rowFilterTree;
@@ -113,35 +113,35 @@ public class QueryUI extends JPanel{
     private PrestoMediator prestoMediator;
     private static final String GROUP_BY_OP = "Group By";
     private boolean countAllAdded;
-    private final String[] aggregationsMeasures = { "COUNT", "SUM", "AVG", GROUP_BY_OP};
+    private final String[] aggregationsMeasures = {"COUNT", "SUM", "AVG", GROUP_BY_OP};
     private final String[] aggregationsRows = {"COUNT", "SUM", "AVERAGE", "MAX", "MIN"};
-    private final String[] numberOperations = { "=", "!=", ">", ">=", "<", "<=", "Between", "not Between"};
-    private final String[] stringOperations = { "=", "!=", "like", "Between", "Not Between"};
+    private final String[] numberOperations = {"=", "!=", ">", ">=", "<", "<=", "Between", "not Between"};
+    private final String[] stringOperations = {"=", "!=", "like", "Between", "Not Between"};
 
-    private MainMenu mainMenu;
+    private EasyBDI mainMenu;
     private JMenu starSchemaMenu;
     private String currentStarSchema;
 
-    public QueryUI(String projectName, final MainMenu mainMenu){
-        this.mainMenu = mainMenu;
+    public QueryUI(String projectName, final EasyBDI easyBDI) {
+        this.mainMenu = easyBDI;
         this.metaDataManager = new MetaDataManager(projectName);
         this.prestoMediator = new PrestoMediator();
         countAllAdded = false;
         showLocalQueryLog = false;
 
-        mainMenu.setTitle("Analytical Query Environment");
+        easyBDI.setTitle("Analytical Query Environment");
         //mainPanel.setSize(mainMenu.getSize());
-        MouseAdapter adapterTooltip = new MouseAdapter(){
+        MouseAdapter adapterTooltip = new MouseAdapter() {
             final int defaultTimeout = ToolTipManager.sharedInstance().getInitialDelay();
 
-                @Override
-                public void mouseEntered(MouseEvent e) {
+            @Override
+            public void mouseEntered(MouseEvent e) {
                 ToolTipManager.sharedInstance().setInitialDelay(0);
                 ToolTipManager.sharedInstance().setDismissDelay(30000);//tooltip visible for 30 seconds
             }
 
-                @Override
-                public void mouseExited(MouseEvent e) {
+            @Override
+            public void mouseExited(MouseEvent e) {
                 ToolTipManager.sharedInstance().setInitialDelay(defaultTimeout);
             }
         };
@@ -149,13 +149,13 @@ public class QueryUI extends JPanel{
         //set labels icons
         Image img = null;
         try {
-            img = ImageIO.read(new File(Constants.IMAGES_DIR+"play_icon.png"));
-            executeQueryButton.setIcon(new ImageIcon(img.getScaledInstance(25, 25, 0)) );
+            img = ImageIO.read(this.getClass().getClassLoader().getResourceAsStream(Constants.IMAGES_DIR + "play_icon.png"));
+            executeQueryButton.setIcon(new ImageIcon(img.getScaledInstance(25, 25, 0)));
 
-            img = ImageIO.read(new File(Constants.IMAGES_DIR+"delete_icon.png"));
-            clearAllFieldsButton.setIcon(new ImageIcon(img.getScaledInstance(25, 25, 0)) );
+            img = ImageIO.read(this.getClass().getClassLoader().getResourceAsStream(Constants.IMAGES_DIR + "delete_icon.png"));
+            clearAllFieldsButton.setIcon(new ImageIcon(img.getScaledInstance(25, 25, 0)));
 
-            img = ImageIO.read(new File(Constants.IMAGES_DIR+"help_icon.png"));
+            img = ImageIO.read(this.getClass().getClassLoader().getResourceAsStream(Constants.IMAGES_DIR + "help_icon.png"));
             rowsLabel.setIcon(new ImageIcon(img.getScaledInstance(20, 20, 0)));
             rowsLabel.addMouseListener(adapterTooltip);
             rowsLabel.setToolTipText("<html><p>Attributes from dimension tables dropped here will be used to view records as rows.</p> " +
@@ -204,7 +204,7 @@ public class QueryUI extends JPanel{
                     "<p>It is possible to write the filters instead of a dragging and dropping then by selecting the 'change to manual edit' option on the pop up menu.</p></html>");
             colFiltersLabel.setText(colFiltersLabel.getText() + " - Normal Edit Mode");
 
-            img = ImageIO.read(new File(Constants.IMAGES_DIR+"arrow_right.png"));
+            img = ImageIO.read(this.getClass().getClassLoader().getResourceAsStream(Constants.IMAGES_DIR + "arrow_right.png"));
             arrowLabel.setIcon(new ImageIcon(img.getScaledInstance(20, 20, 0)));
         } catch (IOException e) {
             e.printStackTrace();
@@ -212,14 +212,13 @@ public class QueryUI extends JPanel{
         //set ops on combobox
         aggregationOpComboBox.setModel(new DefaultComboBoxModel(aggregationsMeasures));
 
-        List<String> starSchemas =  metaDataManager.getStarSchemaNames();
-        if (starSchemas.isEmpty()){
+        List<String> starSchemas = metaDataManager.getStarSchemaNames();
+        if (starSchemas.isEmpty()) {
             JOptionPane.showMessageDialog(null, "There are no star schemas in this project.", "No Star schemas found", JOptionPane.ERROR_MESSAGE);
             //close db
             metaDataManager.close();
-            mainMenu.returnToMainMenu();
-        }
-        else {
+            easyBDI.returnToMainMenu();
+        } else {
             currentStarSchema = starSchemas.get(0);//when opening this window, select first star schema by default
             //Set JMENU BAR
             JMenuBar menuBar = new JMenuBar();
@@ -228,7 +227,7 @@ public class QueryUI extends JPanel{
             homeButton = new JButton("Home");
             BufferedImage image = null;
             try {
-                image = ImageIO.read(new File(Constants.IMAGES_DIR+"home_icon.png"));
+                image = ImageIO.read(this.getClass().getClassLoader().getResourceAsStream(Constants.IMAGES_DIR + "home_icon.png"));
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -243,9 +242,9 @@ public class QueryUI extends JPanel{
             homeButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     //remove manubar
-                    mainMenu.setJMenuBar(null);
+                    easyBDI.setJMenuBar(null);
                     metaDataManager.close();
-                    mainMenu.returnToMainMenu();
+                    easyBDI.returnToMainMenu();
                 }
             });
             menuBar.add(homeButton);
@@ -254,7 +253,7 @@ public class QueryUI extends JPanel{
             //star schema selection
             starSchemaMenu = new JMenu("Choose Star Schema");
             try {
-                image = ImageIO.read(new File(Constants.IMAGES_DIR+"cube_icon.png"));
+                image = ImageIO.read(this.getClass().getClassLoader().getResourceAsStream(Constants.IMAGES_DIR + "cube_icon.png"));
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -269,7 +268,7 @@ public class QueryUI extends JPanel{
             JMenu advancedOptions = new JMenu("Advanced Options");
             image = null;
             try {
-                image = ImageIO.read(new File(Constants.IMAGES_DIR+"advanced_options_icon.png"));
+                image = ImageIO.read(this.getClass().getClassLoader().getResourceAsStream(Constants.IMAGES_DIR + "advanced_options_icon.png"));
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -288,18 +287,18 @@ public class QueryUI extends JPanel{
             queryMenu.addActionListener(e -> saveQueryState());
             image = null;
             try {
-                image = ImageIO.read(new File(Constants.IMAGES_DIR+"query_icon.png"));
+                image = ImageIO.read(this.getClass().getClassLoader().getResourceAsStream(Constants.IMAGES_DIR + "query_icon.png"));
             } catch (IOException e) {
                 e.printStackTrace();
             }
             queryMenu.setIcon(new ImageIcon(image.getScaledInstance(20, 20, 0)));
 
-                //save query state
+            //save query state
             JMenuItem saveQueryState = new JMenuItem("Save Query");
             saveQueryState.addActionListener(e -> saveQueryState());
             image = null;
             try {
-                image = ImageIO.read(new File(Constants.IMAGES_DIR+"save_icon.png"));
+                image = ImageIO.read(this.getClass().getClassLoader().getResourceAsStream(Constants.IMAGES_DIR + "save_icon.png"));
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -311,7 +310,7 @@ public class QueryUI extends JPanel{
             loadQueryState.addActionListener(e -> selectQueryToLoad());
             image = null;
             try {
-                image = ImageIO.read(new File(Constants.IMAGES_DIR+"load_icon.png"));
+                image = ImageIO.read(this.getClass().getClassLoader().getResourceAsStream(Constants.IMAGES_DIR + "load_icon.png"));
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -324,7 +323,7 @@ public class QueryUI extends JPanel{
 
             image = null;
             try {
-                image = ImageIO.read(new File(Constants.IMAGES_DIR+"export_icon.png"));
+                image = ImageIO.read(this.getClass().getClassLoader().getResourceAsStream(Constants.IMAGES_DIR + "export_icon.png"));
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -336,18 +335,18 @@ public class QueryUI extends JPanel{
 
             image = null;
             try {
-                image = ImageIO.read(new File(Constants.IMAGES_DIR+"export_as_csv_icon.png"));
+                image = ImageIO.read(this.getClass().getClassLoader().getResourceAsStream(Constants.IMAGES_DIR + "export_as_csv_icon.png"));
             } catch (IOException e) {
                 e.printStackTrace();
             }
             exportToCsv.setIcon(new ImageIcon(image.getScaledInstance(20, 20, 0)));
-            exportToCsv .addActionListener(e -> exportResultsToCSV());
+            exportToCsv.addActionListener(e -> exportResultsToCSV());
             exportMenu.add(exportToCsv);
 
             menuBar.add(exportMenu);
 
             //menuBar.setBackground(new Color(154, 154, 154));
-            mainMenu.setJMenuBar(menuBar);
+            easyBDI.setJMenuBar(menuBar);
 
 
             this.starSchema = metaDataManager.getStarSchema(currentStarSchema);
@@ -423,7 +422,6 @@ public class QueryUI extends JPanel{
             globalQueryLogList.setCellRenderer(new StripeRenderer());
 
 
-
             //jtable
             //this.defaultTableModel = new JBroTableModel(new ModelData());
             //queryResultsTableGroupable = new JBroTable();
@@ -449,7 +447,7 @@ public class QueryUI extends JPanel{
                     if (evt.getClickCount() == 2) {
                         // Double-click on list log item: show full message
                         int index = list.locationToIndex(evt.getPoint());
-                        if (index < 0){
+                        if (index < 0) {
                             return;
                         }
                         QueryLog queryLog = (QueryLog) queryStatusLogModel.get(index);
@@ -465,7 +463,7 @@ public class QueryUI extends JPanel{
                     if (evt.getClickCount() == 2) {
                         // Double-click on list log item: show full message
                         int index = list.locationToIndex(evt.getPoint());
-                        if (index < 0){
+                        if (index < 0) {
                             return;
                         }
                         QueryLog queryLog = (QueryLog) globalSchemaLogModel.get(index);
@@ -480,7 +478,7 @@ public class QueryUI extends JPanel{
                     if (evt.getClickCount() == 2) {
                         // Double-click on list log item: show full message
                         int index = list.locationToIndex(evt.getPoint());
-                        if (index < 0){
+                        if (index < 0) {
                             return;
                         }
                         QueryLog queryLog = (QueryLog) localSchemaLogModel.get(index);
@@ -492,7 +490,7 @@ public class QueryUI extends JPanel{
             this.setLayout(new BorderLayout());
             this.globalTableQueries = new GlobalTableQuery(prestoMediator, starSchema.getFactsTable(), starSchema.getDimsTables());
             //this.setSize(mainMenu.getSize());
-            mainPanel.setSize(mainMenu.getSize());
+            mainPanel.setSize(easyBDI.getSize());
             this.revalidate();
             add(mainPanel);
             this.setVisible(true);
@@ -515,9 +513,9 @@ public class QueryUI extends JPanel{
         });
     }
 
-    private void populateStarSchemaMenu(List<String> starSchemas){
+    private void populateStarSchemaMenu(List<String> starSchemas) {
         starSchemaMenu.removeAll();
-        for (String starSchema : starSchemas){
+        for (String starSchema : starSchemas) {
             JCheckBoxMenuItem menuItem = new JCheckBoxMenuItem(starSchema);
             if (currentStarSchema.equals(starSchema))
                 menuItem.setState(true);
@@ -526,7 +524,7 @@ public class QueryUI extends JPanel{
         }
     }
 
-    private void changeStarSchema(String starSchemaName, JCheckBoxMenuItem menuItem){
+    private void changeStarSchema(String starSchemaName, JCheckBoxMenuItem menuItem) {
         if (starSchemaName.equals(currentStarSchema)) {
             menuItem.setState(true);
             return;
@@ -540,22 +538,22 @@ public class QueryUI extends JPanel{
         expandAllStarSchema(new TreePath(schemaTreeModel.getRoot()), true);
         schemaTree.revalidate();
         schemaTree.updateUI();
-        for (int i = 0; i < starSchemaMenu.getItemCount(); i++){
+        for (int i = 0; i < starSchemaMenu.getItemCount(); i++) {
             if (!starSchemaMenu.getItem(i).equals(menuItem))
                 starSchemaMenu.getItem(i).setSelected(false);
         }
     }
 
-    private void showHideLocalSchemaQueryPane(boolean show){
+    private void showHideLocalSchemaQueryPane(boolean show) {
         this.showLocalQueryLog = show;
         if (showLocalQueryLog)
             logPane.addTab("Local Schema Query", localSchemaLogPane);
-        else{
+        else {
             logPane.remove(localSchemaLogPane);
         }
     }
 
-    private void clearAllFieldsAndQueryElements(){
+    private void clearAllFieldsAndQueryElements() {
         //clear all fields in ui
         rowsListModel.clear();
         columnListModel.clear();
@@ -588,33 +586,33 @@ public class QueryUI extends JPanel{
         globalTableQueries.clearAllElements();
     }
 
-    private void clearRowFilters(){
+    private void clearRowFilters() {
         rowFilterTree.setModel(null);
         rowFilterTree.revalidate();
         rowFilterTree.updateUI();
     }
 
-    private void clearColFilters(){
+    private void clearColFilters() {
         colFiltersTree.setModel(null);
         colFiltersTree.revalidate();
         colFiltersTree.updateUI();
     }
 
-    private void clearAggrFilters(){
+    private void clearAggrFilters() {
         aggrFiltersTree.setModel(null);
         aggrFiltersTree.revalidate();
         aggrFiltersTree.updateUI();
     }
 
-    private void selectQueryToLoad(){
+    private void selectQueryToLoad() {
         List<String> queryNames = metaDataManager.getListOfQueriesByCube(currentStarSchema);
         new QuerySelector(queryNames, this);
     }
 
-    public void loadSelectedQuery(String queryName){
+    public void loadSelectedQuery(String queryName) {
         int cubeID = metaDataManager.getOrcreateCube(currentStarSchema);
         int queryID = metaDataManager.getQueryID(queryName, cubeID);
-        if (queryID == -1){
+        if (queryID == -1) {
             JOptionPane.showMessageDialog(mainMenu, "Could not load query: does not exist", "Error loading query", JOptionPane.ERROR_MESSAGE);
             return;
         }
@@ -625,53 +623,49 @@ public class QueryUI extends JPanel{
         clearAllFieldsAndQueryElements();
 
         //place columns in UI (if any) and in data structures
-        for (Map.Entry<GlobalTableData, List<GlobalColumnData>> colSelect : cols.entrySet()){
-            for (GlobalColumnData c : colSelect.getValue()){
+        for (Map.Entry<GlobalTableData, List<GlobalColumnData>> colSelect : cols.entrySet()) {
+            for (GlobalColumnData c : colSelect.getValue()) {
                 addColumnsToList(columnListModel, c, colSelect.getKey());
             }
         }
 
         //place measures in UI (if any) and in data structures -> (measures before rows because its easier to get index of measures, as they go on top on aggr area
         String editAggr = metaDataManager.getManualAggr(queryID);
-        if ( (measures == null && editAggr.length()>0)  || (measures.isEmpty() && editAggr.length()>0)){ //aggregations were in manual mode
+        if ((measures == null && editAggr.length() > 0) || (measures.isEmpty() && editAggr.length() > 0)) { //aggregations were in manual mode
             changeAggrManualMode();
             manualAggregations.setText(editAggr);
             manualAggregations.revalidate();
             manualAggregations.updateUI();
-        }
-        else if (measures != null && measures.size() > 0){//aggregation added on normal mode
+        } else if (measures != null && measures.size() > 0) {//aggregation added on normal mode
             changeAggrNormalMode();
             int index = 0;
             for (GlobalColumnData measure : measures) {
                 addAggrRow(measuresListModel, starSchema.getFactsTable().getGlobalTable(), measure, true);
-                index = measuresListModel.getSize()-1;
-                if (measure.getOrderBy() != null && measure.getOrderBy().equalsIgnoreCase("ASC")){
+                index = measuresListModel.getSize() - 1;
+                if (measure.getOrderBy() != null && measure.getOrderBy().equalsIgnoreCase("ASC")) {
                     this.addOrderBy(index, true, true);
-                }
-                else if (measure.getOrderBy() != null && measure.getOrderBy().equalsIgnoreCase("DESC")){
+                } else if (measure.getOrderBy() != null && measure.getOrderBy().equalsIgnoreCase("DESC")) {
                     this.addOrderBy(index, false, true);
                 }
             }
         }
 
         //place rows in UI and in data structures and add group by's (if any)
-        for (Map.Entry<GlobalTableData, List<GlobalColumnData>> rowSelect : rows.entrySet()){
-            for (GlobalColumnData c : rowSelect.getValue()){
+        for (Map.Entry<GlobalTableData, List<GlobalColumnData>> rowSelect : rows.entrySet()) {
+            for (GlobalColumnData c : rowSelect.getValue()) {
                 int index = 0;
                 boolean isAggrRow = false;
-                if (c.getAggrOp()!= null && !c.getAggrOp().isEmpty()) {
+                if (c.getAggrOp() != null && !c.getAggrOp().isEmpty()) {
                     addAggrRow(measuresListModel, rowSelect.getKey(), c, false);
-                    index = measuresListModel.getSize()-1;
+                    index = measuresListModel.getSize() - 1;
                     isAggrRow = true;
-                }
-                else {
+                } else {
                     addRowsToList(rowsListModel, c, rowSelect.getKey());
-                    index = rowsListModel.getSize()-1;
+                    index = rowsListModel.getSize() - 1;
                 }
-                if (c.getOrderBy() != null && c.getOrderBy().equalsIgnoreCase("ASC")){
+                if (c.getOrderBy() != null && c.getOrderBy().equalsIgnoreCase("ASC")) {
                     this.addOrderBy(index, true, isAggrRow);
-                }
-                else if (c.getOrderBy() != null && c.getOrderBy().equalsIgnoreCase("DESC")){
+                } else if (c.getOrderBy() != null && c.getOrderBy().equalsIgnoreCase("DESC")) {
                     this.addOrderBy(index, false, isAggrRow);
                 }
             }
@@ -679,13 +673,12 @@ public class QueryUI extends JPanel{
 
         //get regular filters
         String editFiltersStr = metaDataManager.getManualFilter(queryID);
-        if ( editFiltersStr.length()>0){
+        if (editFiltersStr.length() > 0) {
             changeFilterManualMode();
             editFilters.setText(editFiltersStr);
             editFilters.revalidate();
             editFilters.updateUI();
-        }
-        else{
+        } else {
             FilterNode filter = metaDataManager.getQueryFilters(queryID);
             if (filter != null) {
                 changeFilterNormalMode();
@@ -700,13 +693,12 @@ public class QueryUI extends JPanel{
 
         //get regular filters
         String editColFiltersStr = metaDataManager.getManualColFilter(queryID);
-        if ( editColFiltersStr.length()>0){
+        if (editColFiltersStr.length() > 0) {
             changeColFilterManualMode();
             editColFilters.setText(editColFiltersStr);
             editColFilters.revalidate();
             editColFilters.updateUI();
-        }
-        else {
+        } else {
             FilterNode filter = metaDataManager.getQueryColFilters(queryID);
             if (filter != null) {
                 changeFilterNormalMode();
@@ -720,13 +712,12 @@ public class QueryUI extends JPanel{
 
         //get aggr filters
         String editAggrFilters = metaDataManager.getManualFilterAggr(queryID);
-        if ( (measures == null && editAggrFilters.length()>0) ||  (measures.isEmpty() && editAggrFilters.length()>0)){
+        if ((measures == null && editAggrFilters.length() > 0) || (measures.isEmpty() && editAggrFilters.length() > 0)) {
             changeAggrFilterManualMode();
             editFiltersAggr.setText(editAggrFilters);
             editFiltersAggr.revalidate();
             editFiltersAggr.updateUI();
-        }
-        else {
+        } else {
             FilterNode filtersNodeRoot = metaDataManager.getQueryAggrFilters(queryID);
             if (filtersNodeRoot != null) {
                 changeAggrFilterNormalMode();
@@ -740,17 +731,17 @@ public class QueryUI extends JPanel{
 
     }
 
-    private void saveQueryState(){
+    private void saveQueryState() {
         //user must name the query
         JTextField nameTxt = new JTextField();
         JComponent[] inputs = new JComponent[]{
                 new JLabel("Please, insert a name for this query."),
                 nameTxt};
         int result = JOptionPane.showConfirmDialog(
-            null,
-            inputs,
-            "Save Query",
-            JOptionPane.PLAIN_MESSAGE);
+                null,
+                inputs,
+                "Save Query",
+                JOptionPane.PLAIN_MESSAGE);
         if (nameTxt.getText().length() == 0) {
             JOptionPane.showConfirmDialog(
                     null,
@@ -766,35 +757,34 @@ public class QueryUI extends JPanel{
         List<GlobalColumnData> measures = globalTableQueries.getMeasures();
 
         FilterNode filterRoot = null;
-        if (rowFilterTreeModel != null){
+        if (rowFilterTreeModel != null) {
             filterRoot = (FilterNode) rowFilterTreeModel.getRoot();
         }
 
         FilterNode colFilterRoot = null;
-        if (colFilterTreeModel != null){
+        if (colFilterTreeModel != null) {
             colFilterRoot = (FilterNode) colFilterTreeModel.getRoot();
         }
 
         FilterNode aggrFilterRoot = null;
-        if (aggrFilterTreeModel != null){
+        if (aggrFilterTreeModel != null) {
             aggrFilterRoot = (FilterNode) aggrFilterTreeModel.getRoot();
         }
 
         boolean success = metaDataManager.insertNewQuerySave(nameTxt.getText(), currentStarSchema, rows, columns,
                 measures, filterRoot, colFilterRoot, aggrFilterRoot, manualAggregations.getText(), editFilters.getText(), editColFilters.getText(), editFiltersAggr.getText());
-        if (success){
-            JOptionPane.showMessageDialog(mainMenu, "Query "+nameTxt.getText()+" save successfully!", "Query saved", JOptionPane.PLAIN_MESSAGE);
-        }
-        else{
-            JOptionPane.showMessageDialog(mainMenu, "Query "+nameTxt.getText()+" could not be saved.", "Query not saved", JOptionPane.ERROR_MESSAGE);
+        if (success) {
+            JOptionPane.showMessageDialog(mainMenu, "Query " + nameTxt.getText() + " save successfully!", "Query saved", JOptionPane.PLAIN_MESSAGE);
+        } else {
+            JOptionPane.showMessageDialog(mainMenu, "Query " + nameTxt.getText() + " could not be saved.", "Query not saved", JOptionPane.ERROR_MESSAGE);
         }
     }
 
-    public void deleteQuery(String queryName){
+    public void deleteQuery(String queryName) {
         metaDataManager.deleteQuery(queryName, currentStarSchema);
     }
 
-    private void saveToFile(boolean multiline){
+    private void saveToFile(boolean multiline) {
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setFileFilter(new FileFilter() {
 
@@ -829,16 +819,15 @@ public class QueryUI extends JPanel{
                 success = saveAllQueriesLog(fileToSave);
             else
                 success = saveLogToFile(queryStatusLogModel.get(queryLogList.getSelectedIndex()).toString(), fileToSave);
-            if (success){
+            if (success) {
                 JOptionPane.showMessageDialog(mainMenu, "Query Log Saved!", "Success", JOptionPane.INFORMATION_MESSAGE);
-            }
-            else{
+            } else {
                 JOptionPane.showMessageDialog(mainMenu, "Failed to save query log. Select an apropriate folder.", "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
 
-    private boolean saveAllQueriesLog(File file){
+    private boolean saveAllQueriesLog(File file) {
         BufferedWriter writer = null;
         try {
             writer = new BufferedWriter(new FileWriter(file));
@@ -846,7 +835,7 @@ public class QueryUI extends JPanel{
                 //saveLogToFile(queryLogModel.get(i).toString(), folder);
                 List<String> limitLine = textLimiter(queryStatusLogModel.get(i).toString(), 80);
                 for (String s : limitLine)
-                    writer.write(s+"\n");
+                    writer.write(s + "\n");
                 writer.write("\n ------------------------------------------------------------------------------- \n");
             }
             writer.close();
@@ -857,13 +846,13 @@ public class QueryUI extends JPanel{
         return true;
     }
 
-    private boolean saveLogToFile(String log, File folder){
+    private boolean saveLogToFile(String log, File folder) {
         BufferedWriter writer = null;
         try {
             writer = new BufferedWriter(new FileWriter(folder));
             List<String> limitLine = textLimiter(log, 80);
             for (String s : limitLine)
-                writer.write(s+"\n");
+                writer.write(s + "\n");
 
             writer.close();
         } catch (IOException e) {
@@ -875,6 +864,7 @@ public class QueryUI extends JPanel{
 
     /**
      * Limit the ammount of chars by line when saving to file
+     *
      * @param input
      * @param limit
      * @return
@@ -896,7 +886,7 @@ public class QueryUI extends JPanel{
         return returnList;
     }
 
-    public static void main(String[] args){
+    public static void main(String[] args) {
         QueryUI m = new QueryUI("My Project", null);
         JFrame frame = new JFrame();
         frame.setPreferredSize(new Dimension(950, 800));
@@ -907,8 +897,8 @@ public class QueryUI extends JPanel{
         frame.setVisible(true);
     }
 
-    public static List<GlobalTableData> generateGlobalSchema(){
-        java.util.List<GlobalTableData> globalTableDataList = new ArrayList<>();
+    public static List<GlobalTableData> generateGlobalSchema() {
+        List<GlobalTableData> globalTableDataList = new ArrayList<>();
         GlobalTableData g1 = new GlobalTableData("employees");
         //GlobalTableData g2 = new GlobalTableData("inventory");
         //TableData table4 = new TableData("products", "schema", dbData3, 4);
@@ -942,7 +932,7 @@ public class QueryUI extends JPanel{
         GlobalColumnData globalColMongo2 = new GlobalColumnData("product_name", "varchar", false, new ColumnData.Builder("product_name", "varchar", false).withTable(table4).build());
         GlobalColumnData globalColMongo3 = new GlobalColumnData("price", "double", false, new ColumnData.Builder("price", "double", false).withTable(table4).build());
         GlobalColumnData globalColMongo4 = new GlobalColumnData("UnitsInStock", "integer", false, new ColumnData.Builder("UnitsInStock", "integer", false).withTable(table4).build());*/
-        java.util.List<GlobalColumnData> globalCols = new ArrayList<>();
+        List<GlobalColumnData> globalCols = new ArrayList<>();
         globalCols.add(globalColA);
         globalCols.add(globalColB);
         globalCols.add(globalColC);
@@ -959,20 +949,20 @@ public class QueryUI extends JPanel{
         return globalTableDataList;
     }
 
-    public DefaultTreeModel setStarSchemaTree(){
+    public DefaultTreeModel setStarSchemaTree() {
         if (this.starSchema == null)
             return null;
         FactsTable facts = starSchema.getFactsTable();
         CustomTreeNode root = new CustomTreeNode("root", NodeType.GLOBAL_TABLES);
-        CustomTreeNode factsNode = new CustomTreeNode("Measures of: "+facts.getGlobalTable().getTableName(),facts.getGlobalTable(), NodeType.FACTS_TABLE);
+        CustomTreeNode factsNode = new CustomTreeNode("Measures of: " + facts.getGlobalTable().getTableName(), facts.getGlobalTable(), NodeType.FACTS_TABLE);
         //CustomTreeNode measuresNode = new CustomTreeNode("Measures", facts.getGlobalTable(), NodeType.MEASURES);
         //CustomTreeNode nonFKNode = new CustomTreeNode("Non-FK attributes",facts.getGlobalTable(), NodeType.FACTS_ATTR);
 
         //set columns that are measures ONLY
         Map<GlobalColumnData, Boolean> cols = facts.getColumns();
 
-        for (Map.Entry<GlobalColumnData, Boolean> col : cols.entrySet()){
-            if (col.getValue() == true){
+        for (Map.Entry<GlobalColumnData, Boolean> col : cols.entrySet()) {
+            if (col.getValue() == true) {
                 //is measure, add
                 GlobalColumnData measure = col.getKey();
                 CustomTreeNode measureNode = new CustomTreeNode(measure.getName(), measure, NodeType.MEASURE);
@@ -990,10 +980,10 @@ public class QueryUI extends JPanel{
         }
         //factsNode.add(measuresNode);
         //if (nonFKNode.getChildCount() > 0)
-          //  factsNode.add(nonFKNode);
+        //  factsNode.add(nonFKNode);
         //dimension tables
         CustomTreeNode dimensionsNode = new CustomTreeNode("Dimensions", NodeType.GLOBAL_TABLES);
-        for (GlobalTableData gt : starSchema.getDimsTables() ) {
+        for (GlobalTableData gt : starSchema.getDimsTables()) {
             CustomTreeNode tables = new CustomTreeNode(gt.getTableName(), gt, NodeType.GLOBAL_TABLE);
             //global cols
             for (GlobalColumnData col : gt.getGlobalColumnDataList()) {
@@ -1016,8 +1006,8 @@ public class QueryUI extends JPanel{
             public void actionPerformed(ActionEvent arg0) {
                 if (index < 0)
                     return;
-                ListElementWrapper elem = (ListElementWrapper)columnListModel.get(index);
-                if (elem.getType() == ListElementType.GLOBAL_TABLE){
+                ListElementWrapper elem = (ListElementWrapper) columnListModel.get(index);
+                if (elem.getType() == ListElementType.GLOBAL_TABLE) {
                     return;
                 }
                 GlobalColumnData col = (GlobalColumnData) elem.getObj();
@@ -1025,20 +1015,19 @@ public class QueryUI extends JPanel{
                 columnListModel.removeElementAt(index);
 
                 //remove table group if last element or no other elements in that group
-                ListElementWrapper el = (ListElementWrapper) columnListModel.getElementAt(columnListModel.size()-1);
+                ListElementWrapper el = (ListElementWrapper) columnListModel.getElementAt(columnListModel.size() - 1);
                 if (columnListModel.size() == 1)
                     columnListModel.removeElementAt(0);
                     //check if last element is a table
-                else if (el.getType() == ListElementType.GLOBAL_TABLE ){
-                    columnListModel.removeElementAt(columnListModel.size()-1);
-                }
-                else{
+                else if (el.getType() == ListElementType.GLOBAL_TABLE) {
+                    columnListModel.removeElementAt(columnListModel.size() - 1);
+                } else {
                     //iterate all tables and check if any tabe has no groups and remove it. Empty tables are followed together.
-                    for (int i = 1; i < columnListModel.size(); i++){
-                        ListElementWrapper e1 = (ListElementWrapper) columnListModel.getElementAt(i-1);
+                    for (int i = 1; i < columnListModel.size(); i++) {
+                        ListElementWrapper e1 = (ListElementWrapper) columnListModel.getElementAt(i - 1);
                         ListElementWrapper e2 = (ListElementWrapper) columnListModel.getElementAt(i);
-                        if (e1.getType()==ListElementType.GLOBAL_TABLE && e2.getType()==ListElementType.GLOBAL_TABLE){
-                            columnListModel.removeElementAt(i-1);
+                        if (e1.getType() == ListElementType.GLOBAL_TABLE && e2.getType() == ListElementType.GLOBAL_TABLE) {
+                            columnListModel.removeElementAt(i - 1);
                             break; //end here, because only one emoty table can exist
                         }
 
@@ -1058,8 +1047,8 @@ public class QueryUI extends JPanel{
             public void actionPerformed(ActionEvent arg0) {
                 if (index < 0)
                     return;
-                ListElementWrapper elem = (ListElementWrapper)listModel.get(index);
-                if (elem.getType() == ListElementType.GLOBAL_TABLE){
+                ListElementWrapper elem = (ListElementWrapper) listModel.get(index);
+                if (elem.getType() == ListElementType.GLOBAL_TABLE) {
                     return;
                 }
                 GlobalColumnData col = (GlobalColumnData) elem.getObj();
@@ -1067,20 +1056,19 @@ public class QueryUI extends JPanel{
                 listModel.removeElementAt(index);
 
                 //remove table group if last element or no other elements in that group
-                ListElementWrapper el = (ListElementWrapper) listModel.getElementAt(listModel.size()-1);
+                ListElementWrapper el = (ListElementWrapper) listModel.getElementAt(listModel.size() - 1);
                 if (listModel.size() == 1)
                     listModel.removeElementAt(0);
                     //check if last element is a table
-                else if (el.getType() == ListElementType.GLOBAL_TABLE ){
-                    listModel.removeElementAt(listModel.size()-1);
-                }
-                else{
+                else if (el.getType() == ListElementType.GLOBAL_TABLE) {
+                    listModel.removeElementAt(listModel.size() - 1);
+                } else {
                     //iterate all tables and check if any tabe has no groups and remove it. Empty tables are followed together.
-                    for (int i = 1; i < listModel.size(); i++){
-                        ListElementWrapper e1 = (ListElementWrapper) listModel.getElementAt(i-1);
+                    for (int i = 1; i < listModel.size(); i++) {
+                        ListElementWrapper e1 = (ListElementWrapper) listModel.getElementAt(i - 1);
                         ListElementWrapper e2 = (ListElementWrapper) listModel.getElementAt(i);
-                        if (e1.getType()==ListElementType.GLOBAL_TABLE && e2.getType()==ListElementType.GLOBAL_TABLE){
-                            listModel.removeElementAt(i-1);
+                        if (e1.getType() == ListElementType.GLOBAL_TABLE && e2.getType() == ListElementType.GLOBAL_TABLE) {
+                            listModel.removeElementAt(i - 1);
                             break; //end here, because only one emoty table can exist
                         }
 
@@ -1103,57 +1091,54 @@ public class QueryUI extends JPanel{
         };
     }
 
-    public void addOrderBy(int index, boolean isAsc, boolean isAggrRow){
-            if (index < 0)
-                return;
-            ListElementWrapper elem = null;
-            if (isAggrRow) {
-                elem = (ListElementWrapper) measuresListModel.get(index);
-            }
-            else {
-                elem = (ListElementWrapper) rowsListModel.get(index);
-            }
+    public void addOrderBy(int index, boolean isAsc, boolean isAggrRow) {
+        if (index < 0)
+            return;
+        ListElementWrapper elem = null;
+        if (isAggrRow) {
+            elem = (ListElementWrapper) measuresListModel.get(index);
+        } else {
+            elem = (ListElementWrapper) rowsListModel.get(index);
+        }
 
-            String tableName = "";
-            GlobalColumnData c = (GlobalColumnData) elem.getObj();
-            if (isAggrRow) {
-                measuresListModel.getElementAt(index).toString();
-                tableName = getTableNameOfColumnInList(measuresListModel, index);
-            }
-            else {
-                rowsListModel.getElementAt(index).toString();
-                tableName = getTableNameOfColumnInList(rowsListModel, index);
-            }
-            if (tableName == null)
-                return;
-            //add to the list (ASC or DESC)
-            String order = "";
-            if (isAsc)
-                order = "ASC";
-            else
-                order = "DESC";
-            c.setOrderBy(order);
-            elem.setObj(c);
-            if (isAggrRow) {
-                elem.setName(elem.getName()+" ("+order+")");
-                globalTableQueries.addOrderByRow(c.getAggrOpFullNameEscapped()+" "+order);//add Aggr(table.col) sortOrder to queries
-                measuresListModel.setElementAt(elem, index);//update element with ASC or DESC to signal it will be ordered
-                aggregationsList.revalidate();
-                aggregationsList.updateUI();
-            }
-            else {
-                elem.setName(elem.getName()+ " ("+order+")");
-                rowsListModel.setElementAt(elem, index);//update element with ASC or DESC to signal it will be ordered
-                rowsList.revalidate();
-                rowsList.updateUI();
-                globalTableQueries.addOrderByRow("\""+tableName+"\".\""+c.getName()+"\" "+order);
-            }
+        String tableName = "";
+        GlobalColumnData c = (GlobalColumnData) elem.getObj();
+        if (isAggrRow) {
+            measuresListModel.getElementAt(index).toString();
+            tableName = getTableNameOfColumnInList(measuresListModel, index);
+        } else {
+            rowsListModel.getElementAt(index).toString();
+            tableName = getTableNameOfColumnInList(rowsListModel, index);
+        }
+        if (tableName == null)
+            return;
+        //add to the list (ASC or DESC)
+        String order = "";
+        if (isAsc)
+            order = "ASC";
+        else
+            order = "DESC";
+        c.setOrderBy(order);
+        elem.setObj(c);
+        if (isAggrRow) {
+            elem.setName(elem.getName() + " (" + order + ")");
+            globalTableQueries.addOrderByRow(c.getAggrOpFullNameEscapped() + " " + order);//add Aggr(table.col) sortOrder to queries
+            measuresListModel.setElementAt(elem, index);//update element with ASC or DESC to signal it will be ordered
+            aggregationsList.revalidate();
+            aggregationsList.updateUI();
+        } else {
+            elem.setName(elem.getName() + " (" + order + ")");
+            rowsListModel.setElementAt(elem, index);//update element with ASC or DESC to signal it will be ordered
+            rowsList.revalidate();
+            rowsList.updateUI();
+            globalTableQueries.addOrderByRow("\"" + tableName + "\".\"" + c.getName() + "\" " + order);
+        }
     }
 
     private String getTableNameOfColumnInList(DefaultListModel listModel, int colIndex) {//must be either column or row list
-        for (int i = colIndex-1; i >= 0; i--){
+        for (int i = colIndex - 1; i >= 0; i--) {
             String name = listModel.getElementAt(i).toString();
-            if (!name.contains("    ")){
+            if (!name.contains("    ")) {
                 return name;
             }
         }
@@ -1175,12 +1160,12 @@ public class QueryUI extends JPanel{
                 String tableName = getTableNameOfColumnInList(rowsListModel, index);
                 if (tableName == null)
                     return;
-                elem.setName("   "+colNameOnly);
+                elem.setName("   " + colNameOnly);
                 GlobalColumnData c = (GlobalColumnData) elem.getObj();
                 c.setOrderBy("");
                 elem.setObj(c);
                 rowsListModel.setElementAt(elem, index);//update element without the asc or desc
-                globalTableQueries.removeOrderByIfPresent(tableName+"."+colNameOnly);
+                globalTableQueries.removeOrderByIfPresent(tableName + "." + colNameOnly);
                 rowsList.revalidate();
             }
         };
@@ -1192,8 +1177,8 @@ public class QueryUI extends JPanel{
             public void actionPerformed(ActionEvent arg0) {
                 if (index < 0)
                     return;
-                ListElementWrapper elem = (ListElementWrapper)measuresListModel.get(index);
-                if (elem.getType() == ListElementType.GLOBAL_TABLE){
+                ListElementWrapper elem = (ListElementWrapper) measuresListModel.get(index);
+                if (elem.getType() == ListElementType.GLOBAL_TABLE) {
                     return;
                 }
                 GlobalColumnData col = (GlobalColumnData) elem.getObj();
@@ -1201,22 +1186,21 @@ public class QueryUI extends JPanel{
                 measuresListModel.removeElementAt(index);
 
                 //remove table group if last element or no other elements in that group
-                ListElementWrapper el = (ListElementWrapper) measuresListModel.getElementAt(measuresListModel.size()-1);
+                ListElementWrapper el = (ListElementWrapper) measuresListModel.getElementAt(measuresListModel.size() - 1);
                 if (measuresListModel.size() == 1 && !countAllAdded)
                     measuresListModel.removeElementAt(0);
                 else if (measuresListModel.size() == 2 && countAllAdded)
                     measuresListModel.removeElementAt(1);
-                //check if last element is a table
-                else if (el.getType() == ListElementType.GLOBAL_TABLE ){
-                    measuresListModel.removeElementAt(measuresListModel.size()-1);
-                }
-                else{
+                    //check if last element is a table
+                else if (el.getType() == ListElementType.GLOBAL_TABLE) {
+                    measuresListModel.removeElementAt(measuresListModel.size() - 1);
+                } else {
                     //iterate all tables and check if any tabe has no groups and remove it. Empty tables are followed together.
-                    for (int i = 1; i < measuresListModel.size(); i++){
-                        ListElementWrapper e1 = (ListElementWrapper) measuresListModel.getElementAt(i-1);
+                    for (int i = 1; i < measuresListModel.size(); i++) {
+                        ListElementWrapper e1 = (ListElementWrapper) measuresListModel.getElementAt(i - 1);
                         ListElementWrapper e2 = (ListElementWrapper) measuresListModel.getElementAt(i);
-                        if (e1.getType()==ListElementType.GLOBAL_TABLE && e2.getType()==ListElementType.GLOBAL_TABLE){
-                            measuresListModel.removeElementAt(i-1);
+                        if (e1.getType() == ListElementType.GLOBAL_TABLE && e2.getType() == ListElementType.GLOBAL_TABLE) {
+                            measuresListModel.removeElementAt(i - 1);
                             break; //end here, because only one emoty table can exist
                         }
 
@@ -1224,14 +1208,13 @@ public class QueryUI extends JPanel{
 
                 }
 
-                if (elem.getType() == ListElementType.MEASURE){
+                if (elem.getType() == ListElementType.MEASURE) {
                     globalTableQueries.removeMeasure(col);
                     //no more measures in facts tale group, delete it
                     /*ListElementWrapper e = (ListElementWrapper) measuresListModel.getElementAt(1);
                     if (e.getType()==ListElementType.GLOBAL_TABLE)
                         measuresListModel.removeElementAt(0);*/
-                }
-                else if (elem.getType() == ListElementType.GLOBAL_COLUMN){
+                } else if (elem.getType() == ListElementType.GLOBAL_COLUMN) {
                     globalTableQueries.deleteSelectRowFromTable(table, col);
                 }
                 aggregationsList.updateUI();
@@ -1248,22 +1231,21 @@ public class QueryUI extends JPanel{
                 if (index < 0)
                     return;
                 ListElementWrapper element = (ListElementWrapper) model.getElementAt(index);
-                if (element.getType() == ListElementType.GLOBAL_TABLE){
+                if (element.getType() == ListElementType.GLOBAL_TABLE) {
                     return;//a table was selected, do nothing
                 }
                 GlobalColumnData c = (GlobalColumnData) element.getObj();
                 GlobalTableData t = getTableInRowIndex(measuresListModel, index);
                 String oldAggr = c.getAggrOp();
                 //update query
-                if (element.getType() == ListElementType.GLOBAL_COLUMN){
-                    if(globalTableQueries.rowExists(t,c, aggregate)){
+                if (element.getType() == ListElementType.GLOBAL_COLUMN) {
+                    if (globalTableQueries.rowExists(t, c, aggregate)) {
                         JOptionPane.showMessageDialog(mainMenu, "The same attribute already exists with the selected aggregate. Please select another aggregate function, or remove the other attribute", "Cannot add measure", JOptionPane.WARNING_MESSAGE);
                         return;
                     }
                     globalTableQueries.updateSelectRowFromTable(t, c, oldAggr, aggregate);
-                }
-                else if (element.getType() == ListElementType.MEASURE){
-                    if(globalTableQueries.measureExists(c, aggregate)){
+                } else if (element.getType() == ListElementType.MEASURE) {
+                    if (globalTableQueries.measureExists(c, aggregate)) {
                         JOptionPane.showMessageDialog(mainMenu, "Measure already present. Cannot add repeated Measure with same Aggregate Function.", "Cannot add measure", JOptionPane.WARNING_MESSAGE);
                         return;
                     }
@@ -1290,18 +1272,17 @@ public class QueryUI extends JPanel{
                 if (index < 0)
                     return;
                 ListElementWrapper element = (ListElementWrapper) model.getElementAt(index);
-                if (!element.getName().contains("    ")){
+                if (!element.getName().contains("    ")) {
                     return;//a table was selected, do nothing
                 }
                 GlobalColumnData c = (GlobalColumnData) element.getObj();
                 GlobalTableData t = getTableInRowIndex(measuresListModel, index);
                 String oldAggr = c.getAggrOp();
                 //update query
-                if (element.getType() == ListElementType.GLOBAL_COLUMN){
+                if (element.getType() == ListElementType.GLOBAL_COLUMN) {
                     c.changeDistinct();
                     globalTableQueries.updateSelectRowFromTable(t, c, oldAggr, c.getAggrOp());
-                }
-                else if (element.getType() == ListElementType.MEASURE){
+                } else if (element.getType() == ListElementType.MEASURE) {
                     globalTableQueries.removeMeasure(c);
                     c.changeDistinct();
                     globalTableQueries.addMeasure(c);
@@ -1315,6 +1296,7 @@ public class QueryUI extends JPanel{
             }
         };
     }
+
     private ActionListener addRemoveCountAll(DefaultListModel model, JList list) {
         return new ActionListener() {
 
@@ -1322,13 +1304,12 @@ public class QueryUI extends JPanel{
             public void actionPerformed(ActionEvent arg0) {
 
                 //adds/removes count all
-                if(countAllAdded){
+                if (countAllAdded) {
                     //remove it
                     model.removeElementAt(0);
                     globalTableQueries.setCountAll(false);
                     countAllAdded = false;
-                }
-                else{
+                } else {
                     //add it
                     if (model.size() == 0)
                         model.addElement(new ListElementWrapper("Count(*)", null, ListElementType.COUNTALL));
@@ -1348,12 +1329,12 @@ public class QueryUI extends JPanel{
 
             @Override
             public void actionPerformed(ActionEvent arg0) {
-                if(node != null){
+                if (node != null) {
                     //remove node
                     FilterNode parent = (FilterNode) node.getParent();
                     int index = parent.getIndex(node);
                     FilterNode notNode = new FilterNode("NOT", "NOT", "", FilterNodeType.BOOLEAN_OPERATION);
-                    List <FilterNode> childNodes = getAllChildNodes(node);
+                    List<FilterNode> childNodes = getAllChildNodes(node);
                     //remove all childs, make a new child called not and have all childs be child of not node
                     for (FilterNode n : childNodes)
                         node.remove(n);
@@ -1373,7 +1354,7 @@ public class QueryUI extends JPanel{
 
             @Override
             public void actionPerformed(ActionEvent arg0) {
-                if(node != null){
+                if (node != null) {
                     //remove node
                     FilterNode parent = (FilterNode) node.getParent();
                     int index = parent.getIndex(node);
@@ -1395,22 +1376,21 @@ public class QueryUI extends JPanel{
 
             @Override
             public void actionPerformed(ActionEvent arg0) {//TODO: bug when removing first filter, boolean op must be deleted and is not (what if a sub condition exists..)
-                if(node != null){
+                if (node != null) {
                     //remove node
                     FilterNode parent = (FilterNode) node.getParent();
                     int index = parent.getIndex(node);
                     int childCount = parent.getChildCount();
-                    if (index > 0){
+                    if (index > 0) {
                         //
-                        FilterNode nodeAbove = (FilterNode) parent.getChildAt(index-1);
-                        if (nodeAbove.getNodeType() == FilterNodeType.BOOLEAN_OPERATION){
+                        FilterNode nodeAbove = (FilterNode) parent.getChildAt(index - 1);
+                        if (nodeAbove.getNodeType() == FilterNodeType.BOOLEAN_OPERATION) {
                             treeModel.removeNodeFromParent(nodeAbove);
                         }
-                    }
-                    else if (index == 0 && childCount > 1){
+                    } else if (index == 0 && childCount > 1) {
                         //if there is a boolean operation below, remove it
-                        FilterNode nodeBellow = (FilterNode) parent.getChildAt(index+1);
-                        if (nodeBellow.getNodeType() == FilterNodeType.BOOLEAN_OPERATION){
+                        FilterNode nodeBellow = (FilterNode) parent.getChildAt(index + 1);
+                        if (nodeBellow.getNodeType() == FilterNodeType.BOOLEAN_OPERATION) {
                             treeModel.removeNodeFromParent(nodeBellow);
                         }
                     }
@@ -1440,25 +1420,27 @@ public class QueryUI extends JPanel{
             }
         };
     }
+
     /**
      * In the list of columns, returns the table name that contains the column with the index specified
+     *
      * @param index
      * @return
      */
-    private GlobalTableData getTableInColumnIndex(int index){
-        for (int i = index; i >=0; i--){
+    private GlobalTableData getTableInColumnIndex(int index) {
+        for (int i = index; i >= 0; i--) {
             ListElementWrapper elem = (ListElementWrapper) columnListModel.get(i);
-            if (elem.getType() == ListElementType.GLOBAL_TABLE){//first table to appear belongs to this
+            if (elem.getType() == ListElementType.GLOBAL_TABLE) {//first table to appear belongs to this
                 return (GlobalTableData) elem.getObj();
             }
         }
         return null;
     }
 
-    private List<FilterNode> getAllChildNodes(FilterNode node){
+    private List<FilterNode> getAllChildNodes(FilterNode node) {
         List<FilterNode> nodes = new ArrayList<>();
         int nChilds = node.getChildCount();
-        for (int i = 0; i < nChilds; i++){
+        for (int i = 0; i < nChilds; i++) {
             FilterNode child = (FilterNode) node.getChildAt(i);
             nodes.add(child);
         }
@@ -1466,15 +1448,16 @@ public class QueryUI extends JPanel{
         return nodes;
     }
 
-                                              /**
+    /**
      * In the list of rows, returns the table name that contains the column with the index specified
+     *
      * @param index
      * @return
      */
-    private GlobalTableData getTableInRowIndex(DefaultListModel model, int index){
-        for (int i = index; i >=0; i--){
+    private GlobalTableData getTableInRowIndex(DefaultListModel model, int index) {
+        for (int i = index; i >= 0; i--) {
             ListElementWrapper elem = (ListElementWrapper) model.get(i);
-            if (elem.getType() == ListElementType.GLOBAL_TABLE){//first table to appear belongs to this
+            if (elem.getType() == ListElementType.GLOBAL_TABLE) {//first table to appear belongs to this
                 return (GlobalTableData) elem.getObj();
             }
         }
@@ -1521,29 +1504,28 @@ public class QueryUI extends JPanel{
         }
     }
 
-    public String getFilterQuery(boolean isAggrFilter){
+    public String getFilterQuery(boolean isAggrFilter) {
         DefaultTreeModel treeModel = null;
         JTextArea textArea = null;
         if (isAggrFilter) {
             treeModel = aggrFilterTreeModel;
             textArea = editFiltersAggr;
-        }
-        else {
+        } else {
             treeModel = rowFilterTreeModel;
             textArea = editFilters;
         }
         if (textArea != null && textArea.isVisible()) { //manual edit mode
             String filterText = textArea.getText();
-            if (filterText.endsWith(";")){
-                filterText.substring(0, filterText.length()-2); //must not end with ';'
+            if (filterText.endsWith(";")) {
+                filterText.substring(0, filterText.length() - 2); //must not end with ';'
             }
-            if (Pattern.compile("[0-9]\\s*=\\s*[0-9]").matcher(filterText).find()){
+            if (Pattern.compile("[0-9]\\s*=\\s*[0-9]").matcher(filterText).find()) {
                 return "<html><p>ERROR-Detected an invalid expression on one of the manual fields. Please remove the invalid expression.</p>" +
-                "<p>Expressions considered invalid are '1 = 1' and similar</p></html>";
+                        "<p>Expressions considered invalid are '1 = 1' and similar</p></html>";
             }
             String[] filterSplit = filterText.split("[\\s+()]");//split by spaces and ()
-            for (String word : filterSplit){
-                if ( !(word.startsWith("'") && word.endsWith("'")) && Arrays.stream(Constants.SQL_COMMANDS).anyMatch(word.toLowerCase()::equals)){ //if not enclosed by single quotes
+            for (String word : filterSplit) {
+                if (!(word.startsWith("'") && word.endsWith("'")) && Arrays.stream(Constants.SQL_COMMANDS).anyMatch(word.toLowerCase()::equals)) { //if not enclosed by single quotes
                     return "<html><p>ERROR-One or more SQL commands were detected. They are forbidden on these fields, please remove them.</p>" +
                             "<p>Any SQL commands such as these are not allowed:Where, Alter, Delete, Drop, Insert, Update, Having...</p></html>";
                 }
@@ -1555,7 +1537,7 @@ public class QueryUI extends JPanel{
             filterText = filterText.replaceAll("(?i)alter", "");
             filterText = filterText.replaceAll("(?i)select", "");
             filterText = filterText.replaceAll("(?i)insert", "");*/
-            if (!isAggrFilter){
+            if (!isAggrFilter) {
                 TableColumnNameExtractor ext = new TableColumnNameExtractor();
                 Set<String> tableCols = ext.getColumnsFromStringSet(textArea.getText());
                 globalTableQueries.setFilters(tableCols);
@@ -1568,39 +1550,40 @@ public class QueryUI extends JPanel{
             return "";
         FilterNode root = (FilterNode) treeModel.getRoot();
         int nChilds = root.getChildCount();
-        if (nChilds <= 0){
+        if (nChilds <= 0) {
             return "";
         }
         String query = "";
-        for (int i = 0 ; i < nChilds; i++){
+        for (int i = 0; i < nChilds; i++) {
             FilterNode filterNode = (FilterNode) root.getChildAt(i);
             if (filterNode.getNodeType() == FilterNodeType.CONDITION)
-                query += filterNode.getEscappedFilterStringObj() +" ";
+                query += filterNode.getEscappedFilterStringObj() + " ";
             else if (filterNode.getNodeType() == FilterNodeType.BOOLEAN_OPERATION)
-                query += filterNode.getUserObject() +" ";
-            if (!isAggrFilter && filterNode.getNodeType() == FilterNodeType.CONDITION){
+                query += filterNode.getUserObject() + " ";
+            if (!isAggrFilter && filterNode.getNodeType() == FilterNodeType.CONDITION) {
                 GlobalColumnData c = (GlobalColumnData) filterNode.getObj();
                 globalTableQueries.addFilter(c.getFullName());
             }
             query += processInnerExpressions(filterNode, isAggrFilter);
         }
-        System.out.println("Filter query: "+query);
+        System.out.println("Filter query: " + query);
         return query;
     }
 
     /**
      * Given an sql code, detect table.column elements and replace them with a cast if needed
+     *
      * @param filterText
      * @return
      */
-    public String setCastOperators(String filterText){
+    public String setCastOperators(String filterText) {
         TableColumnNameExtractor textr = new TableColumnNameExtractor();
         Map<GlobalTableData, List<GlobalColumnData>> tables = textr.getSchemaObjectsFromSQLText(filterText, starSchema);
-        for (Map.Entry<GlobalTableData, List<GlobalColumnData>> table : tables.entrySet()){
+        for (Map.Entry<GlobalTableData, List<GlobalColumnData>> table : tables.entrySet()) {
             List<GlobalColumnData> cols = table.getValue();
-            for (GlobalColumnData c : cols){
-                if (filterText.contains(c.getFullName()) && c.isOriginalDatatypeChanged()){
-                    filterText = filterText.replaceAll(c.getFullName(), "CAST( "+c.getFullNameEscapped()+"AS "+c.getDataType()+")");
+            for (GlobalColumnData c : cols) {
+                if (filterText.contains(c.getFullName()) && c.isOriginalDatatypeChanged()) {
+                    filterText = filterText.replaceAll(c.getFullName(), "CAST( " + c.getFullNameEscapped() + "AS " + c.getDataType() + ")");
                 }
             }
         }
@@ -1608,7 +1591,7 @@ public class QueryUI extends JPanel{
         return filterText;
     }
 
-    public String getColFilterQuery(){
+    public String getColFilterQuery() {
         DefaultTreeModel treeModel = colFilterTreeModel;
         JTextArea textArea = editColFilters;
 
@@ -1624,64 +1607,64 @@ public class QueryUI extends JPanel{
             return "";
         FilterNode root = (FilterNode) treeModel.getRoot();
         int nChilds = root.getChildCount();
-        if (nChilds <= 0){
+        if (nChilds <= 0) {
             return "";
         }
         String query = "";
-        for (int i = 0 ; i < nChilds; i++){
+        for (int i = 0; i < nChilds; i++) {
             FilterNode filterNode = (FilterNode) root.getChildAt(i);
             if (filterNode.getNodeType() == FilterNodeType.CONDITION)
-                query += filterNode.getEscappedFilterStringObj() +" ";
+                query += filterNode.getEscappedFilterStringObj() + " ";
             else if (filterNode.getNodeType() == FilterNodeType.BOOLEAN_OPERATION)
-                query += filterNode.getUserObject() +" ";
-            if (filterNode.getNodeType() == FilterNodeType.CONDITION){
+                query += filterNode.getUserObject() + " ";
+            if (filterNode.getNodeType() == FilterNodeType.CONDITION) {
                 GlobalColumnData c = (GlobalColumnData) filterNode.getObj();
                 globalTableQueries.addColFilter(c.getFullName());
             }
             query += processInnerExpressions(filterNode, false);
         }
-        System.out.println("Col Filter query: "+query);
+        System.out.println("Col Filter query: " + query);
         return query;
     }
 
-    private String processInnerExpressions(FilterNode filterNode, boolean isAggrFilters){
+    private String processInnerExpressions(FilterNode filterNode, boolean isAggrFilters) {
         String query = "";
-        if (filterNode.getChildCount() > 0){
-            query +="(";
-            for (int j = 0 ; j < filterNode.getChildCount(); j++){
+        if (filterNode.getChildCount() > 0) {
+            query += "(";
+            for (int j = 0; j < filterNode.getChildCount(); j++) {
                 FilterNode innerFilterNode = (FilterNode) filterNode.getChildAt(j);
-                if (!isAggrFilters && innerFilterNode.getNodeType() == FilterNodeType.CONDITION){
+                if (!isAggrFilters && innerFilterNode.getNodeType() == FilterNodeType.CONDITION) {
                     GlobalColumnData c = (GlobalColumnData) innerFilterNode.getObj();
                     globalTableQueries.addFilter(c.getFullName());
                 }
 
                 if (innerFilterNode.getNodeType() == FilterNodeType.CONDITION)
-                    query += innerFilterNode.getEscappedFilterStringObj() +" ";
+                    query += innerFilterNode.getEscappedFilterStringObj() + " ";
                 else if (innerFilterNode.getNodeType() == FilterNodeType.BOOLEAN_OPERATION)
-                    query += innerFilterNode.getUserObject() +" ";
+                    query += innerFilterNode.getUserObject() + " ";
                 query += processInnerExpressions(innerFilterNode, isAggrFilters);
             }
-            query +=")";
+            query += ")";
         }
         return query;
     }
 
-    private boolean filterTableExistsInRows(){
+    private boolean filterTableExistsInRows() {
         if (globalTableQueries.getFilters().size() == 0)
             return true;
-        for (String s : globalTableQueries.getFilters()){
+        for (String s : globalTableQueries.getFilters()) {
             String tableName = s.split("\\.")[0];
             //String columnName = s.split("\\.")[1];
             boolean isSelected = false;
             //check the tables on rows selected
-            for (Map.Entry<GlobalTableData, List<GlobalColumnData>> rows : globalTableQueries.getSelectRows().entrySet()){
+            for (Map.Entry<GlobalTableData, List<GlobalColumnData>> rows : globalTableQueries.getSelectRows().entrySet()) {
                 GlobalTableData gt = rows.getKey();
-                if (gt.getTableName().equals(tableName)){
+                if (gt.getTableName().equals(tableName)) {
                     isSelected = true;
                     break;
                 }
             }
-            if (globalTableQueries.getMeasures().size()>0 || globalTableQueries.getManualMeasures().size()>0){ //if measure table has filters, check if it is selected
+            if (globalTableQueries.getMeasures().size() > 0 || globalTableQueries.getManualMeasures().size() > 0) { //if measure table has filters, check if it is selected
                 if (tableName.equals(starSchema.getFactsTable().getGlobalTable().getTableName()))
                     isSelected = true;
             }
@@ -1693,14 +1676,14 @@ public class QueryUI extends JPanel{
                     break;
                 }
             }*/
-            if (!isSelected){//this filter tables is not selected in the rows
+            if (!isSelected) {//this filter tables is not selected in the rows
                 return false;
             }
         }
         return true;//all filter tables are seleced in the rows or measure
     }
 
-    public void executeQueryAndShowResults(){
+    public void executeQueryAndShowResults() {
         SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
             @Override
             protected Void doInBackground() throws InterruptedException {
@@ -1713,8 +1696,8 @@ public class QueryUI extends JPanel{
                 long endTime = System.currentTimeMillis();
                 System.out.println("Query Build took: " + (endTime - startTime) + " milliseconds");
                 System.out.println(localQuery);
-                if (localQuery.contains("Error")){
-                    JOptionPane.showMessageDialog(null, "Could not execute query:\n"+localQuery, "Query Error", JOptionPane.ERROR_MESSAGE);
+                if (localQuery.contains("Error")) {
+                    JOptionPane.showMessageDialog(null, "Could not execute query:\n" + localQuery, "Query Error", JOptionPane.ERROR_MESSAGE);
                     queryStatusLogModel.addElement(new QueryLog(localQuery, beginTime, null, 0));
                     LoadingScreenAnimator.closeGeneralLoadingAnimation();
                     homeButton.setEnabled(true);
@@ -1728,11 +1711,11 @@ public class QueryUI extends JPanel{
                 //endTime = System.currentTimeMillis();
                 //System.out.println("Presto Query execution took: " + (endTime - startTime) + " milliseconds");
                 //startTime = System.currentTimeMillis();
-                if (results == null){
+                if (results == null) {
                     LoadingScreenAnimator.closeGeneralLoadingAnimation();
                     homeButton.setEnabled(true);
                     //JOptionPane.showMessageDialog(mainMenu, "Query returned with no results. Check if Presto is running and\nthat the data source is also available.",
-                     //       "Query empty", JOptionPane.ERROR_MESSAGE);
+                    //       "Query empty", JOptionPane.ERROR_MESSAGE);
                     return null;
                 }
                 //process query results
@@ -1755,7 +1738,7 @@ public class QueryUI extends JPanel{
                     String msg = String.format("Unexpected problem: %s",
                             e.getCause().toString());
                     //JOptionPane.showMessageDialog(mainMenu,
-                     //       msg, "Error", JOptionPane.ERROR_MESSAGE);
+                    //       msg, "Error", JOptionPane.ERROR_MESSAGE);
                     LoadingScreenAnimator.closeGeneralLoadingAnimation();
                 } catch (InterruptedException e) {
                     // Process e here
@@ -1764,16 +1747,14 @@ public class QueryUI extends JPanel{
         };
         LoadingScreenAnimator.openGeneralLoadingAnimation(mainMenu, "Constructing Query...");
         worker.execute();
-        worker.addPropertyChangeListener( new PropertyChangeListener() {
+        worker.addPropertyChangeListener(new PropertyChangeListener() {
             @Override
             public void propertyChange(PropertyChangeEvent evt) {
                 if ("build_query".equals(evt.getPropertyName())) {
                     LoadingScreenAnimator.setText("Constructing Query...");
-                }
-                else if ("querying".equals(evt.getPropertyName())) {
+                } else if ("querying".equals(evt.getPropertyName())) {
                     LoadingScreenAnimator.setText("Executing Query and Processing Results...");
-                }
-                else if ("results_processing".equals(evt.getPropertyName())) {
+                } else if ("results_processing".equals(evt.getPropertyName())) {
                     LoadingScreenAnimator.setText("Processing Query Results...");
                 }
             }
@@ -1781,9 +1762,9 @@ public class QueryUI extends JPanel{
         //backButton.setEnabled(false);
     }
 
-    private String buildQuery(boolean includeInnerQueries){
+    private String buildQuery(boolean includeInnerQueries) {
         //validate query string
-        if (manualAggregations.isVisible()){
+        if (manualAggregations.isVisible()) {
             globalTableQueries.setManualAggregationsStr(setCastOperators(manualAggregations.getText()));
             TableColumnNameExtractor tExtractor = new TableColumnNameExtractor();
             globalTableQueries.setManualRowsAndMeasuresAggr(tExtractor.getSchemaObjectsFromSQLText(manualAggregations.getText(), starSchema));
@@ -1792,7 +1773,7 @@ public class QueryUI extends JPanel{
         String filterQuery = getFilterQuery(false);
         if (!filterQuery.contains("ERROR"))
             globalTableQueries.setFilterQuery(filterQuery);
-        else{
+        else {
             JOptionPane.showMessageDialog(mainMenu, filterQuery, "Error", JOptionPane.ERROR_MESSAGE);
             return null;
         }
@@ -1801,7 +1782,7 @@ public class QueryUI extends JPanel{
         String colFilterQuery = getColFilterQuery();
         if (!colFilterQuery.contains("ERROR"))
             globalTableQueries.setColFilterQuery(colFilterQuery);
-        else{
+        else {
             JOptionPane.showMessageDialog(mainMenu, colFilterQuery, "Error", JOptionPane.ERROR_MESSAGE);
             return null;
         }
@@ -1809,12 +1790,12 @@ public class QueryUI extends JPanel{
         String filterQueryAggr = getFilterQuery(true);
         if (!filterQueryAggr.contains("ERROR"))
             globalTableQueries.setFilterAggrQuery(filterQueryAggr);
-        else{
+        else {
             JOptionPane.showMessageDialog(mainMenu, filterQueryAggr, "Error", JOptionPane.ERROR_MESSAGE);
             return null;
         }
 
-        if (!filterTableExistsInRows()){
+        if (!filterTableExistsInRows()) {
             LoadingScreenAnimator.closeGeneralLoadingAnimation();
             homeButton.setEnabled(true);
             //JOptionPane.showMessageDialog(mainMenu, "There is one or more columns in filters \n not selected in the rows area.", "Invalid Query", JOptionPane.ERROR_MESSAGE);
@@ -1824,7 +1805,7 @@ public class QueryUI extends JPanel{
         return globalTableQueries.buildQuery(includeInnerQueries);//create query with inner query to get local table data
     }
 
-    private void setResultsAndCreateLog(ResultSet results, String localQuery, DateTime beginTime){
+    private void setResultsAndCreateLog(ResultSet results, String localQuery, DateTime beginTime) {
         if (results == null)
             return;
         //defaultTableModel.setColumnCount(0);
@@ -1845,13 +1826,12 @@ public class QueryUI extends JPanel{
             List<ModelRow> rows = new ArrayList<>();
             if (pivots.size() > 0 && pivots.get(0).size() > 1) {//if there are pivoted columns and the number of columns that were pivot is biggger than one, then it is necessary to group multiple column headers
                 data = createMultiHeaders(pivots, rsmd, columnCount, results);
-            }
-            else { //no pivoted columns or only one pivoted column, there is only one level of column headers
+            } else { //no pivoted columns or only one pivoted column, there is only one level of column headers
                 cols = new IModelFieldGroup[columnCount];
                 cols[0] = new ModelField(" ", " ");
                 for (int i = 1; i < columnCount; i++) {
                     String name = rsmd.getColumnName(i);
-                    cols[i] = new ModelField(name+i, name);
+                    cols[i] = new ModelField(name + i, name);
                 }
                 data = new ModelData(cols);
                 //place rows
@@ -1872,7 +1852,7 @@ public class QueryUI extends JPanel{
                 rowsArray = rows.toArray(rowsArray);
                 data.setRows(rowsArray);
             }
-            if (data == null){
+            if (data == null) {
                 JOptionPane.showMessageDialog(mainMenu, "Error processing query results.", "Error", JOptionPane.ERROR_MESSAGE);
                 LoadingScreenAnimator.closeGeneralLoadingAnimation();
                 homeButton.setEnabled(true);
@@ -1899,23 +1879,23 @@ public class QueryUI extends JPanel{
 
     private ModelData createMultiHeaders(List<List<String>> pivotValues, ResultSetMetaData rsmd, int columnCount, ResultSet results) throws SQLException {
         List<IModelFieldGroup> cols = new ArrayList<>();
-        cols.add(new ModelField( " ", " " ));
-        int nNonPivotTables = Math.abs(columnCount - (pivotValues.size() +1));//get number of columns from elements that are not pivoted columns
-        int nNonPivotTablesAndLineCOl = nNonPivotTables+1;
+        cols.add(new ModelField(" ", " "));
+        int nNonPivotTables = Math.abs(columnCount - (pivotValues.size() + 1));//get number of columns from elements that are not pivoted columns
+        int nNonPivotTablesAndLineCOl = nNonPivotTables + 1;
         //nNonPivotTables++;//add the column with line numbers
         //add column names of non pivoted columns
         for (int i = 1; i <= nNonPivotTables; i++) {//start iterating on first pivot column
             String name = rsmd.getColumnName(i);
-            cols.add(new ModelField( name, name ));
+            cols.add(new ModelField(name, name));
         }
 
-        int nLevels =  pivotValues.get(0).size();
+        int nLevels = pivotValues.get(0).size();
 
         //for all list of values group similar values at header 0 add only different values
         cols.add(new ModelFieldGroup(pivotValues.get(0).get(0), pivotValues.get(0).get(0)));
-        for (int i = 1; i < pivotValues.size(); i++){//start on the second values list, fisrt already inserted
+        for (int i = 1; i < pivotValues.size(); i++) {//start on the second values list, fisrt already inserted
             String value = pivotValues.get(i).get(0);
-            if (!cols.get(cols.size()-1).getCaption().equals(value)){//check of previous value has same value. if it does not, add new value
+            if (!cols.get(cols.size() - 1).getCaption().equals(value)) {//check of previous value has same value. if it does not, add new value
                 cols.add(new ModelFieldGroup(value, value));
             }
         }
@@ -1925,21 +1905,21 @@ public class QueryUI extends JPanel{
             for (int i = 0; i < pivotValues.size(); i++) {//start on the second values list, fisrt already inserted
                 String value = pivotValues.get(i).get(1);//2nd value of each list
                 String parentValue = pivotValues.get(i).get(0);//value that appears on same list, one level up
-                for (int j = nNonPivotTablesAndLineCOl ; j < cols.size(); j++) {//start looking for the parent after the 'one level columns'
+                for (int j = nNonPivotTablesAndLineCOl; j < cols.size(); j++) {//start looking for the parent after the 'one level columns'
                     ModelFieldGroup fieldParent = (ModelFieldGroup) cols.get(j);
                     //fieldParent = (ModelFieldGroup) fieldParent.getChild(parentValue);
-                    if (fieldParent == null){
+                    if (fieldParent == null) {
                         continue;
                     }
                     if (fieldParent.getCaption().equals(parentValue)) {
                         ModelFieldGroup childField = (ModelFieldGroup) fieldParent.getChild(value);
-                        if (childField == null){
-                            ModelFieldGroup secondLevelField = new ModelFieldGroup(value+i, value);
+                        if (childField == null) {
+                            ModelFieldGroup secondLevelField = new ModelFieldGroup(value + i, value);
                             fieldParent.withChild(secondLevelField);//add this value as child
                             break;
                         }
                         String child = childField.getCaption();
-                        if (child != null && child.equals(value)){//this value is already child, move to next value
+                        if (child != null && child.equals(value)) {//this value is already child, move to next value
                             break;
                         }
                     }
@@ -1947,18 +1927,18 @@ public class QueryUI extends JPanel{
             }
         }
 
-        int lastLevelIndex = nLevels-1;
+        int lastLevelIndex = nLevels - 1;
         //do the same but for last elements, (leaf headers) and put them in respective parents. These are either the 3rd or 2nd level of headers
         for (int i = 0; i < pivotValues.size(); i++) {
             String value = pivotValues.get(i).get(lastLevelIndex);
             ModelField leafField = new ModelField(value + i, value);
             if (nLevels == 3) {//3 header levels
                 String parentSecondHeaderValue = pivotValues.get(i).get(1);
-                for (int j = nNonPivotTablesAndLineCOl ; j < cols.size(); j++) {//start looking after the 'one level columns'
+                for (int j = nNonPivotTablesAndLineCOl; j < cols.size(); j++) {//start looking after the 'one level columns'
                     ModelFieldGroup fieldParent = (ModelFieldGroup) cols.get(j);
                     String valueTopHeader = pivotValues.get(i).get(0);
-                    if (fieldParent.getCaption().equals(valueTopHeader)){
-                        fieldParent = (ModelFieldGroup) fieldParent.getChild(parentSecondHeaderValue+i);//get child requires IDENTIFIER AND NOT CAPTION!!
+                    if (fieldParent.getCaption().equals(valueTopHeader)) {
+                        fieldParent = (ModelFieldGroup) fieldParent.getChild(parentSecondHeaderValue + i);//get child requires IDENTIFIER AND NOT CAPTION!!
                         if (fieldParent != null) {
                             fieldParent.withChild(leafField);
                             break;
@@ -1967,7 +1947,7 @@ public class QueryUI extends JPanel{
                 }
             } else if (nLevels == 2) {
                 String parentValue = pivotValues.get(i).get(lastLevelIndex - 1);
-                for (int j = nNonPivotTablesAndLineCOl ; j < cols.size(); j++) {//start looking after the 'one level columns'
+                for (int j = nNonPivotTablesAndLineCOl; j < cols.size(); j++) {//start looking after the 'one level columns'
                     //only 2 column headers
                     ModelFieldGroup fieldParent = (ModelFieldGroup) cols.get(j);
                     if (fieldParent.getCaption().equals(parentValue)) {
@@ -1982,8 +1962,9 @@ public class QueryUI extends JPanel{
 
         List<ModelRow> rows = new ArrayList<>();
         ModelData data = null;
-        try{ data = new ModelData(colsArray);}
-        catch (IllegalArgumentException e){
+        try {
+            data = new ModelData(colsArray);
+        } catch (IllegalArgumentException e) {
             e.printStackTrace();
             return null;
         }
@@ -2012,7 +1993,7 @@ public class QueryUI extends JPanel{
 
     public boolean exportResultsToCSV() {
         ModelData data = queryResultsTableGroupable.getData();
-        if (data == null){
+        if (data == null) {
             JOptionPane.showMessageDialog(mainMenu, "No results in table, nothing to save.", "Nothing to save", JOptionPane.WARNING_MESSAGE);
             return false;
         }
@@ -2023,11 +2004,11 @@ public class QueryUI extends JPanel{
         int returnVal = f.showSaveDialog(mainMenu);
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             pathToExportTo = f.getSelectedFile();
-            if (pathToExportTo == null){
+            if (pathToExportTo == null) {
                 return false;
             }
-            if (!pathToExportTo.toString().endsWith(".csv")){
-                pathToExportTo = new File(pathToExportTo.toString()+".csv");
+            if (!pathToExportTo.toString().endsWith(".csv")) {
+                pathToExportTo = new File(pathToExportTo.toString() + ".csv");
             }
             try {
                 FileWriter csv = new FileWriter(pathToExportTo);
@@ -2038,14 +2019,14 @@ public class QueryUI extends JPanel{
                 for (int i = 0; i < fields.length; i++) {
                     ModelField leafField = fields[i];
                     String fieldStr = leafField.getCaption();
-                    if (leafField.getParent() != null){//check if theres a parent, a higher level header
+                    if (leafField.getParent() != null) {//check if theres a parent, a higher level header
                         ModelFieldGroup groupField = leafField.getParent();
-                        fieldStr = groupField.getCaption() +" - "+fieldStr;
+                        fieldStr = groupField.getCaption() + " - " + fieldStr;
                         if (groupField.getParent() != null) {//check if theres a parent, a higher level header (considering no more than 3 levels of headers!)
                             fieldStr = groupField.getParent().getCaption() + " - " + fieldStr;
                         }
                     }
-                    csv.write(fieldStr+",");
+                    csv.write(fieldStr + ",");
                 }
 
                 csv.write("\n");
@@ -2059,7 +2040,7 @@ public class QueryUI extends JPanel{
                 }
 
                 csv.close();
-                JOptionPane.showMessageDialog(mainMenu, "Results exported to "+pathToExportTo+"!", "Success", JOptionPane.PLAIN_MESSAGE);
+                JOptionPane.showMessageDialog(mainMenu, "Results exported to " + pathToExportTo + "!", "Success", JOptionPane.PLAIN_MESSAGE);
                 return true;
             } catch (IOException e) {
                 e.printStackTrace();
@@ -2074,7 +2055,7 @@ public class QueryUI extends JPanel{
 
             @Override
             public void mousePressed(MouseEvent arg0) {
-                if (SwingUtilities.isRightMouseButton(arg0)){
+                if (SwingUtilities.isRightMouseButton(arg0)) {
                     int index = rowsList.locationToIndex(arg0.getPoint());
                     if (index < 0)
                         return;
@@ -2098,7 +2079,7 @@ public class QueryUI extends JPanel{
                 int index = rowsList.locationToIndex(arg0.getPoint());
                 if (index < 0)
                     return;
-                if (!rowsListModel.getElementAt(index).toString().contains("    ")){
+                if (!rowsListModel.getElementAt(index).toString().contains("    ")) {
                     rowsList.setComponentPopupMenu(null);
                     return;
                 }
@@ -2136,10 +2117,9 @@ public class QueryUI extends JPanel{
                 //add (add count(*) ) option even if no element selected
                 //count *
                 String menuCountTitle = "";
-                if (countAllAdded){
+                if (countAllAdded) {
                     menuCountTitle = "Remove Count(*)";
-                }
-                else
+                } else
                     menuCountTitle = "Add Count(*)";
                 JPopupMenu menu = new JPopupMenu();
                 JMenuItem countAllItem = new JMenuItem(menuCountTitle);
@@ -2154,8 +2134,8 @@ public class QueryUI extends JPanel{
                     return;
                 }
                 aggregationsList.setSelectedIndex(index);
-                ListElementWrapper elem = (ListElementWrapper)measuresListModel.get(index);
-                if (elem.getType() == ListElementType.GLOBAL_TABLE){
+                ListElementWrapper elem = (ListElementWrapper) measuresListModel.get(index);
+                if (elem.getType() == ListElementType.GLOBAL_TABLE) {
                     return;
                 }
                 JMenuItem item1 = new JMenuItem("Delete");
@@ -2194,10 +2174,9 @@ public class QueryUI extends JPanel{
                 //add/remove distinct
                 String menuDistinctTitle = "";
                 String selectedElem = measuresListModel.getElementAt(index).toString();
-                if (selectedElem.contains("DISTINCT")){
+                if (selectedElem.contains("DISTINCT")) {
                     menuDistinctTitle = "Remove DISTINCT";
-                }
-                else
+                } else
                     menuDistinctTitle = "Add DISTINCT";
                 JMenuItem item3 = new JMenuItem(menuDistinctTitle);
                 item3.addActionListener(getChangeAggregateDistinctActionListener(index, measuresListModel, aggregationsList));
@@ -2206,7 +2185,7 @@ public class QueryUI extends JPanel{
                 menu.add(item1);
                 menu.add(subMenu);
                 menu.add(subMenu2);
-                if (selectedElem.contains("SUM") ||selectedElem.contains("AVG") || selectedElem.contains("COUNT"))//cannot add distinct if current attribute does not have aggregate function
+                if (selectedElem.contains("SUM") || selectedElem.contains("AVG") || selectedElem.contains("COUNT"))//cannot add distinct if current attribute does not have aggregate function
                     menu.add(item3);
                 menu.add(countAllItem);
                 menu.add(manualEditItem);
@@ -2301,7 +2280,7 @@ public class QueryUI extends JPanel{
         };
     }
 
-    private void handleFilterClickMenus(JTree tree, DefaultTreeModel model, TreePath pathForLocation, boolean isAggrFilter){
+    private void handleFilterClickMenus(JTree tree, DefaultTreeModel model, TreePath pathForLocation, boolean isAggrFilter) {
         tree.setSelectionPath(pathForLocation);
         FilterNode selectedNode = null;
         JPopupMenu menu = new JPopupMenu();
@@ -2314,7 +2293,7 @@ public class QueryUI extends JPanel{
             if (tree.equals(colFiltersTree))
                 editItem.addActionListener(changeToManualEditColFilter());
         }
-        if(pathForLocation != null) {
+        if (pathForLocation != null) {
             selectedNode = (FilterNode) pathForLocation.getLastPathComponent();
             if (selectedNode.getNodeType() == FilterNodeType.CONDITION) {
                 //menu for a condition
@@ -2356,78 +2335,76 @@ public class QueryUI extends JPanel{
         };
     }
 
-    private boolean addColumnsToList(DefaultListModel listModel, GlobalColumnData globalCol, GlobalTableData globalTable){
+    private boolean addColumnsToList(DefaultListModel listModel, GlobalColumnData globalCol, GlobalTableData globalTable) {
         //first iterate to check if maximum value of columns is achieved:
         int nCols = 0;
         for (int i = 0; i < listModel.getSize(); i++) {
-            if (String.valueOf(listModel.getElementAt(i)).contains("    ")){
+            if (String.valueOf(listModel.getElementAt(i)).contains("    ")) {
                 nCols++;
             }
         }
-        if (nCols >= MAX_SELECT_COLS){
+        if (nCols >= MAX_SELECT_COLS) {
             JOptionPane.showMessageDialog(mainMenu, "Maximum number of columns Reached", "Maximum number of columns Reached.\nDelete columns to add new ones.", JOptionPane.WARNING_MESSAGE);
             return false;
         }
         String[] s = null;
         //check if table name of this column exists. If true then inserted here
         ListElementWrapper elemtTosearch = new ListElementWrapper(globalTable.getTableName(), globalTable, ListElementType.GLOBAL_TABLE);
-        if (listModel.contains(elemtTosearch)){
+        if (listModel.contains(elemtTosearch)) {
             int index = listModel.indexOf(elemtTosearch);
             index++;
             //iterate the columns of this tables. insert a new one
             for (int i = index; i < listModel.getSize(); i++) {
-                if (!String.valueOf(listModel.getElementAt(i)).contains("    ")){
-                    listModel.add(i, new ListElementWrapper("    "+globalCol.getName(), globalCol, ListElementType.GLOBAL_COLUMN));//add column
+                if (!String.valueOf(listModel.getElementAt(i)).contains("    ")) {
+                    listModel.add(i, new ListElementWrapper("    " + globalCol.getName(), globalCol, ListElementType.GLOBAL_COLUMN));//add column
                     globalTableQueries.addSelectColumn(globalTable, globalCol);
                     return true;
                 }
             }
             //maybe this table is the last one, insert at last position
-            listModel.addElement(new ListElementWrapper("    "+globalCol.getName(), globalCol, ListElementType.GLOBAL_COLUMN));//add column
+            listModel.addElement(new ListElementWrapper("    " + globalCol.getName(), globalCol, ListElementType.GLOBAL_COLUMN));//add column
             globalTableQueries.addSelectColumn(globalTable, globalCol);
-        }
-        else{
+        } else {
             listModel.addElement(new ListElementWrapper(globalTable.getTableName(), globalTable, ListElementType.GLOBAL_TABLE)); //add table name
-            listModel.addElement(new ListElementWrapper("    "+globalCol.getName(), globalCol, ListElementType.GLOBAL_COLUMN));//add column
+            listModel.addElement(new ListElementWrapper("    " + globalCol.getName(), globalCol, ListElementType.GLOBAL_COLUMN));//add column
             globalTableQueries.addSelectColumn(globalTable, globalCol);
         }
         return true;
     }
 
-    private boolean addRowsToList(DefaultListModel listModel, GlobalColumnData globalCol, GlobalTableData globalTable){
+    private boolean addRowsToList(DefaultListModel listModel, GlobalColumnData globalCol, GlobalTableData globalTable) {
         //check if table name of this column exists. If true then inserted here
         ListElementWrapper elemtTosearch = new ListElementWrapper(globalTable.getTableName(), globalTable, ListElementType.GLOBAL_TABLE);
-        if (listModel.contains(elemtTosearch)){
+        if (listModel.contains(elemtTosearch)) {
             int index = listModel.indexOf(elemtTosearch);
             index++;
             //iterate the columns of this tables. insert a new one
             for (int i = index; i < listModel.getSize(); i++) {
-                if (!String.valueOf(listModel.getElementAt(i)).contains("    ")){
-                    listModel.add(i, new ListElementWrapper("    "+globalCol.getName(), globalCol, ListElementType.GLOBAL_COLUMN));//add row
+                if (!String.valueOf(listModel.getElementAt(i)).contains("    ")) {
+                    listModel.add(i, new ListElementWrapper("    " + globalCol.getName(), globalCol, ListElementType.GLOBAL_COLUMN));//add row
                     globalTableQueries.addSelectRow(globalTable, globalCol);
                     return true;
                 }
             }
             //maybe this table is the last one, insert at last position
-            listModel.addElement(new ListElementWrapper("    "+globalCol.getName(), globalCol, ListElementType.GLOBAL_COLUMN));//add row
+            listModel.addElement(new ListElementWrapper("    " + globalCol.getName(), globalCol, ListElementType.GLOBAL_COLUMN));//add row
             globalTableQueries.addSelectRow(globalTable, globalCol);
-        }
-        else{
+        } else {
             listModel.addElement(new ListElementWrapper(globalTable.getTableName(), globalTable, ListElementType.GLOBAL_TABLE)); //add table name
-            listModel.addElement(new ListElementWrapper("    "+globalCol.getName(), globalCol, ListElementType.GLOBAL_COLUMN));//add row
+            listModel.addElement(new ListElementWrapper("    " + globalCol.getName(), globalCol, ListElementType.GLOBAL_COLUMN));//add row
             globalTableQueries.addSelectRow(globalTable, globalCol);
         }
         return true;
     }
 
 
-    private boolean addAggrRow(DefaultListModel listModel, GlobalTableData globalTable, GlobalColumnData attribute, boolean isMeasure){
+    private boolean addAggrRow(DefaultListModel listModel, GlobalTableData globalTable, GlobalColumnData attribute, boolean isMeasure) {
 
-        if ((attribute.getAggrOp() == null || attribute.getAggrOp().isEmpty()) )
+        if ((attribute.getAggrOp() == null || attribute.getAggrOp().isEmpty()))
             attribute.setAggrOp(aggregationOpComboBox.getSelectedItem().toString(), false);
 
         if (isMeasure) {
-            if(globalTableQueries.measureExists(attribute)){
+            if (globalTableQueries.measureExists(attribute)) {
                 JOptionPane.showMessageDialog(mainMenu, "Measure already present. Cannot add repeated measure with same Aggregate Function.", "Cannot add measure", JOptionPane.WARNING_MESSAGE);
                 return false;
             }
@@ -2436,74 +2413,73 @@ public class QueryUI extends JPanel{
             if (countAllAdded)
                 indexForFactsTable = 1;
             if (listModel.isEmpty())
-                listModel.add(indexForFactsTable, new ListElementWrapper("Measures of "+globalTable.getTableName(), globalTable, ListElementType.GLOBAL_TABLE));
+                listModel.add(indexForFactsTable, new ListElementWrapper("Measures of " + globalTable.getTableName(), globalTable, ListElementType.GLOBAL_TABLE));
             else {
                 //add measures table at first or second position (second if count(*) is added)
                 ListElementWrapper firstElem = (ListElementWrapper) listModel.getElementAt(indexForFactsTable);
-                GlobalTableData t = (GlobalTableData)firstElem.getObj();
+                GlobalTableData t = (GlobalTableData) firstElem.getObj();
                 if (!t.equals(globalTable)) {
-                    listModel.add(indexForFactsTable, new ListElementWrapper("Measures of "+globalTable.getTableName(), globalTable, ListElementType.GLOBAL_TABLE));
+                    listModel.add(indexForFactsTable, new ListElementWrapper("Measures of " + globalTable.getTableName(), globalTable, ListElementType.GLOBAL_TABLE));
                 }
             }
             //add on last element below measures group
-            for (int i = (indexForFactsTable+1); i < listModel.size(); i++){
+            for (int i = (indexForFactsTable + 1); i < listModel.size(); i++) {
                 ListElementWrapper currElem = (ListElementWrapper) listModel.getElementAt(i);
-                if (currElem.getType() == ListElementType.GLOBAL_TABLE){
-                    listModel.add(i, new ListElementWrapper("    "+attribute.getAggrOpName(), attribute, ListElementType.MEASURE));
+                if (currElem.getType() == ListElementType.GLOBAL_TABLE) {
+                    listModel.add(i, new ListElementWrapper("    " + attribute.getAggrOpName(), attribute, ListElementType.MEASURE));
                     globalTableQueries.addMeasure(attribute);
                     return true;
                 }
             }
-            listModel.add(listModel.getSize(), new ListElementWrapper("    "+attribute.getAggrOpName(), attribute, ListElementType.MEASURE));
+            listModel.add(listModel.getSize(), new ListElementWrapper("    " + attribute.getAggrOpName(), attribute, ListElementType.MEASURE));
             globalTableQueries.addMeasure(attribute);
-        }
-        else{
+        } else {
             //check if table name of this column exists. If true then inserted here
             ListElementWrapper elemtTosearch = new ListElementWrapper(globalTable.getTableName(), globalTable, ListElementType.GLOBAL_TABLE);
 
-            if (listModel.contains(elemtTosearch)){
+            if (listModel.contains(elemtTosearch)) {
                 int index = listModel.indexOf(elemtTosearch);
                 ++index;
                 //iterate the columns of this tables. insert a new one at the end
                 for (int i = index; i < listModel.getSize(); i++) {
                     ListElementWrapper currElem = (ListElementWrapper) listModel.getElementAt(i);
-                    if (currElem.getType() == ListElementType.GLOBAL_TABLE){
-                        listModel.add(i, new ListElementWrapper("    "+attribute.getAggrOpName(), attribute, ListElementType.GLOBAL_COLUMN));//add row
+                    if (currElem.getType() == ListElementType.GLOBAL_TABLE) {
+                        listModel.add(i, new ListElementWrapper("    " + attribute.getAggrOpName(), attribute, ListElementType.GLOBAL_COLUMN));//add row
                         globalTableQueries.addSelectRow(globalTable, attribute);
                         return true;
                     }
                 }
                 //maybe this table is the last one, insert at last position
-                listModel.addElement(new ListElementWrapper("    "+attribute.getAggrOpName(), attribute, ListElementType.GLOBAL_COLUMN));//add row
+                listModel.addElement(new ListElementWrapper("    " + attribute.getAggrOpName(), attribute, ListElementType.GLOBAL_COLUMN));//add row
                 globalTableQueries.addSelectRow(globalTable, attribute);
 
-            }
-            else{
+            } else {
                 listModel.addElement(new ListElementWrapper(globalTable.getTableName(), globalTable, ListElementType.GLOBAL_TABLE)); //add table name
-                listModel.addElement(new ListElementWrapper("    "+attribute.getAggrOpName(), attribute, ListElementType.GLOBAL_COLUMN));//add row
+                listModel.addElement(new ListElementWrapper("    " + attribute.getAggrOpName(), attribute, ListElementType.GLOBAL_COLUMN));//add row
                 globalTableQueries.addSelectRow(globalTable, attribute);
             }
         }
         return true;
     }
 
-    private ActionListener changeToManualEditAggr(){
+    private ActionListener changeToManualEditAggr() {
         return new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent arg0) {
                 //if (manualAggregations.isVisible() && !aggregationsList.isVisible())
-                    //return;
-                    int dialogResult = JOptionPane.showConfirmDialog(mainMenu, "If you switch to manual mode, all current items in this area will be deleted.\n" +
-                            "You can type all aggregations needed, including more complex operations not possibloe to create with normal mode.\n" +
-                            "However, you cannot drop items from the star schema to this area. To do this you must change back to normal mode on the pop up menu \n" +
-                            "Would you like to continue?", "Warning", JOptionPane.YES_NO_OPTION);
-                if(dialogResult == JOptionPane.YES_OPTION){
+                //return;
+                int dialogResult = JOptionPane.showConfirmDialog(mainMenu, "If you switch to manual mode, all current items in this area will be deleted.\n" +
+                        "You can type all aggregations needed, including more complex operations not possibloe to create with normal mode.\n" +
+                        "However, you cannot drop items from the star schema to this area. To do this you must change back to normal mode on the pop up menu \n" +
+                        "Would you like to continue?", "Warning", JOptionPane.YES_NO_OPTION);
+                if (dialogResult == JOptionPane.YES_OPTION) {
                     changeAggrManualMode();
                 }
             }
         };
     }
-    private void changeAggrManualMode(){
+
+    private void changeAggrManualMode() {
         //change to edit mode
         String filtersStr = getFilterQuery(false);
         aggregationsList.setVisible(false);
@@ -2523,15 +2499,15 @@ public class QueryUI extends JPanel{
         aggrAreaPanel.add(measuresManualEditLabel);
     }
 
-    private ActionListener changeToNormalEditAggr(){
+    private ActionListener changeToNormalEditAggr() {
         return new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent arg0) {
                 //if (!manualAggregations.isVisible() && aggregationsList.isVisible())
-                    //return;
-                int dialogResult = JOptionPane.showConfirmDialog (mainMenu, "Changing back to normal mode will delete all content on this area.\n Would you like to continue?","Warning",JOptionPane.YES_NO_OPTION);
+                //return;
+                int dialogResult = JOptionPane.showConfirmDialog(mainMenu, "Changing back to normal mode will delete all content on this area.\n Would you like to continue?", "Warning", JOptionPane.YES_NO_OPTION);
                 boolean goOn = dialogResult == JOptionPane.YES_OPTION;
-                if(goOn){
+                if (goOn) {
                     //change to normal mode
                     changeAggrNormalMode();
                 }
@@ -2539,7 +2515,7 @@ public class QueryUI extends JPanel{
         };
     }
 
-    private void changeAggrNormalMode(){
+    private void changeAggrNormalMode() {
         //change to normal mode
         manualAggregations.setText("");
         manualAggregations.setVisible(false);
@@ -2551,23 +2527,23 @@ public class QueryUI extends JPanel{
         aggrAreaPanel.add(aggregationOpComboBox);
     }
 
-    private ActionListener changeToManualEditFilter(){
-            return new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent arg0) {
-                    //if (!rowFilterTree.isVisible() && editFilters.isVisible())
-                        //return;
-                    int dialogResult = JOptionPane.showConfirmDialog(mainMenu, "If you switch to manual mode, all current filters will be converted to SQL and you can manually edit them.\n" +
-                            "However, you cannot drop items from the star schema to these filters.\n To do this you must change back to normal mode on the pop up menu \n" +
-                            "Would you like to continue?", "Warning", JOptionPane.YES_NO_OPTION);
-                    if(dialogResult == JOptionPane.YES_OPTION){
-                        changeFilterManualMode();
-                    }
+    private ActionListener changeToManualEditFilter() {
+        return new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent arg0) {
+                //if (!rowFilterTree.isVisible() && editFilters.isVisible())
+                //return;
+                int dialogResult = JOptionPane.showConfirmDialog(mainMenu, "If you switch to manual mode, all current filters will be converted to SQL and you can manually edit them.\n" +
+                        "However, you cannot drop items from the star schema to these filters.\n To do this you must change back to normal mode on the pop up menu \n" +
+                        "Would you like to continue?", "Warning", JOptionPane.YES_NO_OPTION);
+                if (dialogResult == JOptionPane.YES_OPTION) {
+                    changeFilterManualMode();
                 }
-            };
+            }
+        };
     }
 
-    private void changeFilterManualMode(){
+    private void changeFilterManualMode() {
         String filtersStr = getFilterQuery(false);
         rowFilterTree.setVisible(false);
         editFilters.setVisible(true);
@@ -2579,14 +2555,14 @@ public class QueryUI extends JPanel{
         globalTableQueries.clearNormalFilters();
     }
 
-    private ActionListener changeToNormalEditFilter(){
+    private ActionListener changeToNormalEditFilter() {
         return new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent arg0) {
-               //if (rowFilterTree.isVisible() && !editFilters.isVisible())
-                    //return;
-                int dialogResult = JOptionPane.showConfirmDialog (mainMenu, "Changing back to normal mode will reset all filters created.\n Would you like to continue?","Warning",JOptionPane.YES_NO_OPTION);
-                if(dialogResult == JOptionPane.YES_OPTION){
+                //if (rowFilterTree.isVisible() && !editFilters.isVisible())
+                //return;
+                int dialogResult = JOptionPane.showConfirmDialog(mainMenu, "Changing back to normal mode will reset all filters created.\n Would you like to continue?", "Warning", JOptionPane.YES_NO_OPTION);
+                if (dialogResult == JOptionPane.YES_OPTION) {
                     //change to normal mode
                     changeFilterNormalMode();
                 }
@@ -2595,7 +2571,7 @@ public class QueryUI extends JPanel{
         };
     }
 
-    private void changeFilterNormalMode(){
+    private void changeFilterNormalMode() {
         editFilters.setVisible(false);
         editFilters.setText("");
         rowFilterTree.setVisible(true);
@@ -2606,7 +2582,7 @@ public class QueryUI extends JPanel{
         filtersLabel.setText("Filters - Normal Edit Mode");
     }
 
-    private ActionListener changeToManualEditColFilter(){
+    private ActionListener changeToManualEditColFilter() {
         return new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent arg0) {
@@ -2615,14 +2591,14 @@ public class QueryUI extends JPanel{
                 int dialogResult = JOptionPane.showConfirmDialog(mainMenu, "If you switch to manual mode, all current filters will be converted to SQL and you can manually edit them.\n" +
                         "However, you cannot drop items from the star schema to these filters.\n To do this you must change back to normal mode on the pop up menu \n" +
                         "Would you like to continue?", "Warning", JOptionPane.YES_NO_OPTION);
-                if(dialogResult == JOptionPane.YES_OPTION){
+                if (dialogResult == JOptionPane.YES_OPTION) {
                     changeColFilterManualMode();
                 }
             }
         };
     }
 
-    private void changeColFilterManualMode(){
+    private void changeColFilterManualMode() {
         String filtersStr = getColFilterQuery();
         colFiltersTree.setVisible(false);
         editColFilters.setVisible(true);
@@ -2633,14 +2609,14 @@ public class QueryUI extends JPanel{
         globalTableQueries.clearCollFilters();
     }
 
-    private ActionListener changeToNormalEditColFilter(){
+    private ActionListener changeToNormalEditColFilter() {
         return new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent arg0) {
                 //if (rowFilterTree.isVisible() && !editFilters.isVisible())
                 //return;
-                int dialogResult = JOptionPane.showConfirmDialog (mainMenu, "Changing back to normal mode will reset all filters created.\n Would you like to continue?","Warning",JOptionPane.YES_NO_OPTION);
-                if(dialogResult == JOptionPane.YES_OPTION){
+                int dialogResult = JOptionPane.showConfirmDialog(mainMenu, "Changing back to normal mode will reset all filters created.\n Would you like to continue?", "Warning", JOptionPane.YES_NO_OPTION);
+                if (dialogResult == JOptionPane.YES_OPTION) {
                     //change to normal mode
                     changeColFilterNormalMode();
                 }
@@ -2649,7 +2625,7 @@ public class QueryUI extends JPanel{
         };
     }
 
-    private void changeColFilterNormalMode(){
+    private void changeColFilterNormalMode() {
         editColFilters.setVisible(false);
         editColFilters.setText("");
         colFiltersTree.setVisible(true);
@@ -2660,16 +2636,16 @@ public class QueryUI extends JPanel{
         colFiltersLabel.setText("Column Filters - Normal Edit Mode");
     }
 
-    private ActionListener changeToManualEditFilterAggr(){
+    private ActionListener changeToManualEditFilterAggr() {
         return new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent arg0) {
                 //if (!aggrFiltersTree.isVisible() && editFiltersAggr.isVisible())
-                    //return;
-                    int dialogResult = JOptionPane.showConfirmDialog(mainMenu, "If you switch to manual mode, all current filters will be converted to SQL and you can manually edit them.\n" +
-                            "However, you cannot drop items from the aggregations area to these filters.\n To do this you must change back to normal mode on the pop up menu \n" +
-                            "Would you like to continue?", "Warning", JOptionPane.YES_NO_OPTION);
-                if(dialogResult == JOptionPane.YES_OPTION){
+                //return;
+                int dialogResult = JOptionPane.showConfirmDialog(mainMenu, "If you switch to manual mode, all current filters will be converted to SQL and you can manually edit them.\n" +
+                        "However, you cannot drop items from the aggregations area to these filters.\n To do this you must change back to normal mode on the pop up menu \n" +
+                        "Would you like to continue?", "Warning", JOptionPane.YES_NO_OPTION);
+                if (dialogResult == JOptionPane.YES_OPTION) {
                     //change to edit mode
                     changeAggrFilterManualMode();
                 }
@@ -2678,7 +2654,7 @@ public class QueryUI extends JPanel{
         };
     }
 
-    private void changeAggrFilterManualMode(){
+    private void changeAggrFilterManualMode() {
         String filtersStr = getFilterQuery(false);
         aggrFiltersTree.setVisible(false);
         editFiltersAggr.setVisible(true);
@@ -2689,14 +2665,14 @@ public class QueryUI extends JPanel{
         aggrFiltersLabel.setText("Aggregation Filters - Manual Mode");
     }
 
-    private ActionListener changeToNormalEditFilterAggr(){
+    private ActionListener changeToNormalEditFilterAggr() {
         return new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent arg0) {
                 //if (aggrFiltersTree.isVisible() && !editFiltersAggr.isVisible())
-                    //return;
-                    int dialogResult = JOptionPane.showConfirmDialog(mainMenu, "Changing back to normal mode will reset all filters created.\n Would you like to continue?", "Warning", JOptionPane.YES_NO_OPTION);
-                if(dialogResult == JOptionPane.YES_OPTION){
+                //return;
+                int dialogResult = JOptionPane.showConfirmDialog(mainMenu, "Changing back to normal mode will reset all filters created.\n Would you like to continue?", "Warning", JOptionPane.YES_NO_OPTION);
+                if (dialogResult == JOptionPane.YES_OPTION) {
                     changeAggrFilterNormalMode();
                 }
 
@@ -2704,7 +2680,7 @@ public class QueryUI extends JPanel{
         };
     }
 
-    private void changeAggrFilterNormalMode(){
+    private void changeAggrFilterNormalMode() {
         //change to normal mode
         editFiltersAggr.setVisible(false);
         editFiltersAggr.setText("");
@@ -2717,18 +2693,353 @@ public class QueryUI extends JPanel{
     }
 
 
-    public void addGlobalQueryLog(){
+    public void addGlobalQueryLog() {
         String query = buildQuery(false);
         DateTime currentTime = new DateTime();
         globalSchemaLogModel.addElement(new QueryLog(query, currentTime));
     }
 
-    public void addLocalQueryLog(){
+    public void addLocalQueryLog() {
         if (showLocalQueryLog) {
             String query = buildQuery(true);
             DateTime currentTime = new DateTime();
             localSchemaLogModel.addElement(new QueryLog(query, currentTime));
         }
+    }
+
+    {
+// GUI initializer generated by IntelliJ IDEA GUI Designer
+// >>> IMPORTANT!! <<<
+// DO NOT EDIT OR ADD ANY CODE HERE!
+        $$$setupUI$$$();
+    }
+
+    /**
+     * Method generated by IntelliJ IDEA GUI Designer
+     * >>> IMPORTANT!! <<<
+     * DO NOT edit this method OR call it in your code!
+     *
+     * @noinspection ALL
+     */
+    private void $$$setupUI$$$() {
+        mainPanel = new JPanel();
+        mainPanel.setLayout(new GridBagLayout());
+        final JPanel panel1 = new JPanel();
+        panel1.setLayout(new GridBagLayout());
+        panel1.setMinimumSize(new Dimension(380, 414));
+        panel1.setPreferredSize(new Dimension(380, 330));
+        GridBagConstraints gbc;
+        gbc = new GridBagConstraints();
+        gbc.gridx = 3;
+        gbc.gridy = 0;
+        gbc.gridwidth = 2;
+        gbc.gridheight = 10;
+        gbc.weightx = 0.7;
+        gbc.weighty = 1.0;
+        gbc.fill = GridBagConstraints.BOTH;
+        mainPanel.add(panel1, gbc);
+        panel1.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Aggregations", TitledBorder.CENTER, TitledBorder.DEFAULT_POSITION, null, new Color(-16777216)));
+        measuresLabel = new JLabel();
+        measuresLabel.setText("Aggregations");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 2;
+        gbc.weightx = 1.0;
+        gbc.weighty = 0.1;
+        gbc.anchor = GridBagConstraints.SOUTHWEST;
+        panel1.add(measuresLabel, gbc);
+        aggregationsPane = new JScrollPane();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.gridwidth = 2;
+        gbc.gridheight = 2;
+        gbc.weightx = 1.0;
+        gbc.weighty = 0.8;
+        gbc.fill = GridBagConstraints.BOTH;
+        panel1.add(aggregationsPane, gbc);
+        aggregationsList = new JList();
+        aggregationsList.setDragEnabled(true);
+        aggregationsPane.setViewportView(aggregationsList);
+        aggrFiltersLabel = new JLabel();
+        aggrFiltersLabel.setText("Aggregation Filters");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 3;
+        gbc.gridy = 0;
+        gbc.weightx = 0.5;
+        gbc.weighty = 0.1;
+        gbc.anchor = GridBagConstraints.SOUTHWEST;
+        panel1.add(aggrFiltersLabel, gbc);
+        aggrFilterPane = new JScrollPane();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 3;
+        gbc.gridy = 1;
+        gbc.gridheight = 3;
+        gbc.weightx = 0.5;
+        gbc.weighty = 0.8;
+        gbc.fill = GridBagConstraints.BOTH;
+        panel1.add(aggrFilterPane, gbc);
+        aggrFiltersTree = new JTree();
+        aggrFilterPane.setViewportView(aggrFiltersTree);
+        arrowLabel = new JLabel();
+        arrowLabel.setText("");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 2;
+        gbc.gridy = 2;
+        gbc.gridheight = 2;
+        gbc.weightx = 0.1;
+        gbc.weighty = 0.2;
+        gbc.anchor = GridBagConstraints.WEST;
+        panel1.add(arrowLabel, gbc);
+        aggrAreaPanel = new JPanel();
+        aggrAreaPanel.setLayout(new BorderLayout(0, 0));
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.gridwidth = 2;
+        gbc.weightx = 1.0;
+        gbc.fill = GridBagConstraints.BOTH;
+        panel1.add(aggrAreaPanel, gbc);
+        aggregationOpComboBox = new JComboBox();
+        aggrAreaPanel.add(aggregationOpComboBox, BorderLayout.CENTER);
+        final JPanel panel2 = new JPanel();
+        panel2.setLayout(new GridBagLayout());
+        panel2.setPreferredSize(new Dimension(531, 484));
+        gbc = new GridBagConstraints();
+        gbc.gridx = 2;
+        gbc.gridy = 0;
+        gbc.gridheight = 10;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        gbc.fill = GridBagConstraints.BOTH;
+        mainPanel.add(panel2, gbc);
+        panel2.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Selections", TitledBorder.CENTER, TitledBorder.DEFAULT_POSITION, null, null));
+        final JScrollPane scrollPane1 = new JScrollPane();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.3;
+        gbc.fill = GridBagConstraints.BOTH;
+        panel2.add(scrollPane1, gbc);
+        rowsList = new JList();
+        final DefaultListModel defaultListModel1 = new DefaultListModel();
+        rowsList.setModel(defaultListModel1);
+        scrollPane1.setViewportView(rowsList);
+        rowsLabel = new JLabel();
+        rowsLabel.setText("Rows");
+        rowsLabel.setToolTipText("");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 1.0;
+        gbc.weighty = 0.1;
+        gbc.anchor = GridBagConstraints.SOUTHWEST;
+        gbc.insets = new Insets(0, 10, 0, 0);
+        panel2.add(rowsLabel, gbc);
+        filterPane = new JScrollPane();
+        filterPane.setHorizontalScrollBarPolicy(30);
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        gbc.weightx = 1.0;
+        gbc.weighty = 0.8;
+        gbc.fill = GridBagConstraints.BOTH;
+        panel2.add(filterPane, gbc);
+        rowFilterTree = new JTree();
+        rowFilterTree.setDragEnabled(true);
+        rowFilterTree.setEditable(true);
+        rowFilterTree.setPreferredSize(new Dimension(80, 300));
+        rowFilterTree.setRootVisible(false);
+        rowFilterTree.setRowHeight(16);
+        rowFilterTree.setVisibleRowCount(20);
+        filterPane.setViewportView(rowFilterTree);
+        final JScrollPane scrollPane2 = new JScrollPane();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 1;
+        gbc.gridy = 1;
+        gbc.gridwidth = 3;
+        gbc.weightx = 0.7;
+        gbc.weighty = 1.3;
+        gbc.fill = GridBagConstraints.BOTH;
+        panel2.add(scrollPane2, gbc);
+        columnsList = new JList();
+        scrollPane2.setViewportView(columnsList);
+        filtersLabel = new JLabel();
+        filtersLabel.setText("Row Filters");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.gridwidth = 2;
+        gbc.weightx = 1.0;
+        gbc.weighty = 0.1;
+        gbc.anchor = GridBagConstraints.SOUTHWEST;
+        gbc.insets = new Insets(0, 10, 0, 0);
+        panel2.add(filtersLabel, gbc);
+        columnLabel = new JLabel();
+        columnLabel.setText("Columns");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 1;
+        gbc.gridy = 0;
+        gbc.gridwidth = 3;
+        gbc.weightx = 0.7;
+        gbc.weighty = 0.1;
+        gbc.anchor = GridBagConstraints.SOUTHWEST;
+        panel2.add(columnLabel, gbc);
+        colFiltersLabel = new JLabel();
+        colFiltersLabel.setText("Column Filters");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 2;
+        gbc.gridy = 2;
+        gbc.gridwidth = 2;
+        gbc.weightx = 0.7;
+        gbc.weighty = 0.1;
+        gbc.anchor = GridBagConstraints.SOUTHWEST;
+        gbc.insets = new Insets(0, 10, 0, 0);
+        panel2.add(colFiltersLabel, gbc);
+        filterColPane = new JScrollPane();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 3;
+        gbc.gridy = 3;
+        gbc.weightx = 0.7;
+        gbc.weighty = 0.8;
+        gbc.fill = GridBagConstraints.BOTH;
+        panel2.add(filterColPane, gbc);
+        colFiltersTree = new JTree();
+        colFiltersTree.setEditable(true);
+        filterColPane.setViewportView(colFiltersTree);
+        final JPanel panel3 = new JPanel();
+        panel3.setLayout(new GridBagLayout());
+        panel3.setMinimumSize(new Dimension(140, 39));
+        panel3.setPreferredSize(new Dimension(220, 284));
+        gbc = new GridBagConstraints();
+        gbc.gridx = 1;
+        gbc.gridy = 0;
+        gbc.gridheight = 10;
+        gbc.weightx = 0.5;
+        gbc.weighty = 1.0;
+        gbc.fill = GridBagConstraints.BOTH;
+        mainPanel.add(panel3, gbc);
+        panel3.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.black), "Star Schema", TitledBorder.CENTER, TitledBorder.DEFAULT_POSITION, null, new Color(-16777216)));
+        final JScrollPane scrollPane3 = new JScrollPane();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 1.0;
+        gbc.weighty = 0.8;
+        gbc.fill = GridBagConstraints.BOTH;
+        panel3.add(scrollPane3, gbc);
+        schemaTree = new JTree();
+        schemaTree.setDragEnabled(true);
+        scrollPane3.setViewportView(schemaTree);
+        final JPanel panel4 = new JPanel();
+        panel4.setLayout(new GridBagLayout());
+        gbc = new GridBagConstraints();
+        gbc.gridx = 1;
+        gbc.gridy = 10;
+        gbc.gridwidth = 4;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        gbc.fill = GridBagConstraints.BOTH;
+        mainPanel.add(panel4, gbc);
+        logPane = new JTabbedPane();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.2;
+        gbc.fill = GridBagConstraints.BOTH;
+        panel4.add(logPane, gbc);
+        final JPanel panel5 = new JPanel();
+        panel5.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
+        logPane.addTab("Results", panel5);
+        tablePane = new JScrollPane();
+        panel5.add(tablePane, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+        final JPanel panel6 = new JPanel();
+        panel6.setLayout(new GridBagLayout());
+        logPane.addTab("Query Execution  Status", panel6);
+        final JScrollPane scrollPane4 = new JScrollPane();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 2;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        gbc.fill = GridBagConstraints.BOTH;
+        panel6.add(scrollPane4, gbc);
+        queryLogList = new JList();
+        scrollPane4.setViewportView(queryLogList);
+        saveSelectedQueryButton = new JButton();
+        saveSelectedQueryButton.setText("Save Selected Query");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 1;
+        gbc.gridy = 1;
+        gbc.weightx = 1.0;
+        panel6.add(saveSelectedQueryButton, gbc);
+        saveAllQueriesButton = new JButton();
+        saveAllQueriesButton.setText("Save All Queries");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.weightx = 1.0;
+        panel6.add(saveAllQueriesButton, gbc);
+        globalSchemaLogPane = new JPanel();
+        globalSchemaLogPane.setLayout(new GridBagLayout());
+        logPane.addTab("Global Schema Query", globalSchemaLogPane);
+        final JScrollPane scrollPane5 = new JScrollPane();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        gbc.fill = GridBagConstraints.BOTH;
+        globalSchemaLogPane.add(scrollPane5, gbc);
+        globalQueryLogList = new JList();
+        scrollPane5.setViewportView(globalQueryLogList);
+        localSchemaLogPane = new JPanel();
+        localSchemaLogPane.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
+        logPane.addTab("Local Schema Query", localSchemaLogPane);
+        final JScrollPane scrollPane6 = new JScrollPane();
+        localSchemaLogPane.add(scrollPane6, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+        localQueryLogList = new JList();
+        scrollPane6.setViewportView(localQueryLogList);
+        controlPanel = new JPanel();
+        controlPanel.setLayout(new GridBagLayout());
+        controlPanel.setInheritsPopupMenu(false);
+        gbc = new GridBagConstraints();
+        gbc.gridx = 1;
+        gbc.gridy = 0;
+        gbc.weightx = 0.1;
+        gbc.weighty = 1.0;
+        gbc.fill = GridBagConstraints.VERTICAL;
+        panel4.add(controlPanel, gbc);
+        controlPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createRaisedBevelBorder(), null, TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
+        clearAllFieldsButton = new JButton();
+        clearAllFieldsButton.setText("Clear All Fields");
+        clearAllFieldsButton.setToolTipText("Clear All Fields");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        controlPanel.add(clearAllFieldsButton, gbc);
+        executeQueryButton = new JButton();
+        executeQueryButton.setText("Execute Query");
+        executeQueryButton.setToolTipText("Execute Query");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        controlPanel.add(executeQueryButton, gbc);
+    }
+
+    /**
+     * @noinspection ALL
+     */
+    public JComponent $$$getRootComponent$$$() {
+        return mainPanel;
     }
 
     class TreeTransferHandler extends TransferHandler {
@@ -2739,14 +3050,14 @@ public class QueryUI extends JPanel{
             flavors[1] = new DataFlavor(ListElementWrapper.class, "ListElementWrapper");
         }
 
-        public boolean canImport(TransferHandler.TransferSupport support) {
-            if(!support.isDrop()) {
+        public boolean canImport(TransferSupport support) {
+            if (!support.isDrop()) {
                 return false;
             }
 
             support.setShowDropLocation(true);
-            for (DataFlavor f : flavors){
-                if (!support.isDataFlavorSupported(f)){
+            for (DataFlavor f : flavors) {
+                if (!support.isDataFlavorSupported(f)) {
                     return false;
                 }
             }
@@ -2761,14 +3072,13 @@ public class QueryUI extends JPanel{
                     // exportDone after a successful drop.
                     CustomTreeNode node =
                             (CustomTreeNode) paths[0].getLastPathComponent();
-                    return new TreeTransferHandler.NodesTransferable(node);
+                    return new NodesTransferable(node);
                 }
                 return null;
-            }
-            else if (c instanceof JList){
+            } else if (c instanceof JList) {
                 JList list = (JList) c;
                 int index = list.getSelectedIndex();
-                if (index > -1){
+                if (index > -1) {
                     ListElementWrapper elem = (ListElementWrapper) list.getModel().getElementAt(index);
                     return new ListElemTransferable(elem);
                 }
@@ -2776,15 +3086,17 @@ public class QueryUI extends JPanel{
             return null;
         }
 
-        /** Defensive copy used in createTransferable. */
+        /**
+         * Defensive copy used in createTransferable.
+         */
         private CustomTreeNode copy(TreeNode node) {
             return new CustomTreeNode(node);
         }
 
         protected void exportDone(JComponent source, Transferable data, int action) {
-            if((action & MOVE) == MOVE) {
-                JTree tree = (JTree)source;
-                DefaultTreeModel model = (DefaultTreeModel)tree.getModel();
+            if ((action & MOVE) == MOVE) {
+                JTree tree = (JTree) source;
+                DefaultTreeModel model = (DefaultTreeModel) tree.getModel();
             }
         }
 
@@ -2792,7 +3104,7 @@ public class QueryUI extends JPanel{
             return COPY_OR_MOVE;
         }
 
-        public boolean importData(TransferHandler.TransferSupport info) {
+        public boolean importData(TransferSupport info) {
             if (!info.isDrop()) {
                 return false;
             }
@@ -2822,8 +3134,7 @@ public class QueryUI extends JPanel{
                     } catch (Exception ex) {
                         ex.printStackTrace();
                     }
-                }
-                else{
+                } else {
                     e.printStackTrace();
                     return false;
                 }
@@ -2831,20 +3142,20 @@ public class QueryUI extends JPanel{
             return false;
         }
 
-        private boolean handleListTransfer(ListElementWrapper listElem, TransferHandler.TransferSupport info){
-            if (!listElem.getName().contains("    ")){
+        private boolean handleListTransfer(ListElementWrapper listElem, TransferSupport info) {
+            if (!listElem.getName().contains("    ")) {
                 JOptionPane.showMessageDialog(null, "You can only drag and drop columns to create filters.",
                         "Operation Failed", JOptionPane.ERROR_MESSAGE);
                 return false;
             }
             GlobalColumnData column = (GlobalColumnData) listElem.getObj();
-            if (info.getComponent() instanceof JTree){
+            if (info.getComponent() instanceof JTree) {
                 JTree tree = (JTree) info.getComponent();
-                JTree.DropLocation dl = (JTree.DropLocation)info.getDropLocation();
+                JTree.DropLocation dl = (JTree.DropLocation) info.getDropLocation();
                 TreePath dest = dl.getPath();
-                if (tree.equals(aggrFiltersTree)){
+                if (tree.equals(aggrFiltersTree)) {
                     //user drops in the filter aggr tree
-                    if (tree.equals(aggrFiltersTree)){
+                    if (tree.equals(aggrFiltersTree)) {
                         return insertAggrFilterNode(dest, column);
                     }
 
@@ -2853,8 +3164,8 @@ public class QueryUI extends JPanel{
             return false;
         }
 
-        private boolean handleNodeTransfer(CustomTreeNode data, TransferHandler.TransferSupport info){
-            if (data.getNodeType() != NodeType.GLOBAL_COLUMN && data.getNodeType() != NodeType.MEASURE){
+        private boolean handleNodeTransfer(CustomTreeNode data, TransferSupport info) {
+            if (data.getNodeType() != NodeType.GLOBAL_COLUMN && data.getNodeType() != NodeType.MEASURE) {
                 JOptionPane.showMessageDialog(null, "You can only drag and drop columns.",
                         "Operation Failed", JOptionPane.ERROR_MESSAGE);
                 return false;
@@ -2862,10 +3173,10 @@ public class QueryUI extends JPanel{
             GlobalColumnData column = (GlobalColumnData) data.getObj();
             CustomTreeNode globalTable = (CustomTreeNode) data.getParent();
             GlobalTableData gt = (GlobalTableData) globalTable.getObj();
-            column.setFullName(gt.getTableName()+"."+column.getName());
+            column.setFullName(gt.getTableName() + "." + column.getName());
             boolean added = false;
 
-            if (info.getComponent() instanceof JList){
+            if (info.getComponent() instanceof JList) {
                 JList list = (JList) info.getComponent();
                 DefaultListModel listModel = (DefaultListModel) list.getModel();
                 JList.DropLocation dl = (JList.DropLocation) info.getDropLocation();
@@ -2875,18 +3186,16 @@ public class QueryUI extends JPanel{
 
                 CustomTreeNode parentNode = (CustomTreeNode) data.getParent();//global table
                 GlobalTableData tab = (GlobalTableData) parentNode.getObj();
-                GlobalColumnData col = (GlobalColumnData)data.getObj();
+                GlobalColumnData col = (GlobalColumnData) data.getObj();
 
-                if (list.equals(columnsList)){
+                if (list.equals(columnsList)) {
                     //select columns list
-                    added = addColumnsToList(listModel, col, tab) ;
-                }
-                else if (list.equals(rowsList)){
+                    added = addColumnsToList(listModel, col, tab);
+                } else if (list.equals(rowsList)) {
                     //select rows list
-                    added = addRowsToList(listModel, col, tab) ;
-                }
-                else if (list.equals(aggregationsList)){
-                    if (data.getNodeType() != NodeType.MEASURE && (globalTableQueries.getMeasures().size() > 1 && globalTableQueries.getSelectColumns().size() > 0)){
+                    added = addRowsToList(listModel, col, tab);
+                } else if (list.equals(aggregationsList)) {
+                    if (data.getNodeType() != NodeType.MEASURE && (globalTableQueries.getMeasures().size() > 1 && globalTableQueries.getSelectColumns().size() > 0)) {
                         JOptionPane.showMessageDialog(mainMenu, "You can only use 1 measure when creating a query with pivot attributes.", "1 measure max", JOptionPane.WARNING_MESSAGE);
                         return false;
                     }
@@ -2895,26 +3204,25 @@ public class QueryUI extends JPanel{
                 return added;
             }
             //user drops on jtree
-            else if (info.getComponent() instanceof JTree){
+            else if (info.getComponent() instanceof JTree) {
                 JTree tree = (JTree) info.getComponent();
-                JTree.DropLocation dl = (JTree.DropLocation)info.getDropLocation();
+                JTree.DropLocation dl = (JTree.DropLocation) info.getDropLocation();
                 TreePath dest = dl.getPath();
-                if (tree.equals(rowFilterTree)){
+                if (tree.equals(rowFilterTree)) {
                     added = insertFilterNode(dest, column);
-                }
-                else if (tree.equals(colFiltersTree)){
-                    added = insertColFilterNode( dest, column);
+                } else if (tree.equals(colFiltersTree)) {
+                    added = insertColFilterNode(dest, column);
                 }
                 return added;
             }
             return false;
         }
 
-        private boolean insertFilterNode(TreePath dest, GlobalColumnData column){
+        private boolean insertFilterNode(TreePath dest, GlobalColumnData column) {
             String s[] = null;
             //user drops in the filter tree
-            if (rowFilterTreeModel == null){//filters dropped for the first time (bug if root added on jtree creation, thats why there's two ifs..)
-                while (s == null){
+            if (rowFilterTreeModel == null) {//filters dropped for the first time (bug if root added on jtree creation, thats why there's two ifs..)
+                while (s == null) {
                     s = createFilterStringOperation(column, true, false);
                 }
                 if (s.length == 0)
@@ -2935,11 +3243,11 @@ public class QueryUI extends JPanel{
             if (dest == null)
                 parent = root;
             else
-                parent = (FilterNode)dest.getLastPathComponent();
+                parent = (FilterNode) dest.getLastPathComponent();
 
             TreePath path = null;
-            if (parent.getNodeType() == null && parent.getChildCount() == 0){
-                while (s == null){
+            if (parent.getNodeType() == null && parent.getChildCount() == 0) {
+                while (s == null) {
                     s = createFilterStringOperation(column, true, false);//0 - boolean operation if any, 1 - condition
                 }
                 if (s.length == 0)
@@ -2947,21 +3255,19 @@ public class QueryUI extends JPanel{
                 //filterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION), parent, parent.getChildCount());
                 rowFilterTreeModel.insertNodeInto(new FilterNode(s[1], column, s[2], FilterNodeType.CONDITION), parent, parent.getChildCount());
                 path = new TreePath(parent.getPath());
-            }
-            else if (parent.getNodeType() == null && parent.getChildCount() > 0){
-                while (s == null){
+            } else if (parent.getNodeType() == null && parent.getChildCount() > 0) {
+                while (s == null) {
                     s = createFilterStringOperation(column, false, false);//0 - boolean operation if any, 1 - condition
                 }
                 if (s.length == 0)
                     return false;
                 rowFilterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], "", FilterNodeType.BOOLEAN_OPERATION), parent, parent.getChildCount());
-                rowFilterTreeModel.insertNodeInto(new FilterNode(s[1], column,s[2], FilterNodeType.CONDITION), parent, parent.getChildCount());
+                rowFilterTreeModel.insertNodeInto(new FilterNode(s[1], column, s[2], FilterNodeType.CONDITION), parent, parent.getChildCount());
                 //globalTableQueries.addFilter(column.getFullName());//for validation purposes
                 path = new TreePath(parent.getPath());
-            }
-            else if (parent.getNodeType() == FilterNodeType.CONDITION ){
+            } else if (parent.getNodeType() == FilterNodeType.CONDITION) {
                 //user wants to create an inner expression OR to add content to inner expression and dragg it to a condition
-                while (s == null){
+                while (s == null) {
                     s = createFilterStringOperation(column, false, false);//0 - boolean operation if any, 1 - condition
                 }
                 if (s.length == 0)
@@ -2969,25 +3275,23 @@ public class QueryUI extends JPanel{
                 //get the boolean operator next to it and check if it has childs
                 FilterNode boleanNodeParent = (FilterNode) parent.getNextNode();
 
-                if (boleanNodeParent == null || boleanNodeParent.getChildCount() == 0){ //no boolean operator, create it and add child
+                if (boleanNodeParent == null || boleanNodeParent.getChildCount() == 0) { //no boolean operator, create it and add child
                     //if creating a new expression nested in a codition, add a boolean operator between the condition and a boolean operator. Make the inner expression child of the boolean operator
                     FilterNode parentOfParent = (FilterNode) parent.getParent();
                     int indexOfParent = parentOfParent.getIndex(parent);
                     FilterNode booleanNode = new FilterNode(s[0], s[0], "", FilterNodeType.BOOLEAN_OPERATION);
-                    rowFilterTreeModel.insertNodeInto(booleanNode, parentOfParent, indexOfParent+1);// create this condition between the condition and the inner expression
+                    rowFilterTreeModel.insertNodeInto(booleanNode, parentOfParent, indexOfParent + 1);// create this condition between the condition and the inner expression
                     rowFilterTreeModel.insertNodeInto(new FilterNode(s[1], column, s[2], FilterNodeType.CONDITION), booleanNode, booleanNode.getChildCount());//Must be child of the bolean operator
                     path = new TreePath(booleanNode.getPath());
-                }
-                else {
+                } else {
                     //inserting on an already existent boolean node with inner expr. IF it has an inner expr, add the operator and cond, else only the cond as childs
                     rowFilterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], "", FilterNodeType.BOOLEAN_OPERATION), boleanNodeParent, boleanNodeParent.getChildCount());
                     rowFilterTreeModel.insertNodeInto(new FilterNode(s[1], column, s[2], FilterNodeType.CONDITION), boleanNodeParent, boleanNodeParent.getChildCount());
                     path = new TreePath(boleanNodeParent.getPath());
                 }
-            }
-            else if (parent.getNodeType() == FilterNodeType.BOOLEAN_OPERATION && parent.getChildCount()>0){
+            } else if (parent.getNodeType() == FilterNodeType.BOOLEAN_OPERATION && parent.getChildCount() > 0) {
                 //user wants to add content to inner expression and dragg it to the outer boolean operator
-                while (s == null){
+                while (s == null) {
                     s = createFilterStringOperation(column, false, false);//0 - boolean operation if any, 1 - condition
                 }
                 if (s.length == 0)
@@ -3003,11 +3307,11 @@ public class QueryUI extends JPanel{
             return true;
         }
 
-        private boolean insertColFilterNode(TreePath dest, GlobalColumnData column){
+        private boolean insertColFilterNode(TreePath dest, GlobalColumnData column) {
             String s[] = null;
             //user drops in the filter tree
-            if (colFilterTreeModel == null){//filters dropped for the first time (bug if root added on jtree creation, thats why there's two ifs..)
-                while (s == null){
+            if (colFilterTreeModel == null) {//filters dropped for the first time (bug if root added on jtree creation, thats why there's two ifs..)
+                while (s == null) {
                     s = createFilterStringOperation(column, true, false);
                 }
                 if (s.length == 0)
@@ -3028,11 +3332,11 @@ public class QueryUI extends JPanel{
             if (dest == null)
                 parent = root;
             else
-                parent = (FilterNode)dest.getLastPathComponent();
+                parent = (FilterNode) dest.getLastPathComponent();
 
             TreePath path = null;
-            if (parent.getNodeType() == null && parent.getChildCount() == 0){
-                while (s == null){
+            if (parent.getNodeType() == null && parent.getChildCount() == 0) {
+                while (s == null) {
                     s = createFilterStringOperation(column, true, false);//0 - boolean operation if any, 1 - condition
                 }
                 if (s.length == 0)
@@ -3040,9 +3344,8 @@ public class QueryUI extends JPanel{
                 //filterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION), parent, parent.getChildCount());
                 colFilterTreeModel.insertNodeInto(new FilterNode(s[1], column, s[2], FilterNodeType.CONDITION), parent, parent.getChildCount());
                 path = new TreePath(parent.getPath());
-            }
-            else if (parent.getNodeType() == null && parent.getChildCount() > 0){
-                while (s == null){
+            } else if (parent.getNodeType() == null && parent.getChildCount() > 0) {
+                while (s == null) {
                     s = createFilterStringOperation(column, false, false);//0 - boolean operation if any, 1 - condition
                 }
                 if (s.length == 0)
@@ -3051,10 +3354,9 @@ public class QueryUI extends JPanel{
                 colFilterTreeModel.insertNodeInto(new FilterNode(s[1], column, s[2], FilterNodeType.CONDITION), parent, parent.getChildCount());
                 //globalTableQueries.addFilter(column.getFullName());//for validation purposes
                 path = new TreePath(parent.getPath());
-            }
-            else if (parent.getNodeType() == FilterNodeType.CONDITION ){
+            } else if (parent.getNodeType() == FilterNodeType.CONDITION) {
                 //user wants to create an inner expression OR to add content to inner expression and dragg it to a condition
-                while (s == null){
+                while (s == null) {
                     s = createFilterStringOperation(column, false, false);//0 - boolean operation if any, 1 - condition
                 }
                 if (s.length == 0)
@@ -3062,25 +3364,23 @@ public class QueryUI extends JPanel{
                 //get the boolean operator next to it and check if it has childs
                 FilterNode boleanNodeParent = (FilterNode) parent.getNextNode();
 
-                if (boleanNodeParent == null || boleanNodeParent.getChildCount() == 0){ //no boolean operator, create it and add child
+                if (boleanNodeParent == null || boleanNodeParent.getChildCount() == 0) { //no boolean operator, create it and add child
                     //if creating a new expression nested in a codition, add a boolean operator between the condition and a boolean operator. Make the inner expression child of the boolean operator
                     FilterNode parentOfParent = (FilterNode) parent.getParent();
                     int indexOfParent = parentOfParent.getIndex(parent);
                     FilterNode booleanNode = new FilterNode(s[0], s[0], "", FilterNodeType.BOOLEAN_OPERATION);
-                    colFilterTreeModel.insertNodeInto(booleanNode, parentOfParent, indexOfParent+1);// create this condition between the condition and the inner expression
+                    colFilterTreeModel.insertNodeInto(booleanNode, parentOfParent, indexOfParent + 1);// create this condition between the condition and the inner expression
                     colFilterTreeModel.insertNodeInto(new FilterNode(s[1], column, s[2], FilterNodeType.CONDITION), booleanNode, booleanNode.getChildCount());//Must be child of the bolean operator
                     path = new TreePath(booleanNode.getPath());
-                }
-                else {
+                } else {
                     //inserting on an already existent boolean node with inner expr. IF it has an inner expr, add the operator and cond, else only the cond as childs
                     colFilterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], "", FilterNodeType.BOOLEAN_OPERATION), boleanNodeParent, boleanNodeParent.getChildCount());
-                    colFilterTreeModel.insertNodeInto(new FilterNode(s[1], column, s[2],FilterNodeType.CONDITION), boleanNodeParent, boleanNodeParent.getChildCount());
+                    colFilterTreeModel.insertNodeInto(new FilterNode(s[1], column, s[2], FilterNodeType.CONDITION), boleanNodeParent, boleanNodeParent.getChildCount());
                     path = new TreePath(boleanNodeParent.getPath());
                 }
-            }
-            else if (parent.getNodeType() == FilterNodeType.BOOLEAN_OPERATION && parent.getChildCount()>0){
+            } else if (parent.getNodeType() == FilterNodeType.BOOLEAN_OPERATION && parent.getChildCount() > 0) {
                 //user wants to add content to inner expression and dragg it to the outer boolean operator
-                while (s == null){
+                while (s == null) {
                     s = createFilterStringOperation(column, false, false);//0 - boolean operation if any, 1 - condition
                 }
                 if (s.length == 0)
@@ -3097,18 +3397,18 @@ public class QueryUI extends JPanel{
         }
 
 
-        private boolean insertAggrFilterNode(TreePath dest, GlobalColumnData column){
+        private boolean insertAggrFilterNode(TreePath dest, GlobalColumnData column) {
             String s[] = null;
             //user drops in the filter tree
-            if (aggrFilterTreeModel == null){//filters dropped for the first time (bug if root added on jtree creation, thats why there's two ifs..)
-                while (s == null){
+            if (aggrFilterTreeModel == null) {//filters dropped for the first time (bug if root added on jtree creation, thats why there's two ifs..)
+                while (s == null) {
                     s = createFilterStringOperation(column, true, true);
                 }
                 if (s.length == 0)
                     return false;
                 //no filters added yet
-                FilterNode root = new FilterNode("", null, "",null);
-                root.add(new FilterNode(s[1], column, s[2],FilterNodeType.CONDITION));
+                FilterNode root = new FilterNode("", null, "", null);
+                root.add(new FilterNode(s[1], column, s[2], FilterNodeType.CONDITION));
                 aggrFilterTreeModel = new DefaultTreeModel(root);
                 aggrFiltersTree.setModel(aggrFilterTreeModel);
                 aggrFiltersTree.setRootVisible(false);
@@ -3122,11 +3422,11 @@ public class QueryUI extends JPanel{
             if (dest == null)
                 parent = root;
             else
-                parent = (FilterNode)dest.getLastPathComponent();
+                parent = (FilterNode) dest.getLastPathComponent();
 
             TreePath path = null;
-            if (parent.getNodeType() == null && parent.getChildCount() == 0){
-                while (s == null){
+            if (parent.getNodeType() == null && parent.getChildCount() == 0) {
+                while (s == null) {
                     s = createFilterStringOperation(column, true, true);//0 - boolean operation if any, 1 - condition
                 }
                 if (s.length == 0)
@@ -3134,20 +3434,18 @@ public class QueryUI extends JPanel{
                 //aggrFilterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], FilterNodeType.BOOLEAN_OPERATION), parent, parent.getChildCount());
                 aggrFilterTreeModel.insertNodeInto(new FilterNode(s[1], column, s[2], FilterNodeType.CONDITION), parent, parent.getChildCount());
                 path = new TreePath(parent.getPath());
-            }
-            else if (parent.getNodeType() == null && parent.getChildCount() > 0){
-                while (s == null){
+            } else if (parent.getNodeType() == null && parent.getChildCount() > 0) {
+                while (s == null) {
                     s = createFilterStringOperation(column, false, true);//0 - boolean operation if any, 1 - condition
                 }
                 if (s.length == 0)
                     return false;
                 aggrFilterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], "", FilterNodeType.BOOLEAN_OPERATION), parent, parent.getChildCount());
-                aggrFilterTreeModel.insertNodeInto(new FilterNode(s[1], column,s[2], FilterNodeType.CONDITION), parent, parent.getChildCount());
+                aggrFilterTreeModel.insertNodeInto(new FilterNode(s[1], column, s[2], FilterNodeType.CONDITION), parent, parent.getChildCount());
                 path = new TreePath(parent.getPath());
-            }
-            else if (parent.getNodeType() == FilterNodeType.CONDITION ){
+            } else if (parent.getNodeType() == FilterNodeType.CONDITION) {
                 //user wants to create an inner expression OR to add content to inner expression and dragg it to a condition
-                while (s == null){
+                while (s == null) {
                     s = createFilterStringOperation(column, false, true);//0 - boolean operation if any, 1 - condition
                 }
                 if (s.length == 0)
@@ -3155,32 +3453,30 @@ public class QueryUI extends JPanel{
                 //get the boolean operator next to it and check if it has childs
                 FilterNode boleanNodeParent = (FilterNode) parent.getNextNode();
 
-                if (boleanNodeParent == null || boleanNodeParent.getChildCount() == 0){ //no boolean operator, create it and add child
+                if (boleanNodeParent == null || boleanNodeParent.getChildCount() == 0) { //no boolean operator, create it and add child
                     //if creating a new expression nested in a codition, add a boolean operator between the condition and a boolean operator. Make the inner expression child of the boolean operator
                     FilterNode parentOfParent = (FilterNode) parent.getParent();
                     int indexOfParent = parentOfParent.getIndex(parent);
                     FilterNode booleanNode = new FilterNode(s[0], s[0], "", FilterNodeType.BOOLEAN_OPERATION);
-                    aggrFilterTreeModel.insertNodeInto(booleanNode, parentOfParent, indexOfParent+1);// create this condition between the condition and the inner expression
-                    aggrFilterTreeModel.insertNodeInto(new FilterNode(s[1], column, s[2],FilterNodeType.CONDITION), booleanNode, booleanNode.getChildCount());//Must be child of the bolean operator
+                    aggrFilterTreeModel.insertNodeInto(booleanNode, parentOfParent, indexOfParent + 1);// create this condition between the condition and the inner expression
+                    aggrFilterTreeModel.insertNodeInto(new FilterNode(s[1], column, s[2], FilterNodeType.CONDITION), booleanNode, booleanNode.getChildCount());//Must be child of the bolean operator
                     path = new TreePath(booleanNode.getPath());
-                }
-                else {
+                } else {
                     //inserting on an already existent boolean node with inner expr. IF it has an inner expr, add the operator and cond, else only the cond as childs
                     aggrFilterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], "", FilterNodeType.BOOLEAN_OPERATION), boleanNodeParent, boleanNodeParent.getChildCount());
-                    aggrFilterTreeModel.insertNodeInto(new FilterNode(s[1], column, s[2],FilterNodeType.CONDITION), boleanNodeParent, boleanNodeParent.getChildCount());
+                    aggrFilterTreeModel.insertNodeInto(new FilterNode(s[1], column, s[2], FilterNodeType.CONDITION), boleanNodeParent, boleanNodeParent.getChildCount());
                     path = new TreePath(boleanNodeParent.getPath());
                 }
-            }
-            else if (parent.getNodeType() == FilterNodeType.BOOLEAN_OPERATION && parent.getChildCount()>0){
+            } else if (parent.getNodeType() == FilterNodeType.BOOLEAN_OPERATION && parent.getChildCount() > 0) {
                 //user wants to add content to inner expression and dragg it to the outer boolean operator
-                while (s == null){
+                while (s == null) {
                     s = createFilterStringOperation(column, false, true);//0 - boolean operation if any, 1 - condition
                 }
                 if (s.length == 0)
                     return false;
                 //get the boolean operator next to it and check if it has childs
-                aggrFilterTreeModel.insertNodeInto(new FilterNode(s[0], s[0],"", FilterNodeType.BOOLEAN_OPERATION), parent, parent.getChildCount());
-                aggrFilterTreeModel.insertNodeInto(new FilterNode(s[1], column, s[2],FilterNodeType.CONDITION), parent, parent.getChildCount());
+                aggrFilterTreeModel.insertNodeInto(new FilterNode(s[0], s[0], "", FilterNodeType.BOOLEAN_OPERATION), parent, parent.getChildCount());
+                aggrFilterTreeModel.insertNodeInto(new FilterNode(s[1], column, s[2], FilterNodeType.CONDITION), parent, parent.getChildCount());
                 path = new TreePath(parent.getPath());
             }
 
@@ -3191,21 +3487,20 @@ public class QueryUI extends JPanel{
         }
 
         //this logic should not be handled here....
-        private String[] createFilterStringOperation(GlobalColumnData droppedCol, boolean isFirst, boolean isFilterAggr){
-            String s[] = new String [3];
+        private String[] createFilterStringOperation(GlobalColumnData droppedCol, boolean isFirst, boolean isFilterAggr) {
+            String s[] = new String[3];
             String elem = "";
             String elemEscapped = "";
-            if (isFilterAggr){//filter aggr, on having
+            if (isFilterAggr) {//filter aggr, on having
                 elem = droppedCol.getAggrOpFullName();//aggrOP(table.column)
                 if (droppedCol.isOriginalDatatypeChanged())
-                    elemEscapped+= droppedCol.getAggrOp()+"(CAST ("+droppedCol.getFullNameEscapped() +" AS "+droppedCol.getDataType()+"))";
+                    elemEscapped += droppedCol.getAggrOp() + "(CAST (" + droppedCol.getFullNameEscapped() + " AS " + droppedCol.getDataType() + "))";
                 else
-                    elemEscapped+=droppedCol.getAggrOpFullNameEscapped();
-            }
-            else { //normal filter, on where
+                    elemEscapped += droppedCol.getAggrOpFullNameEscapped();
+            } else { //normal filter, on where
                 elem = droppedCol.getFullName();
                 if (droppedCol.isOriginalDatatypeChanged())
-                    elemEscapped = "CAST("+droppedCol.getFullNameEscapped()+" AS "+droppedCol.getDataType()+") ";
+                    elemEscapped = "CAST(" + droppedCol.getFullNameEscapped() + " AS " + droppedCol.getDataType() + ") ";
                 else
                     elemEscapped = droppedCol.getFullNameEscapped();
             }
@@ -3231,8 +3526,7 @@ public class QueryUI extends JPanel{
                         new JLabel("Filter value"),
                         value,
                 };
-            }
-            else{
+            } else {
                 //Need to add logic operation
                 inputs = new JComponent[]{
                         new JLabel("Select Boolean Operation"),
@@ -3251,67 +3545,63 @@ public class QueryUI extends JPanel{
             String filterValue = "";
             if (result == JOptionPane.OK_OPTION) {
                 filterValue = value.getText();
-                if (droppedCol.getDataTypeCategory().equals(Constants.STRING_DATATYPE) && !droppedCol.getDataTypeCategory().equalsIgnoreCase(Constants.TIME_DATATYPE)){
+                if (droppedCol.getDataTypeCategory().equals(Constants.STRING_DATATYPE) && !droppedCol.getDataTypeCategory().equalsIgnoreCase(Constants.TIME_DATATYPE)) {
                     //string like data types
-                    if (filter.getSelectedItem().toString().equalsIgnoreCase("between") || filter.getSelectedItem().toString().equalsIgnoreCase("not between")){
-                        if (!filterValue.contains("and")){
+                    if (filter.getSelectedItem().toString().equalsIgnoreCase("between") || filter.getSelectedItem().toString().equalsIgnoreCase("not between")) {
+                        if (!filterValue.contains("and")) {
                             JOptionPane.showMessageDialog(mainMenu, "Between operator must contain an 'and' between two values.", "error on filter value", JOptionPane.ERROR_MESSAGE);
                             return null;
                         }
                         String[] valueSplit = filterValue.split(" and ");
                         String value1 = valueSplit[0].trim();
-                        if (!value1.startsWith("'") && !value1.endsWith("'")){
-                            value1 = "'"+value1+"'";
+                        if (!value1.startsWith("'") && !value1.endsWith("'")) {
+                            value1 = "'" + value1 + "'";
                         }
                         String value2 = valueSplit[1].trim();
-                        if (!value2.startsWith("'") && !value2.endsWith("'")){
-                            value2 = "'"+value2+"'";
+                        if (!value2.startsWith("'") && !value2.endsWith("'")) {
+                            value2 = "'" + value2 + "'";
                         }
                         filterValue = value1 + " AND " + value2;
-                    }
-                    else
-                        filterValue = "'"+filterValue+"'";
-                }
-                else if (droppedCol.getDataTypeCategory().equalsIgnoreCase(Constants.TIME_DATATYPE)){
+                    } else
+                        filterValue = "'" + filterValue + "'";
+                } else if (droppedCol.getDataTypeCategory().equalsIgnoreCase(Constants.TIME_DATATYPE)) {
                     //date and time data type require need a <datatype> 'value' to be used
-                    if (filter.getSelectedItem().toString().equalsIgnoreCase("between") || filter.getSelectedItem().toString().equalsIgnoreCase("not between")){
-                        if (!filterValue.contains("and")){
+                    if (filter.getSelectedItem().toString().equalsIgnoreCase("between") || filter.getSelectedItem().toString().equalsIgnoreCase("not between")) {
+                        if (!filterValue.contains("and")) {
                             JOptionPane.showMessageDialog(mainMenu, "Between operator must contain an 'and' between two values.", "error on filter value", JOptionPane.ERROR_MESSAGE);
                             return null;
                         }
                         String[] valueSplit = filterValue.split(" and ");
                         String value1 = valueSplit[0].trim();
-                        if (!value1.startsWith("'") && value1.endsWith("'")){
-                            value1 = "'"+value1+"'";
+                        if (!value1.startsWith("'") && value1.endsWith("'")) {
+                            value1 = "'" + value1 + "'";
                         }
                         String value2 = valueSplit[1].trim();
-                        if (!value2.startsWith("'") && value2.endsWith("'")){
-                            value2 = "'"+value2+"'";
+                        if (!value2.startsWith("'") && value2.endsWith("'")) {
+                            value2 = "'" + value2 + "'";
                         }
-                        filterValue = droppedCol.getDataType() +" "+value1 + " AND " + droppedCol.getDataType()+" "+value2;
-                    }
-                    else {
-                        if (!filterValue.startsWith("'") && !filterValue.endsWith("'")){
-                            filterValue = "'"+filterValue+"'";
+                        filterValue = droppedCol.getDataType() + " " + value1 + " AND " + droppedCol.getDataType() + " " + value2;
+                    } else {
+                        if (!filterValue.startsWith("'") && !filterValue.endsWith("'")) {
+                            filterValue = "'" + filterValue + "'";
                         }
                         filterValue = droppedCol.getDataType() + " " + filterValue;
                     }
                 }
-                if (filterValue.length() == 0){
+                if (filterValue.length() == 0) {
                     JOptionPane.showMessageDialog(null, "Please insert a filter value with same data type",
                             "Operation Failed", JOptionPane.ERROR_MESSAGE);
                     return null;
                 }
-                elem+= " "+filter.getSelectedItem().toString() +" "+ filterValue;
-                elemEscapped+= " "+filter.getSelectedItem().toString() +" "+ filterValue;
+                elem += " " + filter.getSelectedItem().toString() + " " + filterValue;
+                elemEscapped += " " + filter.getSelectedItem().toString() + " " + filterValue;
 
-            }
-            else{
+            } else {
                 JOptionPane.showMessageDialog(null, "Please select a filter operation and insert a filter value with same data type",
                         "Operation Failed", JOptionPane.ERROR_MESSAGE);
                 return new String[0];
             }
-            if (!isFirst){
+            if (!isFirst) {
                 s[0] = logicOperation.getSelectedItem().toString();
             }
             s[1] = elem;
@@ -3332,7 +3622,7 @@ public class QueryUI extends JPanel{
 
             public CustomTreeNode getTransferData(DataFlavor flavor)
                     throws UnsupportedFlavorException {
-                if(!isDataFlavorSupported(flavor))
+                if (!isDataFlavorSupported(flavor))
                     throw new UnsupportedFlavorException(flavor);
                 return nodes;
             }
@@ -3345,6 +3635,7 @@ public class QueryUI extends JPanel{
                 return flavors[0].equals(flavor);
             }
         }
+
         public class ListElemTransferable implements Transferable {
             ListElementWrapper listElem;
 
@@ -3354,7 +3645,7 @@ public class QueryUI extends JPanel{
 
             public ListElementWrapper getTransferData(DataFlavor flavor)
                     throws UnsupportedFlavorException {
-                if(!isDataFlavorSupported(flavor))
+                if (!isDataFlavorSupported(flavor))
                     throw new UnsupportedFlavorException(flavor);
                 return listElem;
             }

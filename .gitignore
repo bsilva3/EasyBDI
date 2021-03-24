@@ -11,3 +11,5 @@ buildNumber.properties
 .mvn/wrapper/maven-wrapper.jar´
 .idea\workspace.xml
 .idea/workspace.xml
+
+*.class

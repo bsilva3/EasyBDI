@@ -82,7 +82,7 @@ public class FilterNode extends DefaultMutableTreeNode implements Serializable {
         }
         BufferedImage img = null;
         try {
-            img = ImageIO.read(new File(Constants.IMAGES_DIR+fileName));
+            img = ImageIO.read(this.getClass().getClassLoader().getResourceAsStream(Constants.IMAGES_DIR+fileName));
         } catch (IOException e) {
         }
         return new ImageIcon(img.getScaledInstance(20,20, 5));

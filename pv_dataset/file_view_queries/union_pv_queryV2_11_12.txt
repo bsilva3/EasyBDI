@@ -1,99 +1,99 @@
 SELECT customer, postcode, date, half_hour, max(case when "consumption category" = 'GG' then value end)
- as GG, max(case when "consumption category" = 'GC' then value end) as GC, max(case when "consumption category" = 'CL' then value end) as CL FROM (select customer,  Postcode, "Consumption Category", "date",  '0:30' as half_hour, "0:30" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_25.csv"
+ as GG, max(case when "consumption category" = 'GC' then value end) as GC, max(case when "consumption category" = 'CL' then value end) as CL FROM (select customer,  Postcode, "Consumption Category", "date",  '0:30' as half_hour, "0:30" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_7.csv"
 UNION ALL
-select customer,  Postcode, "Consumption Category", "date",  '1:00' as half_hour, "1:00" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_25.csv"
+select customer,  Postcode, "Consumption Category", "date",  '1:00' as half_hour, "1:00" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_7.csv"
 UNION ALL
-select customer,  Postcode, "Consumption Category", "date",  '1:30' as half_hour, "1:30" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_25.csv"
+select customer,  Postcode, "Consumption Category", "date",  '1:30' as half_hour, "1:30" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_7.csv"
 UNION ALL
-select customer,  Postcode, "Consumption Category", "date",  '2:00' as half_hour, "2:00" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_25.csv"
+select customer,  Postcode, "Consumption Category", "date",  '2:00' as half_hour, "2:00" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_7.csv"
 UNION ALL
-select customer,  Postcode, "Consumption Category", "date",  '2:30' as half_hour, "2:30" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_25.csv"
+select customer,  Postcode, "Consumption Category", "date",  '2:30' as half_hour, "2:30" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_7.csv"
 UNION ALL
-select customer,  Postcode, "Consumption Category", "date",  '3:00' as half_hour, "3:00" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_25.csv"
+select customer,  Postcode, "Consumption Category", "date",  '3:00' as half_hour, "3:00" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_7.csv"
 UNION ALL
-select customer,  Postcode, "Consumption Category", "date",  '3:30' as half_hour, "3:30" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_25.csv"
+select customer,  Postcode, "Consumption Category", "date",  '3:30' as half_hour, "3:30" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_7.csv"
 UNION ALL
-select customer,  Postcode, "Consumption Category", "date",  '4:00' as half_hour, "4:00" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_25.csv"
+select customer,  Postcode, "Consumption Category", "date",  '4:00' as half_hour, "4:00" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_7.csv"
 UNION ALL
-select customer,  Postcode, "Consumption Category", "date",  '4:30' as half_hour, "4:30" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_25.csv"
+select customer,  Postcode, "Consumption Category", "date",  '4:30' as half_hour, "4:30" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_7.csv"
 UNION ALL
-select customer,  Postcode, "Consumption Category", "date",  '5:00' as half_hour, "5:00" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_25.csv"
+select customer,  Postcode, "Consumption Category", "date",  '5:00' as half_hour, "5:00" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_7.csv"
 UNION ALL
-select customer,  Postcode, "Consumption Category", "date",  '5:30' as half_hour, "5:30" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_25.csv"
+select customer,  Postcode, "Consumption Category", "date",  '5:30' as half_hour, "5:30" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_7.csv"
 UNION ALL
-select customer,  Postcode, "Consumption Category", "date",  '6:00' as half_hour, "6:00" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_25.csv"
+select customer,  Postcode, "Consumption Category", "date",  '6:00' as half_hour, "6:00" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_7.csv"
 UNION ALL
-select customer,  Postcode, "Consumption Category", "date",  '6:30' as half_hour, "6:30" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_25.csv"
+select customer,  Postcode, "Consumption Category", "date",  '6:30' as half_hour, "6:30" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_7.csv"
 UNION ALL
-select customer,  Postcode, "Consumption Category", "date",  '7:00' as half_hour, "7:00" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_25.csv"
+select customer,  Postcode, "Consumption Category", "date",  '7:00' as half_hour, "7:00" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_7.csv"
 UNION ALL
-select customer,  Postcode, "Consumption Category", "date",  '7:30' as half_hour, "7:30" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_25.csv"
+select customer,  Postcode, "Consumption Category", "date",  '7:30' as half_hour, "7:30" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_7.csv"
 UNION ALL
-select customer,  Postcode, "Consumption Category", "date",  '8:00' as half_hour, "8:00" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_25.csv"
+select customer,  Postcode, "Consumption Category", "date",  '8:00' as half_hour, "8:00" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_7.csv"
 UNION ALL
-select customer,  Postcode, "Consumption Category", "date",  '8:30' as half_hour, "8:30" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_25.csv"
+select customer,  Postcode, "Consumption Category", "date",  '8:30' as half_hour, "8:30" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_7.csv"
 UNION ALL
-select customer,  Postcode, "Consumption Category", "date",  '9:00' as half_hour, "9:00" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_25.csv"
+select customer,  Postcode, "Consumption Category", "date",  '9:00' as half_hour, "9:00" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_7.csv"
 UNION ALL
-select customer,  Postcode, "Consumption Category", "date",  '9:30' as half_hour, "9:30" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_25.csv"
+select customer,  Postcode, "Consumption Category", "date",  '9:30' as half_hour, "9:30" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_7.csv"
 UNION ALL
-select customer,  Postcode, "Consumption Category", "date",  '10:00' as half_hour, "10:00" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_25.csv"
+select customer,  Postcode, "Consumption Category", "date",  '10:00' as half_hour, "10:00" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_7.csv"
 UNION ALL
-select customer,  Postcode, "Consumption Category", "date",  '10:30' as half_hour, "10:30" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_25.csv"
+select customer,  Postcode, "Consumption Category", "date",  '10:30' as half_hour, "10:30" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_7.csv"
 UNION ALL
-select customer,  Postcode, "Consumption Category", "date",  '11:00' as half_hour, "11:00" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_25.csv"
+select customer,  Postcode, "Consumption Category", "date",  '11:00' as half_hour, "11:00" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_7.csv"
 UNION ALL
-select customer,  Postcode, "Consumption Category", "date",  '11:30' as half_hour, "11:30" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_25.csv"
+select customer,  Postcode, "Consumption Category", "date",  '11:30' as half_hour, "11:30" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_7.csv"
 UNION ALL
-select customer,  Postcode, "Consumption Category", "date",  '12:00' as half_hour, "12:00" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_25.csv"
+select customer,  Postcode, "Consumption Category", "date",  '12:00' as half_hour, "12:00" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_7.csv"
 UNION ALL
-select customer,  Postcode, "Consumption Category", "date",  '12:30' as half_hour, "12:30" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_25.csv"
+select customer,  Postcode, "Consumption Category", "date",  '12:30' as half_hour, "12:30" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_7.csv"
 UNION ALL
-select customer,  Postcode, "Consumption Category", "date",  '13:00' as half_hour, "13:00" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_25.csv"
+select customer,  Postcode, "Consumption Category", "date",  '13:00' as half_hour, "13:00" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_7.csv"
 UNION ALL
-select customer,  Postcode, "Consumption Category", "date",  '13:30' as half_hour, "13:30" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_25.csv"
+select customer,  Postcode, "Consumption Category", "date",  '13:30' as half_hour, "13:30" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_7.csv"
 UNION ALL
-select customer,  Postcode, "Consumption Category", "date",  '14:00' as half_hour, "14:00" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_25.csv"
+select customer,  Postcode, "Consumption Category", "date",  '14:00' as half_hour, "14:00" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_7.csv"
 UNION ALL
-select customer,  Postcode, "Consumption Category", "date",  '14:30' as half_hour, "14:30" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_25.csv"
+select customer,  Postcode, "Consumption Category", "date",  '14:30' as half_hour, "14:30" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_7.csv"
 UNION ALL
-select customer,  Postcode, "Consumption Category", "date",  '15:00' as half_hour, "15:00" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_25.csv"
+select customer,  Postcode, "Consumption Category", "date",  '15:00' as half_hour, "15:00" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_7.csv"
 UNION ALL
-select customer,  Postcode, "Consumption Category", "date",  '15:30' as half_hour, "15:30" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_25.csv"
+select customer,  Postcode, "Consumption Category", "date",  '15:30' as half_hour, "15:30" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_7.csv"
 UNION ALL
-select customer,  Postcode, "Consumption Category", "date",  '16:00' as half_hour, "16:00" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_25.csv"
+select customer,  Postcode, "Consumption Category", "date",  '16:00' as half_hour, "16:00" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_7.csv"
 UNION ALL
-select customer,  Postcode, "Consumption Category", "date",  '16:30' as half_hour, "16:30" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_25.csv"
+select customer,  Postcode, "Consumption Category", "date",  '16:30' as half_hour, "16:30" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_7.csv"
 UNION ALL
-select customer,  Postcode, "Consumption Category", "date",  '17:00' as half_hour, "17:00" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_25.csv"
+select customer,  Postcode, "Consumption Category", "date",  '17:00' as half_hour, "17:00" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_7.csv"
 UNION ALL
-select customer,  Postcode, "Consumption Category", "date",  '17:30' as half_hour, "17:30" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_25.csv"
+select customer,  Postcode, "Consumption Category", "date",  '17:30' as half_hour, "17:30" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_7.csv"
 UNION ALL
-select customer,  Postcode, "Consumption Category", "date",  '18:00' as half_hour, "18:00" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_25.csv"
+select customer,  Postcode, "Consumption Category", "date",  '18:00' as half_hour, "18:00" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_7.csv"
 UNION ALL
-select customer,  Postcode, "Consumption Category", "date",  '18:30' as half_hour, "18:30" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_25.csv"
+select customer,  Postcode, "Consumption Category", "date",  '18:30' as half_hour, "18:30" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_7.csv"
 UNION ALL
-select customer,  Postcode, "Consumption Category", "date",  '19:00' as half_hour, "19:00" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_25.csv"
+select customer,  Postcode, "Consumption Category", "date",  '19:00' as half_hour, "19:00" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_7.csv"
 UNION ALL
-select customer,  Postcode, "Consumption Category", "date",  '19:30' as half_hour, "19:30" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_25.csv"
+select customer,  Postcode, "Consumption Category", "date",  '19:30' as half_hour, "19:30" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_7.csv"
 UNION ALL
-select customer,  Postcode, "Consumption Category", "date",  '20:00' as half_hour, "20:00" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_25.csv"
+select customer,  Postcode, "Consumption Category", "date",  '20:00' as half_hour, "20:00" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_7.csv"
 UNION ALL
-select customer,  Postcode, "Consumption Category", "date",  '20:30' as half_hour, "20:30" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_25.csv"
+select customer,  Postcode, "Consumption Category", "date",  '20:30' as half_hour, "20:30" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_7.csv"
 UNION ALL
-select customer,  Postcode, "Consumption Category", "date",  '21:00' as half_hour, "21:00" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_25.csv"
+select customer,  Postcode, "Consumption Category", "date",  '21:00' as half_hour, "21:00" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_7.csv"
 UNION ALL
-select customer,  Postcode, "Consumption Category", "date",  '21:30' as half_hour, "21:30" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_25.csv"
+select customer,  Postcode, "Consumption Category", "date",  '21:30' as half_hour, "21:30" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_7.csv"
 UNION ALL
-select customer,  Postcode, "Consumption Category", "date",  '22:00' as half_hour, "22:00" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_25.csv"
+select customer,  Postcode, "Consumption Category", "date",  '22:00' as half_hour, "22:00" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_7.csv"
 UNION ALL
-select customer,  Postcode, "Consumption Category", "date",  '22:30' as half_hour, "22:30" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_25.csv"
+select customer,  Postcode, "Consumption Category", "date",  '22:30' as half_hour, "22:30" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_7.csv"
 UNION ALL
-select customer,  Postcode, "Consumption Category", "date",  '23:00' as half_hour, "23:00" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_25.csv"
+select customer,  Postcode, "Consumption Category", "date",  '23:00' as half_hour, "23:00" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_7.csv"
 UNION ALL
-select customer,  Postcode, "Consumption Category", "date",  '23:30' as half_hour, "23:30" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_25.csv"
+select customer,  Postcode, "Consumption Category", "date",  '23:30' as half_hour, "23:30" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_7.csv"
 UNION ALL
-select customer,  Postcode, "Consumption Category", "date",  '0:00' as half_hour, "0:00" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_25.csv") 
+select customer,  Postcode, "Consumption Category", "date",  '0:00' as half_hour, "0:00" AS value from flex.csv."file:///home/bruno/dataset/2011-2012_solar_home_electricity_datefix_7.csv") 
 group by customer,  postcode, date, half_hour 
 order by customer, date, half_hour;
 

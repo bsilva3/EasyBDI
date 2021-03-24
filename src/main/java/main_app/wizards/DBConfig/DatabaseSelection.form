@@ -25,19 +25,21 @@
           </component>
         </children>
       </scrollpane>
-      <component id="40b9c" class="javax.swing.JLabel" binding="stepLabel">
+      <component id="35558" class="javax.swing.JLabel" binding="helpLabel">
         <constraints>
-          <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
-          <gridbag weightx="1.0" weighty="0.5"/>
+          <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="1.0" weighty="1.0"/>
         </constraints>
         <properties>
+          <horizontalAlignment value="0"/>
+          <horizontalTextPosition value="0"/>
           <text value="Label"/>
         </properties>
       </component>
-      <component id="35558" class="javax.swing.JLabel" binding="helpLabel">
+      <component id="40b9c" class="javax.swing.JLabel" binding="stepLabel">
         <constraints>
-          <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-          <gridbag weightx="1.0" weighty="1.0"/>
+          <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+          <gridbag weightx="1.0" weighty="0.5"/>
         </constraints>
         <properties>
           <text value="Label"/>

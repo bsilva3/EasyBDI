@@ -4,23 +4,26 @@ import java.io.File;
 
 public class Constants {
 
-    //Presto main dir location Static for now
-    //TODO: add a config file that shows the location of presto instalation
-    public static String PRESTO_DIR = "/home/bruno/Desktop/presto-server-330";
-    public static final String PRESTO_BIN = PRESTO_DIR + File.separator + "bin";
-    public static final String PRESTO_PROPERTIES_FOLDER = PRESTO_DIR + File.separator + "etc" + File.separator + "catalog"+File.separator;
+    //Config files fields
+    public static final String PRESTO_DIR_PROPERTY = "presto-dir";
+    public static final String PROJECT_DIR_PROPERTY = "project-dir";
+
+    //First 2 are read from config file
+    public static String PRESTO_DIR = "";
+    public static String PROJECT_DIR = "";
+    public static String PRESTO_BIN = PRESTO_DIR + File.separator + "bin";
+    public static String PRESTO_PROPERTIES_FOLDER = PRESTO_DIR + File.separator + "etc" + File.separator + "catalog"+File.separator;
 
     //files
     public static final String FILES_DIR = "files";
-    public static final String IMAGES_DIR= FILES_DIR+ File.separator+"images"+File.separator;
+    public static final String CONFIG_FILE_DIR = "config.properties";
+    //public static final String IMAGES_DIR= FILES_DIR+ File.separator+"images"+File.separator;
+    public static final String IMAGES_DIR= "images" + File.separator;
     public static final String DATATYPE_CONVERTIBLES_DICT = FILES_DIR + File.separator + "convertible_datatypes.csv";
     public static final String DATATYPE_CONVERTIBLES_SCORE = FILES_DIR + File.separator + "convertible_datatype_groups_score.csv";
     public static final String DATATYPE_CONVERTIBLES_GROUP_DICT = FILES_DIR + File.separator + "convertible_datatype_groups.csv";
-    public static final String LOADING_GIF = IMAGES_DIR + File.separator + "loading.gif";
+    public static final String LOADING_GIF = IMAGES_DIR + "loading.gif";
 
-    //SQLITE
-    public static final String SQLITE_DB = "metadataBD";
-    public static final String SQLITE_DB_FOLDER = "metadata";
     // ---------tables and columns for SQLITE--------------
 
     public static final String ID_FIELD = "id";
