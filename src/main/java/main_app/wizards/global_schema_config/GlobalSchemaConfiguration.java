@@ -873,7 +873,7 @@ public class GlobalSchemaConfiguration extends JPanel {
                     CustomTreeNode globalTableNode = (CustomTreeNode) selNode.getParent();
                     GlobalTableData t = (GlobalTableData) globalTableNode.getObj();
                     List<GlobalTableData> tablesWithKeys = getGlobalTablesWithPrimKeys(t);
-                    if (tablesWithKeys.isEmpty()){
+                    if (tablesWithKeys.isEmpty()) {
                         JOptionPane.showMessageDialog(mainPanel, "No PKs", "There are no primary keys in the global schema\n Please, create primary keys before assigning foreign keys.", JOptionPane.WARNING_MESSAGE);
                         return;
                     }

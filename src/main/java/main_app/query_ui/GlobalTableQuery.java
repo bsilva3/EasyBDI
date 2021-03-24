@@ -838,7 +838,7 @@ public class GlobalTableQuery {
                 measureName = "CAST ("+"\""+measure.getName()+"\" AS "+measure.getDataType()+")";
             }
             else
-                measureName = "\""+measureName+"\"";
+                measureName = "\""+measure.getName()+"\"";
             if (measure.getAggrOp().equalsIgnoreCase("COUNT")) {
                 pivotStatement = " SUM(CASE WHEN %s AND " + measureName + " IS NOT NULL THEN 1 ELSE 0 END) AS %s, ";
                 hasAggregations = true;
