@@ -27,9 +27,10 @@ To demonstrate the system, two case studies are available for usage:
 - SSB+ benchmark – retail and streaming data containing sales, deliveries and social media popularity of retail stores
 
 ## Citation
-This project was subject of a demo paper to be published in EDBT 2021. To cite this work, please use (complete citation will be updated soon):
->Bruno Silva, José Moreira and Rogério L. C. Costa. 2019. *EasyBDI: Near Real-Time Data Analytics over Heterogeneous DistributedData Sources* in xxx
+This project was subject of a [demo paper](https://edbt2021proceedings.github.io/docs/p190.pdf) published in EDBT 2021. To cite this work, please use:
+>Bruno Silva, José Moreira, Rogério Luís C. Costa (2021) EasyBDI: Near Real-Time Data Analytics over Heterogeneous Data Sources. In Proceedings of the 24th International Conference on Extending Database Technology, EDBT 2021. pp 702-705.
 
+You can also check a [30 second presentation submitted to EDBT](https://www.youtube.com/watch?v=_RVXNxPU1dw) and an [overview poster](https://edbt2021proceedings.github.io/ads/a190.png)
 For a more in depth analysis of this work, please consult the master thesis developed for this project at (link to be added once it is published in the University's repository)
 
 
