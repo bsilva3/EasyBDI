@@ -31,7 +31,7 @@ This project was subject of a [demo paper](https://edbt2021proceedings.github.io
 >Bruno Silva, José Moreira, Rogério Luís C. Costa (2021) EasyBDI: Near Real-Time Data Analytics over Heterogeneous Data Sources. In Proceedings of the 24th International Conference on Extending Database Technology, EDBT 2021. pp 702-705.
 
 You can also check a [30 second presentation submitted to EDBT](https://www.youtube.com/watch?v=_RVXNxPU1dw) and an [overview poster](https://edbt2021proceedings.github.io/ads/a190.png)
-For a more in depth analysis of this work, please consult the master thesis developed for this project at (link to be added once it is published in the University's repository)
+For a more in depth analysis of this work, please consult the master thesis developed for this project [in this link](https://ria.ua.pt/handle/10773/31215)
 
 
 ## Aknowledgements
