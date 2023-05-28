@@ -33,6 +33,8 @@ This project was subject of a [demo paper](https://edbt2021proceedings.github.io
 You can also check a [30 second presentation submitted to EDBT](https://www.youtube.com/watch?v=_RVXNxPU1dw) and an [overview poster](https://edbt2021proceedings.github.io/ads/a190.png).  
 For a more in depth analysis of this work, please consult the [master thesis developed for this project](https://ria.ua.pt/handle/10773/31215)
 
+This project was also subject to a [technical paper](https://www.sciencedirect.com/science/article/pii/S0169023X23000459?via%3Dihub) published at 2023's Data & Knowledge Engineering (DATAK). To cite this work, please use:
+>Bruno Silva, José Moreira, and Rogério Luís de C. Costa. "Logical big data integration and near real-time data analytics." Data & Knowledge Engineering (2023): 102185. DOI: 10.1016/j.datak.2023.102185
 
 ## Aknowledgements
 This work was partially funded by the European Regional Development Fund (ERDF), Operational Program Competitiveness and Internationalization in the context of the PRODUCECH SIF project – Soluções para a Indústria de Futuro – POCI-01-0247-FEDER-024541
